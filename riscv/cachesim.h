@@ -66,6 +66,7 @@ class cache_sim_t
   std::string name;
 
   void init();
+  void memdatatrace(uint64_t addr, size_t bytes, bool store); //MWG
 };
 
 class fa_cache_sim_t : public cache_sim_t

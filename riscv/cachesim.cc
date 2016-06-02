@@ -129,26 +129,28 @@ uint64_t cache_sim_t::victimize(uint64_t addr)
   return victim;
 }
 
-void cache_sim_t::access(uint64_t addr, size_t bytes, bool store)
-{
-    //BEGIN MWG
-    reg_t paddr;
+//MWG
+void cache_sim_t::memdatatrace(uint64_t addr, size_t bytes, bool store) {
+    //Only track cache misses
+    reg_t paddr; //MWG
+    if (name.compare("L2$") != 0) //skip everything except L2
+        return;
+
     if (store)
         paddr = the_mmu->translate(addr, STORE);
     else
         paddr = the_mmu->translate(addr, LOAD);
     if (the_sim->addr_is_mem(paddr)) {
-        uint8_t payload[bytes];
+        //uint8_t payload[bytes];
         uint8_t cacheline[linesz];
-        unsigned position_in_cacheline = (paddr & 0x3f) / sizeof(uint64_t);
-        memcpy(payload, the_sim->addr_to_mem(paddr), bytes);
+        //unsigned position_in_cacheline = (paddr & 0x3f) / sizeof(uint64_t);
+        //memcpy(payload, the_sim->addr_to_mem(paddr), bytes);
         memcpy(cacheline, the_sim->addr_to_mem(paddr & (~0x000000000000003f)), linesz);
 
         std::cout.fill('0');
         std::cout 
-            << name
-            << ","
-            << (store ? "STORE" : "LOAD")
+            << "MEM," 
+            << (store ? "STOR" : "LOAD")
             << ",ADDR 0x"
             << std::hex
             << std::setw(16)
@@ -156,9 +158,9 @@ void cache_sim_t::access(uint64_t addr, size_t bytes, bool store)
             << ","
             << std::dec
             << bytes
-            << "B,PAYLOAD 0x";
-        //Little endian
-        for (size_t i = 0; i < bytes; i++) {
+            << "B,";
+            //<< "PAYLOAD 0x";
+        /*for (size_t i = 0; i < bytes; i++) {
             std::cout
                 << std::hex
                 << std::setw(2)
@@ -166,7 +168,7 @@ void cache_sim_t::access(uint64_t addr, size_t bytes, bool store)
         }
         std::cout << ",BLKPOS "
             << position_in_cacheline
-            << ",";
+            << ",";*/
        
         for (size_t word = 0; word < linesz/sizeof(uint64_t); word++) {
             std::cout << "0x";
@@ -174,14 +176,16 @@ void cache_sim_t::access(uint64_t addr, size_t bytes, bool store)
                 std::cout
                     << std::hex
                     << std::setw(2)
-                    << static_cast<uint64_t>(cacheline[i]);
+                    << static_cast<uint64_t>(cacheline[word*sizeof(uint64_t)+i]);
             }
             std::cout << ",";
         }
         std::cout << std::endl;
-  }
-  //END MWG
+    }
+}
 
+void cache_sim_t::access(uint64_t addr, size_t bytes, bool store)
+{
   store ? write_accesses++ : read_accesses++;
   (store ? bytes_written : bytes_read) += bytes;
 
@@ -203,10 +207,12 @@ void cache_sim_t::access(uint64_t addr, size_t bytes, bool store)
     if (miss_handler)
       miss_handler->access(dirty_addr, linesz, true);
     writebacks++;
+    memdatatrace(dirty_addr,linesz,true); //MWG
   }
 
   if (miss_handler)
     miss_handler->access(addr & ~(linesz-1), linesz, false);
+  memdatatrace(addr & ~(linesz-1),linesz,false); //MWG
 
   if (store)
     *check_tag(addr) |= DIRTY;
