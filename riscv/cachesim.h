@@ -13,9 +13,9 @@
 #include "mmu.h" //MWG
 #include "sim.h" //MWG
 
-extern mmu_t* the_mmu; //MWG HACK
-extern sim_t* the_sim; //MWG HACK
-extern std::fstream output_file; //MWG HACK
+//extern mmu_t* the_mmu; //MWG HACK
+//extern sim_t* the_sim; //MWG HACK
+//extern std::fstream output_file; //MWG HACK
 
 class lfsr_t
 {
