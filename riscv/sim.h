@@ -87,6 +87,7 @@ private:
   friend class htif_isasim_t;
   friend class processor_t;
   friend class mmu_t;
+  friend class cache_sim_t; //MWG
 };
 
 extern volatile bool ctrlc_pressed;

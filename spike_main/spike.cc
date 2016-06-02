@@ -12,6 +12,11 @@
 #include <vector>
 #include <string>
 #include <memory>
+#include "cachesim.h" //MWG
+
+extern mmu_t* the_mmu; //MWG HACK
+extern sim_t* the_sim; //MWG HACK
+
 
 static void help()
 {
@@ -71,6 +76,7 @@ int main(int argc, char** argv)
     help();
   std::vector<std::string> htif_args(argv1, (const char*const*)argv + argc);
   sim_t s(isa, nprocs, mem_mb, htif_args);
+  the_sim = &s; //MWG THIS IS DANGEROUS HACK
 
   if (ic && l2) ic->set_miss_handler(&*l2);
   if (dc && l2) dc->set_miss_handler(&*l2);
@@ -80,6 +86,7 @@ int main(int argc, char** argv)
     if (dc) s.get_core(i)->get_mmu()->register_memtracer(&*dc);
     if (extension) s.get_core(i)->register_extension(extension());
   }
+  the_mmu = s.get_core(0)->get_mmu(); //MWG THIS IS DANGEROUS HACK
 
   s.set_debug(debug);
   s.set_log(log);

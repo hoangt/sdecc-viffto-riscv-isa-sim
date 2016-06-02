@@ -3,6 +3,8 @@
 #include "mmu.h"
 #include "sim.h"
 #include "processor.h"
+#include <iostream> //MWG
+#include <iomanip> //MWG
 
 mmu_t::mmu_t(char* _mem, size_t _memsz)
  : mem(_mem), memsz(_memsz), proc(NULL)

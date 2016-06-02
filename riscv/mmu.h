@@ -178,6 +178,7 @@ private:
   }
   
   friend class processor_t;
+  friend class cache_sim_t; //MWG
 };
 
 #endif

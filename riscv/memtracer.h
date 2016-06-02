@@ -6,6 +6,7 @@
 #include <cstdint>
 #include <string.h>
 #include <vector>
+#include <iostream>
 
 enum access_type {
   LOAD,

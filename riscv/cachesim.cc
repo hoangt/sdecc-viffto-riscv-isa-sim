@@ -6,6 +6,14 @@
 #include <iostream>
 #include <iomanip>
 
+#include "mmu.h" //MWG
+#include "sim.h" //MWG
+
+//MWG BEGIN
+mmu_t* the_mmu;
+sim_t* the_sim;
+//MWG END
+
 cache_sim_t::cache_sim_t(size_t _sets, size_t _ways, size_t _linesz, const char* _name)
  : sets(_sets), ways(_ways), linesz(_linesz), name(_name)
 {
@@ -123,6 +131,57 @@ uint64_t cache_sim_t::victimize(uint64_t addr)
 
 void cache_sim_t::access(uint64_t addr, size_t bytes, bool store)
 {
+    //BEGIN MWG
+    reg_t paddr;
+    if (store)
+        paddr = the_mmu->translate(addr, STORE);
+    else
+        paddr = the_mmu->translate(addr, LOAD);
+    if (the_sim->addr_is_mem(paddr)) {
+        uint8_t payload[bytes];
+        uint8_t cacheline[linesz];
+        unsigned position_in_cacheline = (paddr & 0x3f) / sizeof(uint64_t);
+        memcpy(payload, the_sim->addr_to_mem(paddr), bytes);
+        memcpy(cacheline, the_sim->addr_to_mem(paddr & (~0x000000000000003f)), linesz);
+
+        std::cout.fill('0');
+        std::cout 
+            << name
+            << ","
+            << (store ? "STORE" : "LOAD")
+            << ",ADDR 0x"
+            << std::hex
+            << std::setw(16)
+            << addr
+            << ","
+            << std::dec
+            << bytes
+            << "B,PAYLOAD 0x";
+        //Little endian
+        for (size_t i = 0; i < bytes; i++) {
+            std::cout
+                << std::hex
+                << std::setw(2)
+                << static_cast<uint64_t>(payload[i]);
+        }
+        std::cout << ",BLKPOS "
+            << position_in_cacheline
+            << ",";
+       
+        for (size_t word = 0; word < linesz/sizeof(uint64_t); word++) {
+            std::cout << "0x";
+            for (size_t i = 0; i < sizeof(uint64_t); i++) {
+                std::cout
+                    << std::hex
+                    << std::setw(2)
+                    << static_cast<uint64_t>(cacheline[i]);
+            }
+            std::cout << ",";
+        }
+        std::cout << std::endl;
+  }
+  //END MWG
+
   store ? write_accesses++ : read_accesses++;
   (store ? bytes_written : bytes_read) += bytes;
 
