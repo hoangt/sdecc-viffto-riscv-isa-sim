@@ -52,9 +52,9 @@ int main(int argc, char** argv)
   const char* isa = "RV64";
 
   //MWG BEGIN
-  output_file.open("mem_data_trace.txt", std::fstream::out);
+  output_file.open("spike_mem_data_trace.txt", std::fstream::out);
   if (!output_file.is_open()) {
-     std::cerr << "FAILED to open mem_data_trace.txt. Exiting." << std::endl;
+     std::cerr << "FAILED to open spike_mem_data_trace.txt. Exiting." << std::endl;
      exit(-1);
   }
   //MWG END
