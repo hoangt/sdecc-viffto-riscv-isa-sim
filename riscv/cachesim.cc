@@ -3,8 +3,9 @@
 #include "cachesim.h"
 #include "common.h"
 #include <cstdlib>
-#include <iostream>
-#include <iomanip>
+#include <iostream> //MWG
+#include <fstream> //MWG
+#include <iomanip> //MWG
 
 #include "mmu.h" //MWG
 #include "sim.h" //MWG
@@ -12,6 +13,7 @@
 //MWG BEGIN
 mmu_t* the_mmu;
 sim_t* the_sim;
+std::fstream output_file;
 //MWG END
 
 cache_sim_t::cache_sim_t(size_t _sets, size_t _ways, size_t _linesz, const char* _name)
@@ -140,6 +142,10 @@ void cache_sim_t::memdatatrace(uint64_t addr, size_t bytes, bool store) {
         paddr = the_mmu->translate(addr, STORE);
     else
         paddr = the_mmu->translate(addr, LOAD);
+
+    bool ur,uw,ux,sr,sw,sx = false;
+    bool vm_enabled = the_mmu->get_page_permissions(addr,ur,uw,ux,sr,sw,sx);
+    
     if (the_sim->addr_is_mem(paddr)) {
         //uint8_t payload[bytes];
         uint8_t cacheline[linesz];
@@ -147,40 +153,48 @@ void cache_sim_t::memdatatrace(uint64_t addr, size_t bytes, bool store) {
         //memcpy(payload, the_sim->addr_to_mem(paddr), bytes);
         memcpy(cacheline, the_sim->addr_to_mem(paddr & (~0x000000000000003f)), linesz);
 
-        std::cout.fill('0');
-        std::cout 
+        output_file.fill('0');
+        output_file 
             << "MEM," 
-            << (store ? "STOR" : "LOAD")
+            << (store ? "WR" : "RD")
             << ",ADDR 0x"
             << std::hex
             << std::setw(16)
             << addr
+            << ",u"
+            << (vm_enabled ? (ur ? "R" : "-")  : "#")
+            << (vm_enabled ? (uw ? "W" : "-")  : "#")
+            << (vm_enabled ? (ux ? "X" : "-")  : "#")
+            << ",s"
+            << (vm_enabled ? (sr ? "R" : "-")  : "#")
+            << (vm_enabled ? (sw ? "W" : "-")  : "#")
+            << (vm_enabled ? (sx ? "X" : "-")  : "#")
             << ","
             << std::dec
             << bytes
             << "B,";
             //<< "PAYLOAD 0x";
         /*for (size_t i = 0; i < bytes; i++) {
-            std::cout
+            output_file
                 << std::hex
                 << std::setw(2)
                 << static_cast<uint64_t>(payload[i]);
         }
-        std::cout << ",BLKPOS "
+        output_file << ",BLKPOS "
             << position_in_cacheline
             << ",";*/
        
         for (size_t word = 0; word < linesz/sizeof(uint64_t); word++) {
-            std::cout << "0x";
+            output_file << "0x";
             for (size_t i = 0; i < sizeof(uint64_t); i++) {
-                std::cout
+                output_file
                     << std::hex
                     << std::setw(2)
                     << static_cast<uint64_t>(cacheline[word*sizeof(uint64_t)+i]);
             }
-            std::cout << ",";
+            output_file << ",";
         }
-        std::cout << std::endl;
+        output_file << std::endl;
     }
 }
 

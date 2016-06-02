@@ -16,6 +16,7 @@
 
 extern mmu_t* the_mmu; //MWG HACK
 extern sim_t* the_sim; //MWG HACK
+extern std::fstream output_file; //MWG HACK
 
 
 static void help()
@@ -49,6 +50,14 @@ int main(int argc, char** argv)
   std::unique_ptr<cache_sim_t> l2;
   std::function<extension_t*()> extension;
   const char* isa = "RV64";
+
+  //MWG BEGIN
+  output_file.open("mem_data_trace.txt", std::fstream::out);
+  if (!output_file.is_open()) {
+     std::cerr << "FAILED to open mem_data_trace.txt. Exiting." << std::endl;
+     exit(-1);
+  }
+  //MWG END
 
   option_parser_t parser;
   parser.help(&help);
@@ -91,5 +100,8 @@ int main(int argc, char** argv)
   s.set_debug(debug);
   s.set_log(log);
   s.set_histogram(histogram);
-  return s.run();
+  bool retval = s.run(); //MWG
+  if (output_file.is_open()) //MWG
+      output_file.close(); //MWG
+  return retval; //MWG
 }
