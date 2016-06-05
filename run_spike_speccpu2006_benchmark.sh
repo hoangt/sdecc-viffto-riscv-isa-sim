@@ -4,9 +4,7 @@
 # mgottscho@ucla.edu
 
 ################## DIRECTORY VARIABLES: MODIFY ACCORDINGLY #######
-#GEM5_DIR=/u/home/m/mgottsch/project-puneet/eccgrp-gem5-stable-50ff05095970	# Install location of gem5
 #SPEC_DIR=/u/home/m/mgottsch/project-puneet/spec_cpu2006_install		# Install location of your SPEC2006 benchmarks
-SPIKE_DIR=~/Git/eccgrp-riscv-isa-sim/build                  	# Install location of spike
 SPEC_DIR=~/Git/spec-cpu2006-nanocad-prep		# Install location of your SPEC2006 benchmarks
 ##################################################################
 
@@ -203,7 +201,7 @@ echo "" | tee -a $SCRIPT_OUT
 echo "" | tee -a $SCRIPT_OUT
 
 # Actually launch spike.
-echo "$SPIKE_DIR/spike --ic=4096:64:64 --dc=64:4:64 --l2=256:4:64 --isa=RV64G -m512 -p1 pk ${BENCHMARK}_base.mwg-desktop-ubuntuvm-rv64g-newlib input.source 280" | tee -a $SCRIPT_OUT
-$SPIKE_DIR/spike --ic=4096:64:64 --dc=64:4:64 --l2=256:4:64 --isa=RV64G -m512 -p1 pk ${BENCHMARK}_base.mwg-desktop-ubuntuvm-rv64g-newlib input.source 280
+echo "/opt/riscv/bin/spike --ic=4096:64:64 --dc=64:4:64 --l2=256:4:64 --isa=RV64G -m512 -p1 /opt/riscv/riscv64-unknown-elf/bin/pk ${BENCHMARK}_base.mwg-desktop-ubuntuvm-rv64g-newlib input.source 280" | tee -a $SCRIPT_OUT
+/opt/riscv/bin/spike --ic=4096:64:64 --dc=64:4:64 --l2=256:4:64 --isa=RV64G -m512 -p1 /opt/riscv/riscv64-unknown-elf/bin/pk ${BENCHMARK}_base.mwg-desktop-ubuntuvm-rv64g-newlib input.source 280
 
 mv spike_mem_data_trace.txt ~/spike_mem_data_trace_${BENCHMARK}.txt

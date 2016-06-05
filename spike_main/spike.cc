@@ -14,11 +14,6 @@
 #include <memory>
 #include "cachesim.h" //MWG
 
-extern mmu_t* the_mmu; //MWG HACK
-extern sim_t* the_sim; //MWG HACK
-extern std::fstream output_file; //MWG HACK
-
-
 static void help()
 {
   fprintf(stderr, "usage: spike [host options] <target program> [target options]\n");
