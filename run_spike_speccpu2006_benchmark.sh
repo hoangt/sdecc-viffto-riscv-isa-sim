@@ -4,7 +4,6 @@
 # mgottscho@ucla.edu
 
 ################## DIRECTORY VARIABLES: MODIFY ACCORDINGLY #######
-#SPEC_DIR=/u/home/m/mgottsch/project-puneet/spec_cpu2006_install		# Install location of your SPEC2006 benchmarks
 SPEC_DIR=~/Git/spec-cpu2006-nanocad-prep		# Install location of your SPEC2006 benchmarks
 ##################################################################
 
@@ -15,8 +14,8 @@ if [[ "$ARGC" != 1 ]]; then # Bad number of arguments.
 	echo ""
 	echo "This script runs a single gem5 simulation of a single SPEC CPU2006 benchmark on Spike for RISC-V."
 	echo ""
-	echo "USAGE: run_gem5_speccpu2006_benchmark.sh <BENCHMARK>"
-	echo "EXAMPLE: ./run_gem5_speccpu2006_benchmark.sh bzip2"
+	echo "USAGE: run_spike_speccpu2006_benchmark.sh <BENCHMARK>"
+	echo "EXAMPLE: ./run_spike_speccpu2006_benchmark.sh bzip2"
 	echo ""
 	echo "A single --help help or -h argument will bring this message back."
 	exit
@@ -171,25 +170,12 @@ if [[ !(-d "$OUTPUT_DIR") ]]; then
 	exit 1
 fi
 
-RUN_DIR=$SPEC_DIR/benchspec/CPU2006/$BENCHMARK_CODE/run/run_base_ref_mwg-desktop-ubuntuvm-rv64g-newlib.0000		# Run directory for the selected SPEC benchmark
-
+SPEC_CONFIG_SUFFIX=mwg-desktop-ubuntuvm-rv64g
+BENCHMARK_ARGS="input.source 280"
+RUN_DIR=$SPEC_DIR/benchspec/CPU2006/$BENCHMARK_CODE/run/run_base_ref_${SPEC_CONFIG_SUFFIX}.0000		# Run directory for the selected SPEC benchmark
 SCRIPT_OUT=$OUTPUT_DIR/spike_runscript.log															# File log for this script's stdout henceforth
 
-################## REPORT SCRIPT CONFIGURATION ###################
-
-echo "Command line:"								| tee $SCRIPT_OUT
-echo "$0 $*"										| tee -a $SCRIPT_OUT
-echo "================= Hardcoded directories ==================" | tee -a $SCRIPT_OUT
-echo "SPIKE_DIR:                                    $SPIKE_DIR" | tee -a $SCRIPT_OUT
-echo "SPEC_DIR:                                     $SPEC_DIR" | tee -a $SCRIPT_OUT
-echo "==================== Script inputs =======================" | tee -a $SCRIPT_OUT
-echo "BENCHMARK:                                    $BENCHMARK" | tee -a $SCRIPT_OUT
-echo "OUTPUT_DIR:                                   $OUTPUT_DIR" | tee -a $SCRIPT_OUT
-echo "==========================================================" | tee -a $SCRIPT_OUT
-##################################################################
-
-
-#################### LAUNCH GEM5 SIMULATION ######################
+#################### LAUNCH SIMULATION ######################
 echo ""
 echo "Changing to SPEC benchmark runtime directory:	$RUN_DIR" | tee -a $SCRIPT_OUT
 cd $RUN_DIR
@@ -201,7 +187,10 @@ echo "" | tee -a $SCRIPT_OUT
 echo "" | tee -a $SCRIPT_OUT
 
 # Actually launch spike.
-echo "/opt/riscv/bin/spike --ic=4096:64:64 --dc=64:4:64 --l2=256:4:64 --isa=RV64G -m512 -p1 /opt/riscv/riscv64-unknown-elf/bin/pk ${BENCHMARK}_base.mwg-desktop-ubuntuvm-rv64g-newlib input.source 280" | tee -a $SCRIPT_OUT
-/opt/riscv/bin/spike --ic=4096:64:64 --dc=64:4:64 --l2=256:4:64 --isa=RV64G -m512 -p1 /opt/riscv/riscv64-unknown-elf/bin/pk ${BENCHMARK}_base.mwg-desktop-ubuntuvm-rv64g-newlib input.source 280
+CMD="/opt/riscv/bin/spike --ic=4096:64:64 --dc=64:4:64 --l2=256:4:64 --isa=RV64G -m1024 -p1 /opt/riscv/riscv64-unknown-elf/bin/pk ${BENCHMARK}_base.mwg-desktop-ubuntuvm-rv64g $BENCHMARK_ARGS"
+echo $CMD
+$CMD
 
-mv spike_mem_data_trace.txt ~/spike_mem_data_trace_${BENCHMARK}.txt
+# Clean up
+mv spike_mem_data_trace.txt $OUTPUT_DIR/spike_mem_data_trace_${BENCHMARK}.txt | tee -a $SCRIPT_OUT
+echo "Done!" | tee -a $SCRIPT_OUT
