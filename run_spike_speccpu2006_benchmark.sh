@@ -187,7 +187,8 @@ echo "" | tee -a $SCRIPT_OUT
 echo "" | tee -a $SCRIPT_OUT
 
 # Actually launch spike.
-CMD="/opt/riscv/bin/spike --ic=4096:64:64 --dc=64:4:64 --l2=256:4:64 --isa=RV64G -m1024 -p1 /opt/riscv/riscv64-unknown-elf/bin/pk ${BENCHMARK}_base.mwg-desktop-ubuntuvm-rv64g $BENCHMARK_ARGS"
+#CMD="/home/markg/Git/eccgrp-riscv-isa-sim/build/spike --ic=4096:64:64 --dc=64:4:64 --l2=256:4:64 --isa=RV64G -m1024 -p1 /opt/riscv/riscv64-unknown-elf/bin/pk ${BENCHMARK}_base.mwg-desktop-ubuntuvm-rv64g $BENCHMARK_ARGS"
+CMD="/home/markg/Git/eccgrp-riscv-isa-sim/build/spike --ic=1:1:64 --dc=1:1:64 --isa=RV64G -m1024 -p1 /opt/riscv/riscv64-unknown-elf/bin/pk ${BENCHMARK}_base.mwg-desktop-ubuntuvm-rv64g $BENCHMARK_ARGS"
 echo $CMD
 $CMD
 

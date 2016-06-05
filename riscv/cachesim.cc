@@ -134,9 +134,9 @@ uint64_t cache_sim_t::victimize(uint64_t addr)
 //MWG
 void cache_sim_t::memdatatrace(uint64_t addr, size_t bytes, bool store) {
     //Only track cache misses
-    reg_t paddr; //MWG
-    if (name.compare("L2$") != 0) //skip everything except L2
-        return;
+    reg_t paddr;
+    //if (name.compare("L2$") != 0) //skip everything except L2
+        //return;
 
     if (store)
         paddr = the_mmu->translate(addr, STORE);
@@ -147,20 +147,26 @@ void cache_sim_t::memdatatrace(uint64_t addr, size_t bytes, bool store) {
     bool vm_enabled = the_mmu->get_page_permissions(addr,ur,uw,ux,sr,sw,sx);
     
     if (the_sim->addr_is_mem(paddr)) {
-        //uint8_t payload[bytes];
+        uint8_t payload[bytes];
         uint8_t cacheline[linesz];
-        //unsigned position_in_cacheline = (paddr & 0x3f) / sizeof(uint64_t);
-        //memcpy(payload, the_sim->addr_to_mem(paddr), bytes);
+        unsigned position_in_cacheline = (paddr & 0x3f) / sizeof(uint64_t);
+        memcpy(payload, the_sim->addr_to_mem(paddr), bytes);
         memcpy(cacheline, the_sim->addr_to_mem(paddr & (~0x000000000000003f)), linesz);
 
         output_file.fill('0');
         output_file 
-            << "MEM," 
-            << (store ? "WR" : "RD")
-            << ",ADDR 0x"
+            << name
+            << (store ? " WR " : " RD ")
+            << (store ? "to " : "fr ")
+            << "MEM"
+            << ",VADDR 0x"
             << std::hex
             << std::setw(16)
             << addr
+            << ",PADDR 0x"
+            << std::hex
+            << std::setw(16)
+            << paddr
             << ",u"
             << (vm_enabled ? (ur ? "R" : "-")  : "#")
             << (vm_enabled ? (uw ? "W" : "-")  : "#")
@@ -172,9 +178,9 @@ void cache_sim_t::memdatatrace(uint64_t addr, size_t bytes, bool store) {
             << ","
             << std::dec
             << bytes
-            << "B,";
-            //<< "PAYLOAD 0x";
-        /*for (size_t i = 0; i < bytes; i++) {
+            << "B,"
+            << "PAYLOAD 0x";
+        for (size_t i = 0; i < bytes; i++) {
             output_file
                 << std::hex
                 << std::setw(2)
@@ -182,7 +188,7 @@ void cache_sim_t::memdatatrace(uint64_t addr, size_t bytes, bool store) {
         }
         output_file << ",BLKPOS "
             << position_in_cacheline
-            << ",";*/
+            << ",";
        
         for (size_t word = 0; word < linesz/sizeof(uint64_t); word++) {
             output_file << "0x";
@@ -200,6 +206,7 @@ void cache_sim_t::memdatatrace(uint64_t addr, size_t bytes, bool store) {
 
 void cache_sim_t::access(uint64_t addr, size_t bytes, bool store)
 {
+  memdatatrace(addr,bytes,store); //MWG
   store ? write_accesses++ : read_accesses++;
   (store ? bytes_written : bytes_read) += bytes;
 
@@ -221,12 +228,12 @@ void cache_sim_t::access(uint64_t addr, size_t bytes, bool store)
     if (miss_handler)
       miss_handler->access(dirty_addr, linesz, true);
     writebacks++;
-    memdatatrace(dirty_addr,linesz,true); //MWG
+    //memdatatrace(dirty_addr,linesz,true); //MWG
   }
 
   if (miss_handler)
     miss_handler->access(addr & ~(linesz-1), linesz, false);
-  memdatatrace(addr & ~(linesz-1),linesz,false); //MWG
+  //memdatatrace(addr & ~(linesz-1),linesz,false); //MWG
 
   if (store)
     *check_tag(addr) |= DIRTY;
