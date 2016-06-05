@@ -173,7 +173,7 @@ if [[ !(-d "$OUTPUT_DIR") ]]; then
 	exit 1
 fi
 
-RUN_DIR=$SPEC_DIR/benchspec/CPU2006/$BENCHMARK_CODE/run/run_base_ref_mwg-desktop-ubuntuvm-rv64g.0000		# Run directory for the selected SPEC benchmark
+RUN_DIR=$SPEC_DIR/benchspec/CPU2006/$BENCHMARK_CODE/run/run_base_ref_mwg-desktop-ubuntuvm-rv64g-newlib.0000		# Run directory for the selected SPEC benchmark
 
 SCRIPT_OUT=$OUTPUT_DIR/spike_runscript.log															# File log for this script's stdout henceforth
 
@@ -203,7 +203,7 @@ echo "" | tee -a $SCRIPT_OUT
 echo "" | tee -a $SCRIPT_OUT
 
 # Actually launch spike.
-echo "$SPIKE_DIR/spike --ic=4096:64:64 --dc=64:4:64 --l2=256:4:64 --isa=RV64G -m512 -p1 pk ${BENCHMARK}_base.mwg-desktop-ubuntuvm-rv64g" | tee -a $SCRIPT_OUT
-$SPIKE_DIR/spike --ic=4096:64:64 --dc=64:4:64 --l2=256:4:64 --isa=RV64G -m512 -p1 pk ${BENCHMARK}_base.mwg-desktop-ubuntuvm-rv64g
+echo "$SPIKE_DIR/spike --ic=4096:64:64 --dc=64:4:64 --l2=256:4:64 --isa=RV64G -m512 -p1 pk ${BENCHMARK}_base.mwg-desktop-ubuntuvm-rv64g-newlib input.source 280" | tee -a $SCRIPT_OUT
+$SPIKE_DIR/spike --ic=4096:64:64 --dc=64:4:64 --l2=256:4:64 --isa=RV64G -m512 -p1 pk ${BENCHMARK}_base.mwg-desktop-ubuntuvm-rv64g-newlib input.source 280
 
 mv spike_mem_data_trace.txt ~/spike_mem_data_trace_${BENCHMARK}.txt
