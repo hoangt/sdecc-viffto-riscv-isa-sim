@@ -146,12 +146,14 @@ void cache_sim_t::memdatatrace(uint64_t addr, size_t bytes, bool store) {
     bool ur,uw,ux,sr,sw,sx = false;
     bool vm_enabled = the_mmu->get_page_permissions(addr,ur,uw,ux,sr,sw,sx);
     
-    if (the_sim->addr_is_mem(paddr)) {
+    //if (the_sim->addr_is_mem(paddr)) {
         uint8_t payload[bytes];
         uint8_t cacheline[linesz];
         unsigned position_in_cacheline = (paddr & 0x3f) / sizeof(uint64_t);
-        memcpy(payload, the_sim->addr_to_mem(paddr), bytes);
-        memcpy(cacheline, the_sim->addr_to_mem(paddr & (~0x000000000000003f)), linesz);
+        //memcpy(payload, the_sim->addr_to_mem(paddr), bytes);
+        memcpy(payload, reinterpret_cast<char*>(paddr), bytes);
+        //memcpy(cacheline, the_sim->addr_to_mem(paddr & (~0x000000000000003f)), linesz);
+        memcpy(cacheline, reinterpret_cast<char*>(paddr & (~0x000000000000003f)), linesz);
 
         output_file.fill('0');
         output_file 
@@ -201,7 +203,7 @@ void cache_sim_t::memdatatrace(uint64_t addr, size_t bytes, bool store) {
             output_file << ",";
         }
         output_file << std::endl;
-    }
+    //}
 }
 
 void cache_sim_t::access(uint64_t addr, size_t bytes, bool store)

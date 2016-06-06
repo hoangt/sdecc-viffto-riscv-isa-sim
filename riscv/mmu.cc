@@ -103,16 +103,15 @@ void mmu_t::refill_tlb(reg_t vaddr, reg_t paddr, access_type type)
   tlb_data[idx] = mem + paddr - vaddr;
 }
 
-//MWG
+//MWG: based on mmu_t::walk()
 bool mmu_t::get_page_permissions(reg_t addr, bool& ur, bool& uw, bool& ux, bool& sr, bool& sw, bool& sx) {
-//reg_t mmu_t::get_page_permissions(reg_t addr, access_type type, bool supervisor, bool pum)
   int levels, ptidxbits, ptesize;
   switch (get_field(proc->get_state()->mstatus, MSTATUS_VM))
   {
     case VM_SV32: levels = 2; ptidxbits = 10; ptesize = 4; break;
     case VM_SV39: levels = 3; ptidxbits = 9; ptesize = 8; break;
     case VM_SV48: levels = 4; ptidxbits = 9; ptesize = 8; break;
-    default: return false;
+    default: abort();
   }
 
   // verify bits xlen-1:va_bits-1 are all equal
@@ -120,19 +119,19 @@ bool mmu_t::get_page_permissions(reg_t addr, bool& ur, bool& uw, bool& ux, bool&
   reg_t mask = (reg_t(1) << (proc->xlen - (va_bits-1))) - 1;
   reg_t masked_msbs = (addr >> (va_bits-1)) & mask;
   if (masked_msbs != 0 && masked_msbs != mask)
-    return false;
+    return -1;
 
-  reg_t base = proc->get_state()->sptbr << PGSHIFT;
+  reg_t base = proc->get_state()->sptbr;
   int ptshift = (levels - 1) * ptidxbits;
   for (int i = 0; i < levels; i++, ptshift -= ptidxbits) {
     reg_t idx = (addr >> (PGSHIFT + ptshift)) & ((1 << ptidxbits) - 1);
 
     // check that physical address of PTE is legal
     reg_t pte_addr = base + idx * ptesize;
-    if (!sim->addr_is_mem(pte_addr))
+    if (pte_addr >= memsz)
       break;
 
-    void* ppte = sim->addr_to_mem(pte_addr);
+    void* ppte = mem + pte_addr;
     reg_t pte = ptesize == 4 ? *(uint32_t*)ppte : *(uint64_t*)ppte;
     reg_t ppn = pte >> PTE_PPN_SHIFT;
 
@@ -146,17 +145,6 @@ bool mmu_t::get_page_permissions(reg_t addr, bool& ur, bool& uw, bool& ux, bool&
       sw = PTE_SW(pte); 
       sx = PTE_SX(pte); 
       return true;
-    //}if (pum && PTE_CHECK_PERM(pte, 0, type == STORE, type == FETCH)) {
-      //break;
-    //} else if (!PTE_CHECK_PERM(pte, supervisor, type == STORE, type == FETCH)) {
-      //break;
-    //} else {
-      // set referenced and possibly dirty bits.
-      //*(uint32_t*)ppte |= PTE_R | ((type == STORE) * PTE_D);
-      // for superpage mappings, make a fake leaf PTE for the TLB's benefit.
-      //reg_t vpn = addr >> PGSHIFT;
-      //reg_t value = (ppn | (vpn & ((reg_t(1) << ptshift) - 1))) << PGSHIFT;
-      //return value;
     }
   }
 
