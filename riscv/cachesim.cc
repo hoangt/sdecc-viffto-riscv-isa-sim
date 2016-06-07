@@ -144,66 +144,63 @@ void cache_sim_t::memdatatrace(uint64_t addr, size_t bytes, bool store) {
         paddr = the_mmu->translate(addr, LOAD);
 
     bool ur,uw,ux,sr,sw,sx = false;
-    bool vm_enabled = the_mmu->get_page_permissions(addr,ur,uw,ux,sr,sw,sx);
-    
-    //if (the_sim->addr_is_mem(paddr)) {
-        uint8_t payload[bytes];
-        uint8_t cacheline[linesz];
-        unsigned position_in_cacheline = (paddr & 0x3f) / sizeof(uint64_t);
-        //memcpy(payload, the_sim->addr_to_mem(paddr), bytes);
-        memcpy(payload, reinterpret_cast<char*>(paddr), bytes);
-        //memcpy(cacheline, the_sim->addr_to_mem(paddr & (~0x000000000000003f)), linesz);
-        memcpy(cacheline, reinterpret_cast<char*>(paddr & (~0x000000000000003f)), linesz);
+    bool vm_enabled = false;
+    vm_enabled = the_mmu->get_page_permissions(addr,ur,uw,ux,sr,sw,sx);
 
-        output_file.fill('0');
-        output_file 
-            << name
-            << (store ? " WR " : " RD ")
-            << (store ? "to " : "fr ")
-            << "MEM"
-            << ",VADDR 0x"
+    uint8_t payload[bytes];
+    uint8_t cacheline[linesz];
+    unsigned position_in_cacheline = (paddr & 0x3f) / sizeof(uint64_t);
+    memcpy(payload, reinterpret_cast<char*>(the_mmu->mem+paddr), bytes);
+    memcpy(cacheline, reinterpret_cast<char*>(reinterpret_cast<reg_t>(the_mmu->mem+paddr) & (~0x000000000000003f)), linesz);
+
+    output_file.fill('0');
+    output_file 
+        << name
+        << (store ? " WR " : " RD ")
+        << (store ? "to " : "fr ")
+        << "MEM"
+        << ",VADDR 0x"
+        << std::hex
+        << std::setw(16)
+        << addr
+        << ",PADDR 0x"
+        << std::hex
+        << std::setw(16)
+        << paddr
+        << ",u"
+        << (vm_enabled ? (ur ? "R" : "-")  : "#")
+        << (vm_enabled ? (uw ? "W" : "-")  : "#")
+        << (vm_enabled ? (ux ? "X" : "-")  : "#")
+        << ",s"
+        << (vm_enabled ? (sr ? "R" : "-")  : "#")
+        << (vm_enabled ? (sw ? "W" : "-")  : "#")
+        << (vm_enabled ? (sx ? "X" : "-")  : "#")
+        << ","
+        << std::dec
+        << bytes
+        << "B,"
+        << "PAYLOAD 0x";
+    for (size_t i = 0; i < bytes; i++) {
+        output_file
             << std::hex
-            << std::setw(16)
-            << addr
-            << ",PADDR 0x"
-            << std::hex
-            << std::setw(16)
-            << paddr
-            << ",u"
-            << (vm_enabled ? (ur ? "R" : "-")  : "#")
-            << (vm_enabled ? (uw ? "W" : "-")  : "#")
-            << (vm_enabled ? (ux ? "X" : "-")  : "#")
-            << ",s"
-            << (vm_enabled ? (sr ? "R" : "-")  : "#")
-            << (vm_enabled ? (sw ? "W" : "-")  : "#")
-            << (vm_enabled ? (sx ? "X" : "-")  : "#")
-            << ","
-            << std::dec
-            << bytes
-            << "B,"
-            << "PAYLOAD 0x";
-        for (size_t i = 0; i < bytes; i++) {
+            << std::setw(2)
+            << static_cast<uint64_t>(payload[i]);
+    }
+    output_file << ",BLKPOS "
+        << position_in_cacheline
+        << ",";
+   
+    for (size_t word = 0; word < linesz/sizeof(uint64_t); word++) {
+        output_file << "0x";
+        for (size_t i = 0; i < sizeof(uint64_t); i++) {
             output_file
                 << std::hex
                 << std::setw(2)
-                << static_cast<uint64_t>(payload[i]);
+                << static_cast<uint64_t>(cacheline[word*sizeof(uint64_t)+i]);
         }
-        output_file << ",BLKPOS "
-            << position_in_cacheline
-            << ",";
-       
-        for (size_t word = 0; word < linesz/sizeof(uint64_t); word++) {
-            output_file << "0x";
-            for (size_t i = 0; i < sizeof(uint64_t); i++) {
-                output_file
-                    << std::hex
-                    << std::setw(2)
-                    << static_cast<uint64_t>(cacheline[word*sizeof(uint64_t)+i]);
-            }
-            output_file << ",";
-        }
-        output_file << std::endl;
-    //}
+        output_file << ",";
+    }
+    output_file << std::endl;
 }
 
 void cache_sim_t::access(uint64_t addr, size_t bytes, bool store)

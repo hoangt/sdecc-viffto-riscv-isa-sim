@@ -111,7 +111,7 @@ bool mmu_t::get_page_permissions(reg_t addr, bool& ur, bool& uw, bool& ux, bool&
     case VM_SV32: levels = 2; ptidxbits = 10; ptesize = 4; break;
     case VM_SV39: levels = 3; ptidxbits = 9; ptesize = 8; break;
     case VM_SV48: levels = 4; ptidxbits = 9; ptesize = 8; break;
-    default: abort();
+    default: return false;
   }
 
   // verify bits xlen-1:va_bits-1 are all equal
@@ -119,7 +119,7 @@ bool mmu_t::get_page_permissions(reg_t addr, bool& ur, bool& uw, bool& ux, bool&
   reg_t mask = (reg_t(1) << (proc->xlen - (va_bits-1))) - 1;
   reg_t masked_msbs = (addr >> (va_bits-1)) & mask;
   if (masked_msbs != 0 && masked_msbs != mask)
-    return -1;
+    return false;
 
   reg_t base = proc->get_state()->sptbr;
   int ptshift = (levels - 1) * ptidxbits;
