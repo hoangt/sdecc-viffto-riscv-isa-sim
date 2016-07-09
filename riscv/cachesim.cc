@@ -149,7 +149,8 @@ void cache_sim_t::memdatatrace(uint64_t addr, size_t bytes, bool store) {
 
     uint8_t payload[bytes];
     uint8_t cacheline[linesz];
-    unsigned position_in_cacheline = (paddr & 0x3f) / sizeof(uint64_t);
+    uint32_t memwordsize = the_sim->get_memwordsize();
+    unsigned position_in_cacheline = (paddr & 0x3f) / memwordsize;
     memcpy(payload, reinterpret_cast<char*>(the_mmu->mem+paddr), bytes);
     memcpy(cacheline, reinterpret_cast<char*>(reinterpret_cast<reg_t>(the_mmu->mem+paddr) & (~0x000000000000003f)), linesz);
 
@@ -190,16 +191,17 @@ void cache_sim_t::memdatatrace(uint64_t addr, size_t bytes, bool store) {
             << static_cast<uint64_t>(payload[i]);
     }
     output_file << ",BLKPOS "
+        << std::dec
         << position_in_cacheline
         << ",";
    
-    for (size_t word = 0; word < linesz/sizeof(uint64_t); word++) {
+    for (size_t word = 0; word < linesz/memwordsize; word++) {
         output_file << "0x";
-        for (size_t i = 0; i < sizeof(uint64_t); i++) {
+        for (size_t i = 0; i < memwordsize; i++) {
             output_file
                 << std::hex
                 << std::setw(2)
-                << static_cast<uint64_t>(cacheline[word*sizeof(uint64_t)+i]);
+                << static_cast<uint64_t>(cacheline[word*memwordsize+i]);
         }
         output_file << ",";
     }
@@ -210,11 +212,6 @@ void cache_sim_t::access(uint64_t addr, size_t bytes, bool store)
 {
   static size_t memdatatrace_accesses_since_last_sample = 0;
 
- // std::cout << the_sim->memdatatrace_enabled() << std::endl;
- // std::cout << the_sim->total_steps << std::endl;
- // std::cout << the_sim->get_memdatatrace_step_begin() << std::endl;
- // std::cout << the_sim->get_memdatatrace_step_end() << std::endl;
- // std::cout << memdatatrace_accesses_since_last_sample << std::endl;
   //MWG
   if (unlikely(
           the_sim->memdatatrace_enabled()

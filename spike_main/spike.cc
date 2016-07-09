@@ -31,6 +31,7 @@ static void help()
   fprintf(stderr, "  --extension=<name> Specify RoCC Extension\n");
   fprintf(stderr, "  --extlib=<name>    Shared library to load\n");
   fprintf(stderr, "  --memdatatrace=<begin>:<end>:<interval>:<output_file>    MWG: Enable tracing of raw memory traffic data payloads starting from step begin, until step end, with interval accesses between trace points. Dump to output_file.\n"); //MWG
+  fprintf(stderr, "  --memwordsize=<value>     MWG: Specify the bit width of the memory bus that carries information bits. This can either be 4 or 8 bytes.");
   exit(1);
 }
 
@@ -50,6 +51,7 @@ int main(int argc, char** argv)
   size_t memdatatrace_step_begin = 0; //MWG
   size_t memdatatrace_step_end = static_cast<size_t>(-1); //MWG
   size_t memdatatrace_sample_interval = 1; //MWG
+  uint32_t memwordsize = 8; //MWG
   std::string memdatatrace_output_filename = "spike_mem_data_trace.txt"; //MWG
 
   option_parser_t parser;
@@ -88,6 +90,13 @@ int main(int argc, char** argv)
       if (!tmp3++) help();
 
       memdatatrace_output_filename = std::string(tmp3);
+  });
+
+  //MWG
+  parser.option(0, "memwordsize", 1, [&](const char* s) { 
+      memwordsize = atoi(s);
+      if (memwordsize != 4 && memwordsize != 8) //error
+          help();
   });
   
   auto argv1 = parser.parse(argv);
@@ -128,6 +137,7 @@ int main(int argc, char** argv)
       s.set_memdatatrace_step_end(memdatatrace_step_end);
       s.set_memdatatrace_sample_interval(memdatatrace_sample_interval);
   }
+  s.set_memwordsize(memwordsize); //MWG
 
   bool retval = s.run(); //MWG
   if (output_file.is_open()) //MWG

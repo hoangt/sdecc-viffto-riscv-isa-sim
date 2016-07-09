@@ -28,6 +28,8 @@ public:
   void set_log(bool value);
   void set_histogram(bool value);
   void set_procs_debug(bool value);
+  void set_memwordsize(uint32_t value) { memwordsize = value; } //MWG
+  uint32_t get_memwordsize() { return memwordsize; } //MWG
   void enable_memdatatrace() { memdatatrace_en = true; } //MWG
   void disable_memdatatrace() { memdatatrace_en = false; } //MWG
   inline bool memdatatrace_enabled() { return memdatatrace_en; } //MWG
@@ -70,6 +72,7 @@ private:
   size_t memdatatrace_step_begin; //MWG
   size_t memdatatrace_step_end; //MWG
   size_t memdatatrace_sample_interval; //MWG
+  uint32_t memwordsize; //MWG
 
   // memory-mapped I/O routines
   bool mmio_load(reg_t addr, size_t len, uint8_t* bytes);
