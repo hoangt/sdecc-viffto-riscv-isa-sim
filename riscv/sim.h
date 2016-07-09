@@ -28,6 +28,15 @@ public:
   void set_log(bool value);
   void set_histogram(bool value);
   void set_procs_debug(bool value);
+  void enable_memdatatrace() { memdatatrace_en = true; } //MWG
+  void disable_memdatatrace() { memdatatrace_en = false; } //MWG
+  inline bool memdatatrace_enabled() { return memdatatrace_en; } //MWG
+  void set_memdatatrace_step_begin(size_t value) { memdatatrace_step_begin = value; } //MWG
+  void set_memdatatrace_step_end(size_t value) { memdatatrace_step_end = value; } //MWG
+  void set_memdatatrace_sample_interval(size_t value) { memdatatrace_sample_interval = value; } //MWG
+  inline size_t get_memdatatrace_step_begin() { return memdatatrace_step_begin; } //MWG
+  inline size_t get_memdatatrace_step_end() { return memdatatrace_step_end; } //MWG
+  inline size_t get_memdatatrace_sample_interval() { return memdatatrace_sample_interval; } //MWG
   htif_isasim_t* get_htif() { return htif.get(); }
 
   // returns the number of processors in this simulator
@@ -52,10 +61,15 @@ private:
   static const size_t INSNS_PER_RTC_TICK = 100; // 10 MHz clock for 1 BIPS core
   reg_t rtc;
   size_t current_step;
+  size_t total_steps; //MWG
   size_t current_proc;
   bool debug;
   bool log;
   bool histogram_enabled; // provide a histogram of PCs
+  bool memdatatrace_en; //MWG
+  size_t memdatatrace_step_begin; //MWG
+  size_t memdatatrace_step_end; //MWG
+  size_t memdatatrace_sample_interval; //MWG
 
   // memory-mapped I/O routines
   bool mmio_load(reg_t addr, size_t len, uint8_t* bytes);

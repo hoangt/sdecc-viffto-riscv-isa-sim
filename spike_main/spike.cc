@@ -30,6 +30,7 @@ static void help()
   fprintf(stderr, "  --l2=<S>:<W>:<B>     B both powers of 2).\n");
   fprintf(stderr, "  --extension=<name> Specify RoCC Extension\n");
   fprintf(stderr, "  --extlib=<name>    Shared library to load\n");
+  fprintf(stderr, "  --memdatatrace=<begin>:<end>:<interval>:<output_file>    MWG: Enable tracing of raw memory traffic data payloads starting from step begin, until step end, with interval accesses between trace points. Dump to output_file.\n"); //MWG
   exit(1);
 }
 
@@ -45,14 +46,11 @@ int main(int argc, char** argv)
   std::unique_ptr<cache_sim_t> l2;
   std::function<extension_t*()> extension;
   const char* isa = "RV64";
-
-  //MWG BEGIN
-  output_file.open("spike_mem_data_trace.txt", std::fstream::out);
-  if (!output_file.is_open()) {
-     std::cerr << "FAILED to open spike_mem_data_trace.txt. Exiting." << std::endl;
-     exit(-1);
-  }
-  //MWG END
+  bool memdatatrace_en = false; //MWG
+  size_t memdatatrace_step_begin = 0; //MWG
+  size_t memdatatrace_step_end = static_cast<size_t>(-1); //MWG
+  size_t memdatatrace_sample_interval = 1; //MWG
+  std::string memdatatrace_output_filename = "spike_mem_data_trace.txt"; //MWG
 
   option_parser_t parser;
   parser.help(&help);
@@ -74,14 +72,41 @@ int main(int argc, char** argv)
       exit(-1);
     }
   });
+  //MWG
+  parser.option(0, "memdatatrace", 1, [&](const char* s){
+      memdatatrace_en = true;
+      const char* tmp = strchr(s, ':');
+      memdatatrace_step_begin = atoi(std::string(s, tmp).c_str()); //FIXME: potential overflow issue
+      if (!tmp++) help();
+      
+      const char* tmp2 = strchr(tmp, ':');
+      memdatatrace_step_end = atoi(std::string(tmp, tmp2).c_str()); //FIXME: potential overflow issue
+      if (!tmp2++) help();
+     
+      const char* tmp3 = strchr(tmp2, ':');
+      memdatatrace_sample_interval = atoi(std::string(tmp2, tmp3).c_str()); //FIXME: potential overflow issue
+      if (!tmp3++) help();
 
+      memdatatrace_output_filename = std::string(tmp3);
+  });
+  
   auto argv1 = parser.parse(argv);
   if (!*argv1)
     help();
   std::vector<std::string> htif_args(argv1, (const char*const*)argv + argc);
   sim_t s(isa, nprocs, mem_mb, htif_args);
   the_sim = &s; //MWG THIS IS DANGEROUS HACK
-
+  
+  //MWG BEGIN
+  output_file.open(memdatatrace_output_filename, std::fstream::out);
+  if (!output_file.is_open()) {
+     std::cerr << "FAILED to open " << memdatatrace_output_filename << ". Exiting." << std::endl;
+     exit(-1);
+  } else {
+     std::cout << "memdatatrace output file is " << memdatatrace_output_filename << std::endl;
+  }
+  //MWG END
+  
   if (ic && l2) ic->set_miss_handler(&*l2);
   if (dc && l2) dc->set_miss_handler(&*l2);
   for (size_t i = 0; i < nprocs; i++)
@@ -95,6 +120,15 @@ int main(int argc, char** argv)
   s.set_debug(debug);
   s.set_log(log);
   s.set_histogram(histogram);
+
+  //MWG
+  if (memdatatrace_en) {
+      s.enable_memdatatrace();
+      s.set_memdatatrace_step_begin(memdatatrace_step_begin);
+      s.set_memdatatrace_step_end(memdatatrace_step_end);
+      s.set_memdatatrace_sample_interval(memdatatrace_sample_interval);
+  }
+
   bool retval = s.run(); //MWG
   if (output_file.is_open()) //MWG
       output_file.close(); //MWG

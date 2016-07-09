@@ -155,6 +155,9 @@ void cache_sim_t::memdatatrace(uint64_t addr, size_t bytes, bool store) {
 
     output_file.fill('0');
     output_file 
+        << std::dec
+        << static_cast<uint64_t>(the_sim->total_steps)
+        << ","
         << name
         << (store ? " WR " : " RD ")
         << (store ? "to " : "fr ")
@@ -205,7 +208,25 @@ void cache_sim_t::memdatatrace(uint64_t addr, size_t bytes, bool store) {
 
 void cache_sim_t::access(uint64_t addr, size_t bytes, bool store)
 {
-  memdatatrace(addr,bytes,store); //MWG
+  static size_t memdatatrace_accesses_since_last_sample = 0;
+
+ // std::cout << the_sim->memdatatrace_enabled() << std::endl;
+ // std::cout << the_sim->total_steps << std::endl;
+ // std::cout << the_sim->get_memdatatrace_step_begin() << std::endl;
+ // std::cout << the_sim->get_memdatatrace_step_end() << std::endl;
+ // std::cout << memdatatrace_accesses_since_last_sample << std::endl;
+  //MWG
+  if (unlikely(
+          the_sim->memdatatrace_enabled()
+          && the_sim->total_steps >= the_sim->get_memdatatrace_step_begin()
+          && the_sim->total_steps < the_sim->get_memdatatrace_step_end()
+          && memdatatrace_accesses_since_last_sample == the_sim->get_memdatatrace_sample_interval())
+      ) { 
+          memdatatrace_accesses_since_last_sample = 0;
+          memdatatrace(addr,bytes,store); //MWG
+  }
+  memdatatrace_accesses_since_last_sample++;
+
   store ? write_accesses++ : read_accesses++;
   (store ? bytes_written : bytes_read) += bytes;
 
@@ -227,12 +248,10 @@ void cache_sim_t::access(uint64_t addr, size_t bytes, bool store)
     if (miss_handler)
       miss_handler->access(dirty_addr, linesz, true);
     writebacks++;
-    //memdatatrace(dirty_addr,linesz,true); //MWG
   }
 
   if (miss_handler)
     miss_handler->access(addr & ~(linesz-1), linesz, false);
-  //memdatatrace(addr & ~(linesz-1),linesz,false); //MWG
 
   if (store)
     *check_tag(addr) |= DIRTY;
