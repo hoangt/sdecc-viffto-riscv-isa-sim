@@ -5,9 +5,10 @@
 #include "processor.h"
 #include <iostream> //MWG
 #include <iomanip> //MWG
+#include "swd_ecc.h" //MWG
 
 mmu_t::mmu_t(char* _mem, size_t _memsz)
- : mem(_mem), memsz(_memsz), proc(NULL)
+ : mem(_mem), memsz(_memsz), proc(NULL), mem_err_inj(false), swdecc_inst(39,32,HSIAO_CODE,8,true), swdecc_data(72,64,HSIAO_CODE,8,false) //MWG
 {
   flush_tlb();
 }

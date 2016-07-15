@@ -11,6 +11,7 @@
 #include "memtracer.h"
 #include <stdlib.h>
 #include <vector>
+#include "swd_ecc.h" //MWG
 
 // virtual memory configuration
 #define PGSHIFT 12
@@ -37,16 +38,26 @@ public:
   ~mmu_t();
 
   // template for functions that load an aligned value from memory
+  //MWG modifications: correct_retval stuff.
+  //MWG: FIXME: how to decide instruction fetch or data load?
   #define load_func(type) \
     type##_t load_##type(reg_t addr) __attribute__((always_inline)) { \
       if (addr & (sizeof(type##_t)-1)) \
         throw trap_load_address_misaligned(addr); \
       reg_t vpn = addr >> PGSHIFT; \
+      type##_t correct_retval; \
+      type##_t retval; \
       if (likely(tlb_load_tag[vpn % TLB_ENTRIES] == vpn)) \
-        return *(type##_t*)(tlb_data[vpn % TLB_ENTRIES] + addr); \
-      type##_t res; \
-      load_slow_path(addr, sizeof(type##_t), (uint8_t*)&res); \
-      return res; \
+        correct_retval = *(type##_t*)(tlb_data[vpn % TLB_ENTRIES] + addr); \
+      else \
+          load_slow_path(addr, sizeof(type##_t), (uint8_t*)&correct_retval); \
+      if (likely(!mem_err_inj)) \
+          retval = correct_retval; \
+      else { \
+          type##_t* tmp = reinterpret_cast<type##_t*>(swdecc_data.heuristicRecovery(reinterpret_cast<char*>(&correct_retval), NULL, 0)); \
+          retval = *tmp; \
+      } \
+      return retval; \
     }
 
   // load value from memory at aligned address; zero extend to register width
@@ -141,11 +152,18 @@ public:
 
   void register_memtracer(memtracer_t*);
 
+  void en_mem_err_inj(bool en) { mem_err_inj = en; } //MWG
+  bool mem_err_inj_enabled() { return mem_err_inj; } //MWG
+
 private:
   char* mem;
   size_t memsz;
   processor_t* proc;
   memtracer_list_t tracer;
+
+  bool mem_err_inj; //MWG
+  SwdEcc_t swdecc_inst; //MWG
+  SwdEcc_t swdecc_data; //MWG
 
   // implement an instruction cache for simulator performance
   icache_entry_t icache[ICACHE_ENTRIES];
