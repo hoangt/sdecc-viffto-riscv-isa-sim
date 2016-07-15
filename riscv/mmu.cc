@@ -8,7 +8,20 @@
 #include "swd_ecc.h" //MWG
 
 mmu_t::mmu_t(char* _mem, size_t _memsz)
- : mem(_mem), memsz(_memsz), proc(NULL), mem_err_inj(false), swdecc_inst(39,32,HSIAO_CODE,8,true), swdecc_data(72,64,HSIAO_CODE,8,false) //MWG
+ : mem(_mem),
+   memsz(_memsz),
+   proc(NULL),
+   err_inj_enable_(false),
+   err_inj_step_(0),
+   err_inj_target_(ERR_INJ_INST_MEM),
+   n_(72),
+   k_(64),
+   ecc_code_(HSIAO_CODE),
+   err_inj_bitpos0_(0),
+   err_inj_bitpos1_(1),
+   words_per_block_(8),
+   inject_error_now_(false),
+   swdecc_()
 {
   flush_tlb();
 }
@@ -204,4 +217,32 @@ void mmu_t::register_memtracer(memtracer_t* t)
 {
   flush_tlb();
   tracer.hook(t);
+}
+
+//MWG
+void mmu_t::enableErrInj(
+        size_t err_inj_step,
+        err_inj_targets_t err_inj_target,
+        uint32_t n,
+        uint32_t k,
+        ecc_codes_t ecc_code,
+        uint32_t err_inj_bitpos0,
+        uint32_t err_inj_bitpos1,
+        uint32_t words_per_block
+    ) {
+    err_inj_enable_ = true;
+    err_inj_step_ = err_inj_step;
+    err_inj_target_ = err_inj_target;
+    n_ = n;
+    k_ = k;
+    ecc_code_ = ecc_code;
+    err_inj_bitpos0_ = err_inj_bitpos0;
+    err_inj_bitpos1_ = err_inj_bitpos1;
+    words_per_block_ = words_per_block;
+
+    swdecc_.n_ = n_;
+    swdecc_.k_ = k_;
+    swdecc_.code_ = ecc_code_;
+    swdecc_.words_per_block_ = words_per_block_;
+    swdecc_.target_ = err_inj_target_;
 }

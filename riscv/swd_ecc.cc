@@ -1,20 +1,11 @@
 //Author: Mark Gottscho
 //Email: mgottscho@ucla.edu
+//MWG
 
 #include <iostream>
 #include "swd_ecc.h"
 
-SwdEcc::SwdEcc(
-    size_t n,
-    size_t k,
-    ecc_codes_t selected_ecc,
-    uint32_t words_per_block,
-    bool instruction) : 
-        n_(n),
-        k_(k),
-        code_(selected_ecc),
-        words_per_block_(words_per_block),
-        instruction_(instruction) {
+SwdEcc::SwdEcc() {
     //Nothing else here to do
 }
 

@@ -77,6 +77,7 @@ void processor_t::step(size_t n)
       {
         while (instret < n)
         {
+          //MWG: check for err inj step here
           insn_fetch_t fetch = mmu->load_insn(pc);
           if (!state.serialized)
             disasm(fetch.insn);
@@ -86,6 +87,7 @@ void processor_t::step(size_t n)
       }
       else while (instret < n)
       {
+        //MWG: check for err inj step here
         size_t idx = _mmu->icache_index(pc);
         auto ic_entry = _mmu->access_icache(pc);
 

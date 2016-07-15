@@ -15,6 +15,7 @@
 
 extern mmu_t* the_mmu; //MWG HACK
 extern sim_t* the_sim; //MWG HACK
+extern size_t general_linesz; //MWG HACK
 extern std::fstream output_file; //MWG HACK
 
 class lfsr_t
@@ -39,6 +40,8 @@ class cache_sim_t
   void set_miss_handler(cache_sim_t* mh) { miss_handler = mh; }
 
   static cache_sim_t* construct(const char* config, const char* name);
+
+  size_t getCacheLineSize() { return linesz; } //MWG
 
  protected:
   static const uint64_t VALID = 1ULL << 63;

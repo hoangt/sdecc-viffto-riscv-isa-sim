@@ -13,6 +13,7 @@
 //MWG BEGIN
 mmu_t* the_mmu;
 sim_t* the_sim;
+size_t general_linesz;
 std::fstream output_file;
 //MWG END
 
@@ -41,6 +42,8 @@ cache_sim_t* cache_sim_t::construct(const char* config, const char* name)
   size_t sets = atoi(std::string(config, wp).c_str());
   size_t ways = atoi(std::string(wp, bp).c_str());
   size_t linesz = atoi(bp);
+
+  general_linesz = linesz; //MWG HACK
 
   if (ways > 4 /* empirical */ && sets == 1)
     return new fa_cache_sim_t(ways, linesz, name);

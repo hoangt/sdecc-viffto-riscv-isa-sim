@@ -39,7 +39,6 @@ public:
 
   // template for functions that load an aligned value from memory
   //MWG modifications: correct_retval stuff.
-  //MWG: FIXME: how to decide instruction fetch or data load?
   #define load_func(type) \
     type##_t load_##type(reg_t addr) __attribute__((always_inline)) { \
       if (addr & (sizeof(type##_t)-1)) \
@@ -51,10 +50,10 @@ public:
         correct_retval = *(type##_t*)(tlb_data[vpn % TLB_ENTRIES] + addr); \
       else \
           load_slow_path(addr, sizeof(type##_t), (uint8_t*)&correct_retval); \
-      if (likely(!mem_err_inj)) \
+      if (likely(!inject_error_now_)) \
           retval = correct_retval; \
       else { \
-          type##_t* tmp = reinterpret_cast<type##_t*>(swdecc_data.heuristicRecovery(reinterpret_cast<char*>(&correct_retval), NULL, 0)); \
+          type##_t* tmp = reinterpret_cast<type##_t*>(swdecc_.heuristicRecovery(reinterpret_cast<char*>(&correct_retval), NULL, 0)); \
           retval = *tmp; \
       } \
       return retval; \
@@ -152,8 +151,18 @@ public:
 
   void register_memtracer(memtracer_t*);
 
-  void en_mem_err_inj(bool en) { mem_err_inj = en; } //MWG
-  bool mem_err_inj_enabled() { return mem_err_inj; } //MWG
+  //MWG
+  void enableErrInj(
+    size_t err_inj_step,
+    err_inj_targets_t err_inj_target,
+    uint32_t n,
+    uint32_t k,
+    ecc_codes_t ecc_code,
+    uint32_t err_inj_bitpos0,
+    uint32_t err_inj_bitpos1,
+    uint32_t words_per_block
+    );
+  bool errInjEnabled() { return err_inj_enable_; } //MWG
 
 private:
   char* mem;
@@ -161,9 +170,17 @@ private:
   processor_t* proc;
   memtracer_list_t tracer;
 
-  bool mem_err_inj; //MWG
-  SwdEcc_t swdecc_inst; //MWG
-  SwdEcc_t swdecc_data; //MWG
+  bool err_inj_enable_; //MWG
+  size_t err_inj_step_; //MWG
+  err_inj_targets_t err_inj_target_; //MWG
+  uint32_t n_; //MWG
+  uint32_t k_; //MWG
+  ecc_codes_t ecc_code_; //MWG
+  uint32_t err_inj_bitpos0_; //MWG
+  uint32_t err_inj_bitpos1_; //MWG
+  uint32_t words_per_block_; //MWG
+  bool inject_error_now_; //MWG
+  SwdEcc_t swdecc_; //MWG
 
   // implement an instruction cache for simulator performance
   icache_entry_t icache[ICACHE_ENTRIES];

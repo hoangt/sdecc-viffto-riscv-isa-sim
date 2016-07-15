@@ -13,6 +13,7 @@
 #include <string>
 #include <memory>
 #include "cachesim.h" //MWG
+#include "swd_ecc.h" //MWG
 
 static void help()
 {
@@ -32,6 +33,7 @@ static void help()
   fprintf(stderr, "  --extlib=<name>    Shared library to load\n");
   fprintf(stderr, "  --memdatatrace=<begin>:<end>:<interval>:<output_file>    MWG: Enable tracing of raw memory traffic data payloads starting from step begin, until step end, with interval accesses between trace points. Dump to output_file.\n"); //MWG
   fprintf(stderr, "  --memwordsize=<value>     MWG: Specify the bit width of the memory bus that carries information bits. This can either be 4 or 8 bytes.");
+  fprintf(stderr, "  --faultinj=<step>:<target>:<n>:<k>:<bitpos0>:<bitpos1>     MWG: Enable fault injection and SWD-ECC testing. Inject at specified step, if the execution has not already completed. Target is either inst or data memory. If data memory, the first memory load after the step has been reached will be used. bitpos0 is the first bitflip in the codeword, bitpos1 is the second bitflip in the codeword. ecc code can be hsiao or pi. n, k correspond to ecc parameters."); //MWG
   exit(1);
 }
 
@@ -53,6 +55,16 @@ int main(int argc, char** argv)
   size_t memdatatrace_sample_interval = 1; //MWG
   uint32_t memwordsize = 8; //MWG
   std::string memdatatrace_output_filename = "spike_mem_data_trace.txt"; //MWG
+
+  bool err_inj_enable = false; //MWG
+  size_t err_inj_step = 0; //MWG
+  err_inj_targets_t err_inj_target = ERR_INJ_INST_MEM; //MWG
+  uint32_t n = 72; //MWG
+  uint32_t k = 64; //MWG
+  ecc_codes_t ecc_code = HSIAO_CODE; //MWG
+  uint32_t err_inj_bitpos0 = 0; //MWG
+  uint32_t err_inj_bitpos1 = 1; //MWG
+  uint32_t words_per_block = 1; //MWG
 
   option_parser_t parser;
   parser.help(&help);
@@ -99,6 +111,42 @@ int main(int argc, char** argv)
           help();
   });
   
+  //MWG BEGIN
+  parser.option(0, "faultinj", 1, [&](const char* s){
+      err_inj_enable = true;
+      const char* tmp = strchr(s, ':');
+      err_inj_step = atoi(std::string(s, tmp).c_str()); //FIXME: potential overflow issue
+      if (!tmp++) help();
+      
+      const char* tmp2 = strchr(tmp, ':');
+      std::string err_inj_target_str = std::string(tmp, tmp2).c_str(); 
+      if (!err_inj_target_str.compare("inst"))
+            err_inj_target = ERR_INJ_INST_MEM;
+      else if (!err_inj_target_str.compare("data"))
+            err_inj_target = ERR_INJ_DATA_MEM;
+      else //error
+            help();
+      if (!tmp2++) help();
+     
+      const char* tmp3 = strchr(tmp2, ':');
+      n = atoi(std::string(tmp2, tmp3).c_str()); //FIXME: potential overflow issue
+      if (!tmp3++) help();
+     
+      const char* tmp4 = strchr(tmp3, ':');
+      k = atoi(std::string(tmp3, tmp4).c_str()); //FIXME: potential overflow issue
+      if (!tmp4++) help();
+     
+      const char* tmp5 = strchr(tmp4, ':');
+      err_inj_bitpos0 = atoi(std::string(tmp4, tmp5).c_str()); //FIXME: potential overflow issue
+      if (!tmp5++) help();
+
+      err_inj_bitpos1 = atoi(std::string(tmp5).c_str()); //FIXME: potential overflow issue
+
+      if (err_inj_bitpos0 == err_inj_bitpos1) //error
+          help();
+  });
+  //MWG END
+  
   auto argv1 = parser.parse(argv);
   if (!*argv1)
     help();
@@ -125,6 +173,32 @@ int main(int argc, char** argv)
     if (extension) s.get_core(i)->register_extension(extension());
   }
   the_mmu = s.get_core(0)->get_mmu(); //MWG THIS IS DANGEROUS HACK
+
+  //MWG BEGIN
+  if (err_inj_enable) {
+      words_per_block = static_cast<uint32_t>(general_linesz / memwordsize);
+
+      the_mmu->enableErrInj(
+         err_inj_step,
+         err_inj_target,
+         n,
+         k,
+         ecc_code,
+         err_inj_bitpos0,
+         err_inj_bitpos1,
+         words_per_block);
+
+      std::cout << "Error injection/SWD-ECC enabled!" << std::endl;
+      std::cout << "...Step: " << err_inj_step << std::endl;
+      std::cout << "...Target: " << err_inj_target << std::endl;
+      std::cout << "...n: " << n << std::endl;
+      std::cout << "...k: " << k << std::endl;
+      std::cout << "...ecc code: " << ecc_code << std::endl;
+      std::cout << "...bitpos 0: " << err_inj_bitpos0 << std::endl;
+      std::cout << "...bitpos 1: " << err_inj_bitpos1 << std::endl;
+      std::cout << "...words per block: " << words_per_block << std::endl;
+  }
+  //END MWG
 
   s.set_debug(debug);
   s.set_log(log);
