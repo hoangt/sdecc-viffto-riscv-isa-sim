@@ -38,7 +38,7 @@ public:
   ~mmu_t();
 
   // template for functions that load an aligned value from memory
-  //MWG modifications: correct_retval stuff.
+  //MWG modifications: error injection for data memory only
   #define load_func(type) \
     type##_t load_##type(reg_t addr) __attribute__((always_inline)) { \
       if (addr & (sizeof(type##_t)-1)) \
@@ -50,12 +50,12 @@ public:
         correct_retval = *(type##_t*)(tlb_data[vpn % TLB_ENTRIES] + addr); \
       else \
           load_slow_path(addr, sizeof(type##_t), (uint8_t*)&correct_retval); \
-      if (likely(!inject_error_now_)) \
-          retval = correct_retval; \
-      else { \
+      if (unlikely(inject_error_now_) && err_inj_target_ == ERR_INJ_DATA_MEM) { \
           type##_t* tmp = reinterpret_cast<type##_t*>(swdecc_.heuristicRecovery(reinterpret_cast<char*>(&correct_retval), NULL, 0)); \
           retval = *tmp; \
-      } \
+          inject_error_now_ = false; \
+      } else \
+          retval = correct_retval; \
       return retval; \
     }
 
@@ -119,6 +119,14 @@ public:
       insn |= (insn_bits_t)*(const uint16_t*)translate_insn_addr(addr + 2) << 16;
     }
 
+    //MWG BEGIN: error injection armed here
+    if (unlikely(inject_error_now_) && err_inj_target_ == ERR_INJ_TARGET_INST_MEM) {
+    //TODO
+    }
+
+
+    //MWG END
+
     insn_fetch_t fetch = {proc->decode_insn(insn), insn};
     entry->tag = addr;
     entry->data = fetch;
@@ -134,7 +142,7 @@ public:
   inline icache_entry_t* access_icache(reg_t addr)
   {
     icache_entry_t* entry = &icache[icache_index(addr)];
-    if (likely(entry->tag == addr))
+    if (likely(entry->tag == addr) && likely(!inject_error_now_)) //MWG
       return entry;
     return refill_icache(addr, entry);
   }
