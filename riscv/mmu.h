@@ -120,7 +120,7 @@ public:
     }
 
     //MWG BEGIN: error injection armed here
-    if (unlikely(inject_error_now_) && err_inj_target_ == ERR_INJ_TARGET_INST_MEM) {
+    if (unlikely(inject_error_now_) && err_inj_target_ == ERR_INJ_INST_MEM) {
     //TODO
     }
 

@@ -2,6 +2,7 @@
 
 #include "processor.h"
 #include "mmu.h"
+#include "cachesim.h" //MWG HACK
 #include <cassert>
 
 

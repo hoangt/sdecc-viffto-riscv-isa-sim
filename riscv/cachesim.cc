@@ -197,7 +197,8 @@ void cache_sim_t::memdatatrace(uint64_t addr, size_t bytes, bool store) {
         << std::dec
         << position_in_cacheline
         << ",";
-   
+  
+    //Print out words in cacheline in native byte order to the architecture
     for (size_t word = 0; word < linesz/memwordsize; word++) {
         output_file << "0x";
         for (size_t i = 0; i < memwordsize; i++) {
