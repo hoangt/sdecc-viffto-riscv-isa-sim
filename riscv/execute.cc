@@ -79,12 +79,19 @@ void processor_t::step(size_t n)
         while (instret < n)
         {
           //MWG: error injection armed on inst fetch
-          if (likely(mmu->err_inj_enable_) && mmu->err_inj_target_ == ERR_INJ_INST_MEM && unlikely(the_sim->total_steps == mmu->err_inj_step_)) {
+          if (likely(mmu->err_inj_enable_) && mmu->err_inj_target_ == ERR_INJ_INST_MEM && the_sim->total_steps >= mmu->err_inj_step_) {
               mmu->inject_error_now_ = true;
               std::cout << "ERROR INJECTION ARMED for instruction memory on step " << the_sim->total_steps << "." << std::endl;
           }
 
           insn_fetch_t fetch = mmu->load_insn(pc); //MWG: if error injection is armed, this will be the victim memory access.
+          
+          if (unlikely(mmu->inject_error_now_)) {
+              std::cout << "ERROR INJECTION COMPLETED, now disarmed." << std::endl;
+              mmu->inject_error_now_ = false; //MWG: Disarm
+              mmu->err_inj_enable_ = false; //MWG: Disarm
+          }
+
           if (!state.serialized)
             disasm(fetch.insn);
           pc = execute_insn(this, pc, fetch);
@@ -93,9 +100,21 @@ void processor_t::step(size_t n)
       }
       else while (instret < n)
       {
+        //MWG: error injection armed on inst fetch
+        if (likely(mmu->err_inj_enable_) && mmu->err_inj_target_ == ERR_INJ_INST_MEM && the_sim->total_steps >= mmu->err_inj_step_) {
+            mmu->inject_error_now_ = true;
+            std::cout << "ERROR INJECTION ARMED for instruction memory on step " << the_sim->total_steps << "." << std::endl;
+        }
+
         //MWG: check for err inj step here
         size_t idx = _mmu->icache_index(pc);
         auto ic_entry = _mmu->access_icache(pc);
+          
+        if (unlikely(mmu->inject_error_now_)) {
+            std::cout << "ERROR INJECTION COMPLETED, now disarmed." << std::endl;
+            mmu->inject_error_now_ = false; //MWG: Disarm
+            mmu->err_inj_enable_ = false; //MWG: Disarm
+        }
 
         #define ICACHE_ACCESS(i) { \
           insn_fetch_t fetch = ic_entry->data; \

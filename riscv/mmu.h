@@ -12,6 +12,8 @@
 #include <stdlib.h>
 #include <vector>
 #include "swd_ecc.h" //MWG
+#include <iostream> //MWG
+#include <iomanip> //MWG
 
 // virtual memory configuration
 #define PGSHIFT 12
@@ -54,6 +56,7 @@ public:
           type##_t* tmp = reinterpret_cast<type##_t*>(swdecc_.heuristicRecovery(reinterpret_cast<char*>(&correct_retval), NULL, 0)); \
           retval = *tmp; \
           inject_error_now_ = false; \
+          err_inj_enable_ = false; \
       } else \
           retval = correct_retval; \
       return retval; \
@@ -121,7 +124,20 @@ public:
 
     //MWG BEGIN: error injection armed here
     if (unlikely(inject_error_now_) && err_inj_target_ == ERR_INJ_INST_MEM) {
-    //TODO
+        insn_bits_t corrupted_insn = insn ^ ((insn_bits_t)(0x0000000000000000 | (1 << err_inj_bitpos0_))); // Flip first bit
+        corrupted_insn = corrupted_insn ^ ((insn_bits_t)(0x0000000000000000 | (1 << err_inj_bitpos1_))); // Flip second bit
+        std::cout.fill('0');
+        std::cout << "Injecting DUE on instruction! Correct message is 0x"
+                  << std::hex
+                  << std::setw(8)
+                  << insn
+                  << ". Corrupted message *WOULD BE -- NOT YET IMPLEMENTED RECOVERY* 0x" 
+                  << std::setw(8)
+                  << corrupted_insn
+                  << "."
+                  << std::dec
+                  << std::endl;
+    //TODO: flip bits and formulate a call to inst_recovery()
     }
 
 
@@ -142,7 +158,7 @@ public:
   inline icache_entry_t* access_icache(reg_t addr)
   {
     icache_entry_t* entry = &icache[icache_index(addr)];
-    if (likely(entry->tag == addr) && likely(!inject_error_now_)) //MWG
+    if (likely(entry->tag == addr) && likely(!inject_error_now_)) //MWG: if we are injecting a fault this access, don't use the fast path. use slow refill_icache() path.
       return entry;
     return refill_icache(addr, entry);
   }

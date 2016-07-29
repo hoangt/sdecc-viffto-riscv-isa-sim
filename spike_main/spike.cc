@@ -33,7 +33,7 @@ static void help()
   fprintf(stderr, "  --extlib=<name>    Shared library to load\n");
   fprintf(stderr, "  --memdatatrace=<begin>:<end>:<interval>:<output_file>    MWG: Enable tracing of raw memory traffic data payloads starting from step begin, until step end, with interval accesses between trace points. Dump to output_file.\n"); //MWG
   fprintf(stderr, "  --memwordsize=<value>     MWG: Specify the bit width of the memory bus that carries information bits. This can either be 4 or 8 bytes.");
-  fprintf(stderr, "  --faultinj=<step>:<target>:<n>:<k>:<bitpos0>:<bitpos1>     MWG: Enable fault injection and SWD-ECC testing. Inject at specified step, if the execution has not already completed. Target is either inst or data memory. If data memory, the first memory load after the step has been reached will be used. bitpos0 is the first bitflip in the codeword, bitpos1 is the second bitflip in the codeword. ecc code can be hsiao or pi. n, k correspond to ecc parameters."); //MWG
+  fprintf(stderr, "  --faultinj=<step>:<target>:<n>:<k>:<bitpos0>:<bitpos1>     MWG: Enable fault injection and SWD-ECC testing. Inject at specified step, if the execution has not already completed. Target is either inst or data memory. If data memory, the first memory load after the step has been reached will be used. bitpos0 is the first bitflip in the codeword, bitpos1 is the second bitflip in the codeword. ecc code can be hsiao1970 or davydov1991. n, k correspond to ecc parameters."); //MWG
   exit(1);
 }
 
