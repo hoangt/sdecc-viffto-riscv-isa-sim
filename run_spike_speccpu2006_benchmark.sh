@@ -23,7 +23,7 @@ fi
 
 # Get command line input. We will need to check these.
 BENCHMARK=$1					# Benchmark name, e.g. bzip2
-OUTPUT_DIR=~
+OUTPUT_DIR=~/swd_ecc_output/spike
 
 ######################### BENCHMARK CODENAMES ####################
 PERLBENCH_CODE=400.perlbench
@@ -62,35 +62,35 @@ SPECRAND_FLOAT_CODE=999.specrand
 ######################### BENCHMARK INPUTS ## ####################
 PERLBENCH_ARGS="-I./lib checkspam.pl 2500 5 25 11 150 1 1 1 1"
 BZIP2_ARGS="input.source 280"
-GCC_ARGS=
-BWAVES_ARGS=
-GAMESS_ARGS=
+GCC_ARGS="166.i -o 166.s"
+BWAVES_ARGS=""
+GAMESS_ARGS="-i cytosine.2.config"
 MCF_ARGS="inp.in"
-MILC_ARGS=
-ZEUSMP_ARGS=
-GROMACS_ARGS=
-CACTUSADM_ARGS=
-LESLIE3D_ARGS=
-NAMD_ARGS=
-GOBMK_ARGS=
-DEALII_ARGS=
-SOPLEX_ARGS=
+MILC_ARGS="-i su3imp.in"
+ZEUSMP_ARGS=""
+GROMACS_ARGS="-silent -deffnm gromacs -nice 0"
+CACTUSADM_ARGS="benchADM.par"
+LESLIE3D_ARGS="<leslie3d.in"
+NAMD_ARGS="--input namd.input --output namd.out --iterations 38"
+GOBMK_ARGS="-i 13x13.tst"
+DEALII_ARGS="8"
+SOPLEX_ARGS="-m45000 pds-50.mps"
 POVRAY_ARGS="SPEC-benchmark-ref.ini"
-CALCULIX_ARGS=
-HMMER_ARGS=
-SJENG_ARGS=
-GEMSFDTD_ARGS=
-LIBQUANTUM_ARGS=
+CALCULIX_ARGS="-i hyperviscoplastic"
+HMMER_ARGS="nph3.hmm swiss41"
+SJENG_ARGS="ref.txt"
+GEMSFDTD_ARGS=""
+LIBQUANTUM_ARGS="1297 8"
 H264REF_ARGS="-d foreman_ref_encoder_baseline.cfg"
-TONTO_ARGS=
-LBM_ARGS=
-OMNETPP_ARGS=
-ASTAR_ARGS=
-WRF_ARGS=
-SPHINX3_ARGS=
-XALANCBMK_ARGS=
-SPECRAND_INT_ARGS=
-SPECRAND_FLOAT_ARGS=
+TONTO_ARGS=""
+LBM_ARGS="300 reference.dat 0 0 100_100_130_ldc.of"
+OMNETPP_ARGS="omnetpp.ini"
+ASTAR_ARGS="rivers.cfg"
+WRF_ARGS=""
+SPHINX3_ARGS="ctlfile . args.an4"
+XALANCBMK_ARGS="-v test.xml xalanc.xsl"
+SPECRAND_INT_ARGS="1255432124 234923"
+SPECRAND_FLOAT_ARGS="1255432124 234923"
 ##################################################################
 
 ###############
@@ -253,8 +253,8 @@ echo "" | tee -a $SCRIPT_OUT
 echo "" | tee -a $SCRIPT_OUT
 
 # Actually launch spike.
-#CMD="/home/markg/Git/eccgrp-riscv-isa-sim/build/spike --memdatatrace=0:999999999999:10000:/home/markg/swd_ecc_output/spike_mem_data_trace_${BENCHMARK}.txt --memwordsize=8 --ic=1:1:64 --dc=1:1:64 --isa=RV64G -m1024 -p1 /opt/riscv-priv-1.7-stable/riscv64-unknown-elf/bin/pk ${BENCHMARK}_base.${SPEC_CONFIG_SUFFIX} $BENCHMARK_ARGS"
-CMD="/home/markg/Git/eccgrp-riscv-isa-sim/build/spike --faultinj=10:inst:39:32:0:1 --memwordsize=8 --ic=1:1:64 --dc=1:1:64 --isa=RV64G -m1024 -p1 /opt/riscv-priv-1.7-stable/riscv64-unknown-elf/bin/pk ${BENCHMARK}_base.${SPEC_CONFIG_SUFFIX} $BENCHMARK_ARGS"
+CMD="/home/markg/Git/eccgrp-riscv-isa-sim/build/spike --memdatatrace=0:999999999999:1000000:/home/markg/swd_ecc_output/spike_mem_data_trace_${BENCHMARK}.txt --memwordsize=8 --ic=1:1:64 --dc=1:1:64 --isa=RV64G -m1024 -p1 /opt/riscv-priv-1.7-stable/riscv64-unknown-elf/bin/pk ${BENCHMARK}_base.${SPEC_CONFIG_SUFFIX} $BENCHMARK_ARGS"
+#CMD="/home/markg/Git/eccgrp-riscv-isa-sim/build/spike --faultinj=10:inst:39:32:0:1 --memwordsize=8 --ic=1:1:64 --dc=1:1:64 --isa=RV64G -m1024 -p1 /opt/riscv-priv-1.7-stable/riscv64-unknown-elf/bin/pk ${BENCHMARK}_base.${SPEC_CONFIG_SUFFIX} $BENCHMARK_ARGS"
 echo $CMD
 $CMD
 
