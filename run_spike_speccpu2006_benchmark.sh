@@ -4,7 +4,10 @@
 # mgottscho@ucla.edu
 
 ################## DIRECTORY VARIABLES: MODIFY ACCORDINGLY #######
-SPEC_DIR=~/Git/spec-cpu2006-nanocad-prep		# Install location of your SPEC2006 benchmarks
+#SPEC_DIR=~/Git/spec-cpu2006-nanocad-prep # MWG-Desktop-UbuntuVM
+SPEC_DIR=/u/home/m/mgottsch/project-puneet/spec_cpu2006_install		# Hoffman2
+#SPIKE_DIR=~/Git/eccgrp-risc-isa-sim/build # MWG-Desktop-UbuntuVM
+SPIKE_DIR=/u/home/m/mgottsch/project-puneet/eccgrp-riscv-isa-sim/build # Hoffman2
 ##################################################################
 
 ARGC=$# # Get number of arguments excluding arg0 (the script itself). Check for help message condition.
@@ -253,7 +256,7 @@ echo "" | tee -a $SCRIPT_OUT
 echo "" | tee -a $SCRIPT_OUT
 
 # Actually launch spike.
-CMD="/home/markg/Git/eccgrp-riscv-isa-sim/build/spike --memdatatrace=0:999999999999:1000000:/home/markg/swd_ecc_output/spike_mem_data_trace_${BENCHMARK}.txt --memwordsize=8 --ic=1:1:64 --dc=1:1:64 --isa=RV64G -m1024 -p1 /opt/riscv-priv-1.7-stable/riscv64-unknown-elf/bin/pk ${BENCHMARK}_base.${SPEC_CONFIG_SUFFIX} $BENCHMARK_ARGS"
+CMD="$SPIKE_DIR/spike --memdatatrace=0:999999999999:1000000:/home/markg/swd_ecc_output/spike_mem_data_trace_${BENCHMARK}.txt --memwordsize=8 --ic=1:1:64 --dc=1:1:64 --isa=RV64G -m1024 -p1 /opt/riscv-priv-1.7-stable/riscv64-unknown-elf/bin/pk ${BENCHMARK}_base.${SPEC_CONFIG_SUFFIX} $BENCHMARK_ARGS"
 #CMD="/home/markg/Git/eccgrp-riscv-isa-sim/build/spike --faultinj=10:inst:39:32:0:1 --memwordsize=8 --ic=1:1:64 --dc=1:1:64 --isa=RV64G -m1024 -p1 /opt/riscv-priv-1.7-stable/riscv64-unknown-elf/bin/pk ${BENCHMARK}_base.${SPEC_CONFIG_SUFFIX} $BENCHMARK_ARGS"
 echo $CMD
 $CMD
