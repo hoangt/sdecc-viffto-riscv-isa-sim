@@ -13,18 +13,19 @@ if [[ "$ARGC" != 0 ]]; then # Bad number of arguments.
 fi
 
 ########################## FEEL FREE TO CHANGE THESE OPTIONS ##################################
-ISA=rv64g    # Set the target ISA; benchmarks must be disassembled for this as well
-SPEC_BENCHMARKS="bzip2 gobmk h264ref hmmer lbm libquantum mcf milc namd omnetpp perlbench povray sjeng soplex specrand998 specrand999"		# String of SPEC CPU2006 benchmark names to run, delimited by spaces.
+#SPEC_BENCHMARKS="astar bwaves bzip2 calculix dealII gamess gcc GemsFDTD gobmk h264ref hmmer lbm leslie3d libquantum mcf milc namd omnetpp perlbench povray sjeng soplex sphinx3 specrand998 specrand999 tonto wrf xalancbmk zeusmp"		# String of SPEC CPU2006 benchmark names to run, delimited by spaces.
+SPEC_BENCHMARKS="astar bwaves bzip2 calculix dealII gamess gcc GemsFDTD gobmk h264ref hmmer lbm leslie3d libquantum mcf milc perlbench povray sphinx3 specrand998 specrand999 tonto wrf xalancbmk zeusmp"		# String of SPEC CPU2006 benchmark names to run, delimited by spaces.
 
 # qsub options used:
 # -V: export environment variables from this calling script to each job
 # -N: name the job. I made these so that each job will be uniquely identified by its benchmark running as well as the output file string ID
 # -l: resource allocation flags for maximum time requested as well as maximum memory requested.
 # -M: cluster username(s) to email with updates on job status
-# -m: mailing rules for job status. b = begin, e = end, a = abort
+# -m: mailing rules for job status. b = begin, e = end, a = abort, s = suspended, n = never
 MAX_TIME_PER_RUN=335:00:00 	# Maximum time of each script that will be invoked, HH:MM:SS. If this is exceeded, job will be killed.
 MAX_MEM_PER_RUN=1G 		# Maximum memory needed per script that will be invoked. If this is exceeded, job will be killed.
 MAILING_LIST=mgottsch 		# List of users to email with status updates, separated by commas
+OUTPUT_DIR=/u/home/m/mgottsch/project-eedept/swd_ecc_output/rv64g/spike # Hoffman2
 ###############################################################################################
 
 
@@ -33,10 +34,10 @@ echo "Submitting jobs..."
 echo ""
 for SPEC_BENCHMARK in $SPEC_BENCHMARKS; do
 	echo "$SPEC_BENCHMARK..."
-	JOB_NAME="spike_memdatatrace_${ISA}_${SPEC_BENCHMARK}"
-    INPUT_FILE="$INPUT_DIRECTORY/${ISA}-${SPEC_BENCHMARK}-disassembly-text-section-inst.txt"
-    OUTPUT_FILE="$OUTPUT_DIRECTORY/${ISA}-${SPEC_BENCHMARK}-inst-heuristic-recovery.mat"
-	qsub -V -N $JOB_NAME -l h_data=$MAX_MEM_PER_RUN,time=$MAX_TIME_PER_RUN,highp -M $MAILING_LIST run_spike_speccpu2006_benchmark.sh $SPEC_BENCHMARK
+	JOB_NAME="spike_${SPEC_BENCHMARK}"
+    JOB_STDOUT=$OUTPUT_DIR/${SPEC_BENCHMARK}.stdout
+    JOB_STDERR=$OUTPUT_DIR/${SPEC_BENCHMARK}.stderr
+	qsub -V -N $JOB_NAME -l h_data=$MAX_MEM_PER_RUN,time=$MAX_TIME_PER_RUN,highp -M $MAILING_LIST -m as run_spike_speccpu2006_benchmark.sh $SPEC_BENCHMARK -o $JOB_STDOUT -e $JOB_STDERR
 done
 
 echo "Done submitting jobs."

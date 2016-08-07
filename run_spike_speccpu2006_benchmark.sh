@@ -9,7 +9,7 @@ SPEC_DIR=/u/home/m/mgottsch/project-puneet/spec_cpu2006_install		# Hoffman2
 #SPIKE_DIR=~/Git/eccgrp-risc-isa-sim/build # MWG-Desktop-UbuntuVM
 SPIKE_DIR=/u/home/m/mgottsch/project-puneet/eccgrp-riscv-isa-sim/build # Hoffman2
 #OUTPUT_DIR=~/swd_ecc_output/spike # MWG-Desktop-UbuntuVM
-OUTPUT_DIR=/u/home/m/mgottsch/project-eedept/swd_ecc_output/spike # Hoffman2
+OUTPUT_DIR=/u/home/m/mgottsch/project-eedept/swd_ecc_output/rv64g/spike # Hoffman2
 #SYSTEM=mwg-desktop-ubuntuvm # MWG-Desktop-UbuntuVM
 SYSTEM=hoffman # Hoffman2
 ##################################################################
@@ -237,23 +237,19 @@ if [[ "$BENCHMARK_CODE" == "none" ]]; then
 fi
 ##################################################################
 
-# Check OUTPUT_DIR existence
-mkdir -p $OUTPUT_DIR
-
 SPEC_CONFIG_SUFFIX=$SYSTEM-rv64g-priv-1.7-stable
 RUN_DIR=$SPEC_DIR/benchspec/CPU2006/$BENCHMARK_CODE/run/run_base_ref_${SPEC_CONFIG_SUFFIX}.0000		# Run directory for the selected SPEC benchmark
-SCRIPT_OUT=$OUTPUT_DIR/spike_runscript_${BENCHMARK}.log															# File log for this script's stdout henceforth
 
 #################### LAUNCH SIMULATION ######################
 echo ""
-echo "Changing to SPEC benchmark runtime directory:	$RUN_DIR" | tee -a $SCRIPT_OUT
+echo "Changing to SPEC benchmark runtime directory:	$RUN_DIR"
 cd $RUN_DIR
 
-echo "" | tee -a $SCRIPT_OUT
-echo "" | tee -a $SCRIPT_OUT
-echo "--------- Here goes nothing! Starting spike! ------------" | tee -a $SCRIPT_OUT
-echo "" | tee -a $SCRIPT_OUT
-echo "" | tee -a $SCRIPT_OUT
+echo ""
+echo ""
+echo "--------- Here goes nothing! Starting spike! ------------"
+echo ""
+echo ""
 
 # Actually launch spike.
 CMD="$SPIKE_DIR/spike --memdatatrace=0:999999999999:1000000:$OUTPUT_DIR/spike_mem_data_trace_${BENCHMARK}.txt --memwordsize=8 --ic=1:1:64 --dc=1:1:64 --isa=RV64G -m512 -p1 $RISCV/riscv64-unknown-elf/bin/pk ${BENCHMARK}_base.${SPEC_CONFIG_SUFFIX} $BENCHMARK_ARGS"
@@ -261,4 +257,4 @@ CMD="$SPIKE_DIR/spike --memdatatrace=0:999999999999:1000000:$OUTPUT_DIR/spike_me
 echo $CMD
 $CMD
 
-echo "Done!" | tee -a $SCRIPT_OUT
+echo "Done!"
