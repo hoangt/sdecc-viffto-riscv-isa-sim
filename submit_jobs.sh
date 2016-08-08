@@ -36,7 +36,7 @@ for SPEC_BENCHMARK in $SPEC_BENCHMARKS; do
 	JOB_NAME="spike_${SPEC_BENCHMARK}"
     JOB_STDOUT=$OUTPUT_DIR/${SPEC_BENCHMARK}.stdout
     JOB_STDERR=$OUTPUT_DIR/${SPEC_BENCHMARK}.stderr
-	qsub -V -N $JOB_NAME -l h_data=$MAX_MEM_PER_RUN,time=$MAX_TIME_PER_RUN,highp -M $MAILING_LIST -m as run_spike_speccpu2006_benchmark.sh $SPEC_BENCHMARK -o $JOB_STDOUT -e $JOB_STDERR
+	qsub -V -N $JOB_NAME -l h_data=$MAX_MEM_PER_RUN,time=$MAX_TIME_PER_RUN,highp -M $MAILING_LIST -o $JOB_STDOUT -e $JOB_STDERR -m as run_spike_speccpu2006_benchmark.sh $SPEC_BENCHMARK
 done
 
 echo "Done submitting jobs."
