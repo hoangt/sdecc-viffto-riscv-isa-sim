@@ -135,7 +135,7 @@ uint64_t cache_sim_t::victimize(uint64_t addr)
 }
 
 //MWG
-void cache_sim_t::memdatatrace(uint64_t addr, size_t bytes, bool store) {
+void cache_sim_t::memdatatrace(uint64_t addr, size_t bytes, bool store, size_t accesses_since_last_sample) {
     //Only track cache misses
     reg_t paddr;
     //if (name.compare("L2$") != 0) //skip everything except L2
@@ -155,7 +155,7 @@ void cache_sim_t::memdatatrace(uint64_t addr, size_t bytes, bool store) {
     uint32_t memwordsize = the_sim->get_memwordsize();
     unsigned position_in_cacheline = (paddr & 0x3f) / memwordsize;
     memcpy(payload, reinterpret_cast<char*>(the_mmu->mem+paddr), bytes);
-    memcpy(cacheline, reinterpret_cast<char*>(reinterpret_cast<reg_t>(the_mmu->mem+paddr) & (~0x000000000000003f)), linesz);
+    memcpy(cacheline, reinterpret_cast<char*>(reinterpret_cast<reg_t>(the_mmu->mem+(paddr & (~0x000000000000003f)))), linesz);
 
     output_file.fill('0');
     output_file 
@@ -166,6 +166,8 @@ void cache_sim_t::memdatatrace(uint64_t addr, size_t bytes, bool store) {
         << (store ? " WR " : " RD ")
         << (store ? "to " : "fr ")
         << "MEM"
+        << ","
+        << accesses_since_last_sample
         << ",VADDR 0x"
         << std::hex
         << std::setw(16)
@@ -223,11 +225,12 @@ void cache_sim_t::access(uint64_t addr, size_t bytes, bool store)
               && the_sim->total_steps < the_sim->get_memdatatrace_step_end()
               && memdatatrace_accesses_since_last_sample == the_sim->get_memdatatrace_sample_interval())
           ) { 
+              memdatatrace(addr,bytes,store,memdatatrace_accesses_since_last_sample);
               memdatatrace_accesses_since_last_sample = 0;
-              memdatatrace(addr,bytes,store); //MWG
           }
       } else if (rand() % the_sim->memdatatrace_rand_prob_recip == 0) {
-          memdatatrace(addr,bytes,store); //MWG 
+          memdatatrace(addr,bytes,store,memdatatrace_accesses_since_last_sample);
+          memdatatrace_accesses_since_last_sample = 0;
       }
   }
   memdatatrace_accesses_since_last_sample++;
