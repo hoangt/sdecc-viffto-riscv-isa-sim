@@ -14,6 +14,8 @@ OUTPUT_DIR=/u/home/m/mgottsch/project-eedept/swd_ecc_output/rv64g/spike # Hoffma
 SYSTEM=hoffman # Hoffman2
 ##################################################################
 
+mkdir -p $OUTPUT_DIR
+
 ARGC=$# # Get number of arguments excluding arg0 (the script itself). Check for help message condition.
 if [[ "$ARGC" != 1 ]]; then # Bad number of arguments. 
 	echo "Author: Mark Gottscho"
@@ -252,7 +254,7 @@ echo ""
 echo ""
 
 # Actually launch spike.
-CMD="$SPIKE_DIR/spike --memdatatrace=0:999999999999:1000000:$OUTPUT_DIR/spike_mem_data_trace_${BENCHMARK}.txt --memwordsize=8 --ic=1:1:64 --dc=1:1:64 --isa=RV64G -m512 -p1 $RISCV/riscv64-unknown-elf/bin/pk ${BENCHMARK}_base.${SPEC_CONFIG_SUFFIX} $BENCHMARK_ARGS"
+CMD="$SPIKE_DIR/spike --randmemdatatrace=1000000:$OUTPUT_DIR/spike_mem_data_trace_${BENCHMARK}.txt --memwordsize=8 --ic=1:1:64 --dc=1:1:64 --isa=RV64G -m1024 -p1 $RISCV/riscv64-unknown-elf/bin/pk ${BENCHMARK}_base.${SPEC_CONFIG_SUFFIX} $BENCHMARK_ARGS"
 #CMD="/home/markg/Git/eccgrp-riscv-isa-sim/build/spike --faultinj=10:inst:39:32:0:1 --memwordsize=8 --ic=1:1:64 --dc=1:1:64 --isa=RV64G -m1024 -p1 /opt/riscv-priv-1.7-stable/riscv64-unknown-elf/bin/pk ${BENCHMARK}_base.${SPEC_CONFIG_SUFFIX} $BENCHMARK_ARGS"
 echo $CMD
 $CMD

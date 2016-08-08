@@ -12,6 +12,8 @@
 #include <vector>
 #include <string>
 #include <memory>
+#include <cstdlib> //MWG for srand(), rand()
+#include <time.h> //MWG for time()
 #include "cachesim.h" //MWG
 #include "swd_ecc.h" //MWG
 
@@ -31,7 +33,8 @@ static void help()
   fprintf(stderr, "  --l2=<S>:<W>:<B>     B both powers of 2).\n");
   fprintf(stderr, "  --extension=<name> Specify RoCC Extension\n");
   fprintf(stderr, "  --extlib=<name>    Shared library to load\n");
-  fprintf(stderr, "  --memdatatrace=<begin>:<end>:<interval>:<output_file>    MWG: Enable tracing of raw memory traffic data payloads starting from step begin, until step end, with interval accesses between trace points. Dump to output_file.\n"); //MWG
+  fprintf(stderr, "  --periodicmemdatatrace=<begin>:<end>:<interval>:<output_file>    MWG: Enable periodic tracing of raw memory traffic data payloads starting from step begin, until step end, with interval accesses between trace points. Dump to output_file.\n"); //MWG
+  fprintf(stderr, "  --randmemdatatrace=<recip_sampl_prob_per_step>:<output_file>    MWG: Enable random tracing of raw memory traffic data payloads. Each simulation step has a probability of a trace sample being taken that is the reciprocal of the input value. The expected number of steps between samples is governed by the geometric distribution. Dump to output_file.\n"); //MWG
   fprintf(stderr, "  --memwordsize=<value>     MWG: Specify the bit width of the memory bus that carries information bits. This can either be 4 or 8 bytes.");
   fprintf(stderr, "  --faultinj=<step>:<target>:<n>:<k>:<bitpos0>:<bitpos1>     MWG: Enable fault injection and SWD-ECC testing. Inject at specified step, if the execution has not already completed. Target is either inst or data memory. If data memory, the first memory load after the step has been reached will be used. bitpos0 is the first bitflip in the codeword, bitpos1 is the second bitflip in the codeword. ecc code can be hsiao1970 or davydov1991. n, k correspond to ecc parameters."); //MWG
   exit(1);
@@ -49,13 +52,16 @@ int main(int argc, char** argv)
   std::unique_ptr<cache_sim_t> l2;
   std::function<extension_t*()> extension;
   const char* isa = "RV64";
+
+  //MWG: init stuff to default values
   bool memdatatrace_en = false; //MWG
+  bool rand_memdatatrace = false; //MWG
   size_t memdatatrace_step_begin = 0; //MWG
   size_t memdatatrace_step_end = static_cast<size_t>(-1); //MWG
   size_t memdatatrace_sample_interval = 1; //MWG
+  size_t memdatatrace_rand_prob_recip = 1; //MWG 
   uint32_t memwordsize = 8; //MWG
   std::string memdatatrace_output_filename = "spike_mem_data_trace.txt"; //MWG
-
   bool err_inj_enable = false; //MWG
   size_t err_inj_step = 0; //MWG
   err_inj_targets_t err_inj_target = ERR_INJ_INST_MEM; //MWG
@@ -87,8 +93,9 @@ int main(int argc, char** argv)
     }
   });
   //MWG
-  parser.option(0, "memdatatrace", 1, [&](const char* s){
+  parser.option(0, "periodicmemdatatrace", 1, [&](const char* s){
       memdatatrace_en = true;
+      rand_memdatatrace = false;
       const char* tmp = strchr(s, ':');
       memdatatrace_step_begin = atoi(std::string(s, tmp).c_str()); //FIXME: potential overflow issue
       if (!tmp++) help();
@@ -102,6 +109,17 @@ int main(int argc, char** argv)
       if (!tmp3++) help();
 
       memdatatrace_output_filename = std::string(tmp3);
+  });
+  
+  //MWG
+  parser.option(0, "randmemdatatrace", 1, [&](const char* s){
+      memdatatrace_en = true;
+      rand_memdatatrace = true;
+      const char* tmp = strchr(s, ':');
+      memdatatrace_rand_prob_recip = atoi(std::string(s, tmp).c_str()); //FIXME: potential overflow issue
+      if (!tmp++) help();
+
+      memdatatrace_output_filename = std::string(tmp);
   });
 
   //MWG
@@ -207,9 +225,16 @@ int main(int argc, char** argv)
   //MWG
   if (memdatatrace_en) {
       s.enable_memdatatrace();
-      s.set_memdatatrace_step_begin(memdatatrace_step_begin);
-      s.set_memdatatrace_step_end(memdatatrace_step_end);
-      s.set_memdatatrace_sample_interval(memdatatrace_sample_interval);
+      if (!rand_memdatatrace) {
+          s.set_memdatatrace_rand(false);
+          s.set_memdatatrace_step_begin(memdatatrace_step_begin);
+          s.set_memdatatrace_step_end(memdatatrace_step_end);
+          s.set_memdatatrace_sample_interval(memdatatrace_sample_interval);
+      } else {
+          srand(time(NULL)); //MWG
+          s.set_memdatatrace_rand(true);
+          s.set_memdatatrace_rand_prob_recip(memdatatrace_rand_prob_recip);
+      }
   }
   s.set_memwordsize(memwordsize); //MWG
 

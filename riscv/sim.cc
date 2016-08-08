@@ -22,7 +22,7 @@ static void handle_signal(int sig)
 sim_t::sim_t(const char* isa, size_t nprocs, size_t mem_mb,
              const std::vector<std::string>& args)
   : htif(new htif_isasim_t(this, args)), procs(std::max(nprocs, size_t(1))),
-    rtc(0), current_step(0), total_steps(0), current_proc(0), debug(false), memdatatrace_en(false), memdatatrace_step_begin(0), memdatatrace_step_end(static_cast<size_t>(-1)), memdatatrace_sample_interval(1), memwordsize(64) //MWG
+    rtc(0), current_step(0), total_steps(0), current_proc(0), debug(false), memdatatrace_en(false), memdatatrace_rand(false), memdatatrace_step_begin(0), memdatatrace_step_end(static_cast<size_t>(-1)), memdatatrace_sample_interval(1), memdatatrace_rand_prob_recip(1), memwordsize(64) //MWG
 {
   signal(SIGINT, &handle_signal);
   // allocate target machine's memory, shrinking it as necessary

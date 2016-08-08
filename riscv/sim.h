@@ -32,13 +32,17 @@ public:
   uint32_t get_memwordsize() { return memwordsize; } //MWG
   void enable_memdatatrace() { memdatatrace_en = true; } //MWG
   void disable_memdatatrace() { memdatatrace_en = false; } //MWG
+  void set_memdatatrace_rand(bool value) { memdatatrace_rand = value; } //MWG
   inline bool memdatatrace_enabled() { return memdatatrace_en; } //MWG
+  inline bool get_memdatatrace_rand() { return memdatatrace_rand; } //MWG
   void set_memdatatrace_step_begin(size_t value) { memdatatrace_step_begin = value; } //MWG
   void set_memdatatrace_step_end(size_t value) { memdatatrace_step_end = value; } //MWG
   void set_memdatatrace_sample_interval(size_t value) { memdatatrace_sample_interval = value; } //MWG
+  void set_memdatatrace_rand_prob_recip(size_t value) { memdatatrace_rand_prob_recip = value; } //MWG
   inline size_t get_memdatatrace_step_begin() { return memdatatrace_step_begin; } //MWG
   inline size_t get_memdatatrace_step_end() { return memdatatrace_step_end; } //MWG
   inline size_t get_memdatatrace_sample_interval() { return memdatatrace_sample_interval; } //MWG
+  inline size_t get_memdatatrace_rand_prob_recip() { return memdatatrace_rand_prob_recip; } //MWG
   htif_isasim_t* get_htif() { return htif.get(); }
 
   // returns the number of processors in this simulator
@@ -69,9 +73,11 @@ private:
   bool log;
   bool histogram_enabled; // provide a histogram of PCs
   bool memdatatrace_en; //MWG
+  bool memdatatrace_rand; //MWG
   size_t memdatatrace_step_begin; //MWG
   size_t memdatatrace_step_end; //MWG
   size_t memdatatrace_sample_interval; //MWG
+  size_t memdatatrace_rand_prob_recip; //MWG
   uint32_t memwordsize; //MWG
 
   // memory-mapped I/O routines

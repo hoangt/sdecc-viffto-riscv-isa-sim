@@ -217,14 +217,18 @@ void cache_sim_t::access(uint64_t addr, size_t bytes, bool store)
   static size_t memdatatrace_accesses_since_last_sample = 0;
 
   //MWG
-  if (unlikely(
-          the_sim->memdatatrace_enabled()
-          && the_sim->total_steps >= the_sim->get_memdatatrace_step_begin()
-          && the_sim->total_steps < the_sim->get_memdatatrace_step_end()
-          && memdatatrace_accesses_since_last_sample == the_sim->get_memdatatrace_sample_interval())
-      ) { 
-          memdatatrace_accesses_since_last_sample = 0;
-          memdatatrace(addr,bytes,store); //MWG
+  if (the_sim->memdatatrace_enabled()) {
+      if (!the_sim->get_memdatatrace_rand()) {
+          if (unlikely(the_sim->total_steps >= the_sim->get_memdatatrace_step_begin()
+              && the_sim->total_steps < the_sim->get_memdatatrace_step_end()
+              && memdatatrace_accesses_since_last_sample == the_sim->get_memdatatrace_sample_interval())
+          ) { 
+              memdatatrace_accesses_since_last_sample = 0;
+              memdatatrace(addr,bytes,store); //MWG
+          }
+      } else if (rand() % the_sim->memdatatrace_rand_prob_recip == 0) {
+          memdatatrace(addr,bytes,store); //MWG 
+      }
   }
   memdatatrace_accesses_since_last_sample++;
 
