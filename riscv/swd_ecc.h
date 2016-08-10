@@ -4,34 +4,10 @@
 #ifndef SWD_ECC_H
 #define SWD_ECC_H
 
-typedef enum {
-    HSIAO_CODE,
-    PI_CODE,
-    NUM_ECC_CODES 
-} ecc_codes_t;
+#include <string>
 
+std::string exec(const char* cmd); //From http://stackoverflow.com/questions/478898/how-to-execute-a-command-and-get-output-of-command-within-c-using-posix 
 
-typedef enum {
-    ERR_INJ_INST_MEM,
-    ERR_INJ_DATA_MEM,
-    NUM_ERR_INJ_TARGETS 
-} err_inj_targets_t;
-
-typedef class SwdEcc {
-    public:
-        SwdEcc();
-        ~SwdEcc();
-
-        char* heuristicRecovery(char* message, const char* cacheline, const uint32_t blockpos);
-
-    private:
-        size_t n_;
-        size_t k_;
-        ecc_codes_t code_;
-        uint32_t words_per_block_;
-        err_inj_targets_t target_;
-
-    friend class mmu_t;
-} SwdEcc_t;
+insn_bits_t heuristic_recovery(std::string script_filename, insn_bits_t message, std::vector<insn_bits_t> cacheline, uint32_t blockpos);
 
 #endif

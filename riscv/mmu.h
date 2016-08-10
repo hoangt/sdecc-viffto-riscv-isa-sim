@@ -124,8 +124,8 @@ public:
 
     //MWG BEGIN: error injection armed here
     if (unlikely(inject_error_now_) && err_inj_target_ == ERR_INJ_INST_MEM) {
-        insn_bits_t corrupted_insn = insn ^ ((insn_bits_t)(0x0000000000000000 | (1 << err_inj_bitpos0_))); // Flip first bit
-        corrupted_insn = corrupted_insn ^ ((insn_bits_t)(0x0000000000000000 | (1 << err_inj_bitpos1_))); // Flip second bit
+        insn_bits_t error_pattern_bits = 0x0000000000000000 | (1 << err_inj_bitpos0_) | (1 << err_inj_bitpos1_);
+        insn_bits_t corrupted_insn = insn ^ error_pattern_bits;
         std::cout.fill('0');
         std::cout << "Injecting DUE on instruction! Correct message is 0x"
                   << std::hex
@@ -137,7 +137,19 @@ public:
                   << "."
                   << std::dec
                   << std::endl;
-    //TODO: flip bits and formulate a call to inst_recovery()
+        //TODO AND FIXME: flip bits and formulate a call to inst_recovery()
+        std::vector<insn_bits_t> cacheline;
+        for (auto i = 0; i < 7; i++)
+            cacheline.push_back(0);
+        cacheline.push_back(insn);
+
+        insn_bits_t recovered_message = heuristic_recovery("./inst_heuristic_recovery_wrapper.sh", insn, cacheline, 7); 
+
+        std::cout << "Recovered message: 0x"
+                  << std::hex
+                  << std::setw(8)
+                  << recovered_message
+                  << std::endl;
     }
 
 
