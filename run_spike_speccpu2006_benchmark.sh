@@ -254,8 +254,9 @@ echo ""
 echo ""
 
 # Actually launch spike.
-CMD="$SPIKE_DIR/spike --randmemdatatrace=1000000:$OUTPUT_DIR/spike_mem_data_trace_${BENCHMARK}.txt --memwordsize=8 --ic=1:1:64 --dc=1:1:64 --isa=RV64G -m1024 -p1 $RISCV/riscv64-unknown-elf/bin/pk ${BENCHMARK}_base.${SPEC_CONFIG_SUFFIX} $BENCHMARK_ARGS"
-#CMD="/home/markg/Git/eccgrp-riscv-isa-sim/build/spike --faultinj=10:inst:39:32:0:1 --memwordsize=8 --ic=1:1:64 --dc=1:1:64 --isa=RV64G -m1024 -p1 /opt/riscv-priv-1.7-stable/riscv64-unknown-elf/bin/pk ${BENCHMARK}_base.${SPEC_CONFIG_SUFFIX} $BENCHMARK_ARGS"
+#CMD="$SPIKE_DIR/spike --randmemdatatrace=1000000:$OUTPUT_DIR/spike_mem_data_trace_${BENCHMARK}.txt --memwordsize=8 --ic=1:1:64 --dc=1:1:64 --isa=RV64G -m1024 -p1 $RISCV/riscv64-unknown-elf/bin/pk ${BENCHMARK}_base.${SPEC_CONFIG_SUFFIX} $BENCHMARK_ARGS"
+CMD="$SPIKE_DIR/spike --faultinj=10:inst:/u/home/m/mgottsch/project-puneet/eccgrp-ecc-ctrl/inst_recovery_spike_wrapper.sh --memwordsize=8 --ic=1:1:64 --dc=1:1:64 --isa=RV64G -m1024 -p1 $RISCV/riscv64-unknown-elf/bin/pk ${BENCHMARK}_base.${SPEC_CONFIG_SUFFIX} $BENCHMARK_ARGS"
+#CMD="$SPIKE_DIR/spike --memwordsize=8 --ic=1:1:64 --dc=1:1:64 --isa=RV64G -m1024 -p1 $RISCV/riscv64-unknown-elf/bin/pk ${BENCHMARK}_base.${SPEC_CONFIG_SUFFIX} $BENCHMARK_ARGS"
 echo $CMD
 $CMD
 

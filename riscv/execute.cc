@@ -79,7 +79,7 @@ void processor_t::step(size_t n)
         while (instret < n)
         {
           //MWG: error injection armed on inst fetch
-          if (likely(mmu->err_inj_enable_) && mmu->err_inj_target_ == ERR_INJ_INST_MEM && the_sim->total_steps >= mmu->err_inj_step_) {
+          if (likely(mmu->err_inj_enable_) && mmu->err_inj_target_.compare("inst") == 0 && the_sim->total_steps >= mmu->err_inj_step_) {
               mmu->inject_error_now_ = true;
               std::cout << "ERROR INJECTION ARMED for instruction memory on step " << the_sim->total_steps << "." << std::endl;
           }
@@ -101,7 +101,7 @@ void processor_t::step(size_t n)
       else while (instret < n)
       {
         //MWG: error injection armed on inst fetch
-        if (likely(mmu->err_inj_enable_) && mmu->err_inj_target_ == ERR_INJ_INST_MEM && the_sim->total_steps >= mmu->err_inj_step_) {
+        if (likely(mmu->err_inj_enable_) && mmu->err_inj_target_.compare("inst") == 0 && the_sim->total_steps >= mmu->err_inj_step_) {
             mmu->inject_error_now_ = true;
             std::cout << "ERROR INJECTION ARMED for instruction memory on step " << the_sim->total_steps << "." << std::endl;
         }

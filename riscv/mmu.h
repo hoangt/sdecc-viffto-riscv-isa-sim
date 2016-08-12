@@ -11,9 +11,15 @@
 #include "memtracer.h"
 #include <stdlib.h>
 #include <vector>
-#include "swd_ecc.h" //MWG
 #include <iostream> //MWG
 #include <iomanip> //MWG
+#include <cstdio> //MWG
+#include <iostream> //MWG
+#include <memory> //MWG
+#include <stdexcept> //MWG
+#include <string> //MWG
+#include <sstream> //MWG
+#include <bitset> //MWG
 
 // virtual memory configuration
 #define PGSHIFT 12
@@ -30,6 +36,9 @@ struct icache_entry_t {
   reg_t pad;
   insn_fetch_t data;
 };
+
+//MWG: based on http://stackoverflow.com/questions/478898/how-to-execute-a-command-and-get-output-of-command-within-c-using-posix
+std::string myexec(std::string cmd);
 
 // this class implements a processor's port into the virtual memory system.
 // an MMU and instruction cache are maintained for simulator performance.
@@ -52,9 +61,10 @@ public:
         correct_retval = *(type##_t*)(tlb_data[vpn % TLB_ENTRIES] + addr); \
       else \
           load_slow_path(addr, sizeof(type##_t), (uint8_t*)&correct_retval); \
-      if (unlikely(inject_error_now_) && err_inj_target_ == ERR_INJ_DATA_MEM) { \
-          type##_t* tmp = reinterpret_cast<type##_t*>(swdecc_.heuristicRecovery(reinterpret_cast<char*>(&correct_retval), NULL, 0)); \
-          retval = *tmp; \
+      if (unlikely(inject_error_now_) && err_inj_target_.compare("data") == 0) { \
+          /*type##_t* tmp = reinterpret_cast<type##_t*>(swdecc_.heuristicRecovery(reinterpret_cast<char*>(&correct_retval), NULL, 0)); FIXME TODO */\
+          /*retval = *tmp; */\
+          retval = correct_retval; \
           inject_error_now_ = false; \
           err_inj_enable_ = false; \
       } else \
@@ -123,36 +133,39 @@ public:
     }
 
     //MWG BEGIN: error injection armed here
-    if (unlikely(inject_error_now_) && err_inj_target_ == ERR_INJ_INST_MEM) {
-        insn_bits_t error_pattern_bits = 0x0000000000000000 | (1 << err_inj_bitpos0_) | (1 << err_inj_bitpos1_);
-        insn_bits_t corrupted_insn = insn ^ error_pattern_bits;
+    if (unlikely(inject_error_now_) && err_inj_target_.compare("inst") == 0) {
         std::cout.fill('0');
         std::cout << "Injecting DUE on instruction! Correct message is 0x"
                   << std::hex
                   << std::setw(8)
                   << insn
-                  << ". Corrupted message *WOULD BE -- NOT YET IMPLEMENTED RECOVERY* 0x" 
-                  << std::setw(8)
-                  << corrupted_insn
                   << "."
-                  << std::dec
                   << std::endl;
-        //TODO AND FIXME: flip bits and formulate a call to inst_recovery()
-        std::vector<insn_bits_t> cacheline;
-        for (auto i = 0; i < 7; i++)
-            cacheline.push_back(0);
-        cacheline.push_back(insn);
-
-        insn_bits_t recovered_message = heuristic_recovery("./inst_heuristic_recovery_wrapper.sh", insn, cacheline, 7); 
+    
+        //Construct command line
+        std::string cmd = swd_ecc_script_filename_ + " " + std::bitset<32>(insn).to_string();
+        std::cout << "Cmd: " << cmd << std::endl;
+        std::string script_stdout = myexec(cmd);    
+        
+        //Parse recovery
+        insn_bits_t recovered_message = 0x0000000000000000; 
+    
+        //Output is expected to be simply a k-bit message in binary characters, e.g. '001010100101001...001010'
+        for (size_t i = 0; i < script_stdout.length(); i++)
+            recovered_message |= (script_stdout[i] == '1' ? (1 << (sizeof(insn_bits_t)-i-1)) : 0);
 
         std::cout << "Recovered message: 0x"
                   << std::hex
                   << std::setw(8)
-                  << recovered_message
-                  << std::endl;
+                  << recovered_message;
+
+        if (insn == recovered_message)
+            std::cout << " is correct!" << std::endl;
+        else
+            std::cout << " is CORRUPT!" << std::endl;
+
+        insn = recovered_message;
     }
-
-
     //MWG END
 
     insn_fetch_t fetch = {proc->decode_insn(insn), insn};
@@ -190,12 +203,8 @@ public:
   //MWG
   void enableErrInj(
     size_t err_inj_step,
-    err_inj_targets_t err_inj_target,
-    uint32_t n,
-    uint32_t k,
-    ecc_codes_t ecc_code,
-    uint32_t err_inj_bitpos0,
-    uint32_t err_inj_bitpos1,
+    std::string err_inj_target,
+    std::string swd_ecc_script_filename,
     uint32_t words_per_block
     );
   bool errInjEnabled() { return err_inj_enable_; } //MWG
@@ -208,15 +217,10 @@ private:
 
   bool err_inj_enable_; //MWG
   size_t err_inj_step_; //MWG
-  err_inj_targets_t err_inj_target_; //MWG
-  uint32_t n_; //MWG
-  uint32_t k_; //MWG
-  ecc_codes_t ecc_code_; //MWG
-  uint32_t err_inj_bitpos0_; //MWG
-  uint32_t err_inj_bitpos1_; //MWG
-  uint32_t words_per_block_; //MWG
+  std::string err_inj_target_; //MWG
   bool inject_error_now_; //MWG
-  SwdEcc_t swdecc_; //MWG
+  std::string swd_ecc_script_filename_; //MWG
+  uint32_t words_per_block_; //MWG
 
   // implement an instruction cache for simulator performance
   icache_entry_t icache[ICACHE_ENTRIES];

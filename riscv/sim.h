@@ -78,7 +78,7 @@ private:
   size_t memdatatrace_step_end; //MWG
   size_t memdatatrace_sample_interval; //MWG
   size_t memdatatrace_rand_prob_recip; //MWG
-  uint32_t memwordsize; //MWG
+  uint32_t memwordsize; //MWG 
 
   // memory-mapped I/O routines
   bool mmio_load(reg_t addr, size_t len, uint8_t* bytes);

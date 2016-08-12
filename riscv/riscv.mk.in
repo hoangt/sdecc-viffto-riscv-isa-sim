@@ -22,7 +22,6 @@ riscv_hdrs = \
 	rocc.h \
 	insn_template.h \
 	mulhi.h \
-    swd_ecc.h \
 
 riscv_precompiled_hdrs = \
 	insn_template.h \
@@ -42,7 +41,6 @@ riscv_srcs = \
 	rocc.cc \
 	regnames.cc \
 	devices.cc \
-    swd_ecc.cc \
 	$(riscv_gen_srcs) \
 
 riscv_test_srcs =

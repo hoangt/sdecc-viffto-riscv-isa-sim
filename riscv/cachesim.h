@@ -72,6 +72,8 @@ class cache_sim_t
 
   void init();
   void memdatatrace(uint64_t addr, size_t bytes, bool store, size_t accesses_since_last_sample); //MWG
+
+  friend class mmu_t; //MWG
 };
 
 class fa_cache_sim_t : public cache_sim_t
