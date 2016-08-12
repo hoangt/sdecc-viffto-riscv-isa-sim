@@ -13,7 +13,7 @@ if [[ "$ARGC" != 0 ]]; then # Bad number of arguments.
 fi
 
 ########################## FEEL FREE TO CHANGE THESE OPTIONS ##################################
-SPEC_BENCHMARKS="astar bwaves bzip2 calculix dealII gamess gcc GemsFDTD gobmk h264ref hmmer lbm leslie3d libquantum mcf milc namd omnetpp perlbench povray sjeng soplex sphinx3 specrand998 specrand999 tonto wrf xalancbmk zeusmp"		# String of SPEC CPU2006 benchmark names to run, delimited by spaces.
+SPEC_BENCHMARKS="400.perlbench 401.bzip2 403.gcc 410.bwaves 416.gamess 429.mcf 433.milc 434.zeusmp 435.gromacs 436.cactusADM 437.leslie3d 444.namd 445.gobmk 447.dealII 450.soplex 453.povray 454.calculix 456.hmmer 458.sjeng 459.GemsFDTD 462.libquantum 464.h264ref 465.tonto 470.lbm 471.omnetpp 473.astar 481.wrf 482.sphinx3 483.xalancbmk 998.specrand 999.specrand"
 
 # qsub options used:
 # -V: export environment variables from this calling script to each job
