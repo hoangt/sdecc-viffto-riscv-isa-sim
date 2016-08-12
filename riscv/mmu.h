@@ -20,6 +20,7 @@
 #include <string> //MWG
 #include <sstream> //MWG
 #include <bitset> //MWG
+#include "cachesim.h" //MWG
 
 // virtual memory configuration
 #define PGSHIFT 12
@@ -57,14 +58,88 @@ public:
       reg_t vpn = addr >> PGSHIFT; \
       type##_t correct_retval; \
       type##_t retval; \
-      if (likely(tlb_load_tag[vpn % TLB_ENTRIES] == vpn)) \
+      if (likely(tlb_load_tag[vpn % TLB_ENTRIES] == vpn)) { \
         correct_retval = *(type##_t*)(tlb_data[vpn % TLB_ENTRIES] + addr); \
-      else \
+        /* correct_quadword = *(uint64_t*)(tlb_data[vpn % TLB_ENTRIES] + (addr & (~0x0000000000000007))); */\
+      } else { \
           load_slow_path(addr, sizeof(type##_t), (uint8_t*)&correct_retval); \
+          /* load_slow_path((addr & (~0x0000000000000007)), sizeof(uint64_t), (uint8_t*)&correct_quadword); */\
+      } \
       if (unlikely(inject_error_now_) && err_inj_target_.compare("data") == 0) { \
-          /*type##_t* tmp = reinterpret_cast<type##_t*>(swdecc_.heuristicRecovery(reinterpret_cast<char*>(&correct_retval), NULL, 0)); FIXME TODO */\
-          /*retval = *tmp; */\
-          retval = correct_retval; \
+          uint8_t correct_quadword[sizeof(uint64_t)]; \
+          uint8_t recovered_quadword[sizeof(uint64_t)]; \
+          reg_t paddr = translate(addr, LOAD); \
+          uint8_t cacheline[64]; /* FIXME */ \
+          uint32_t memwordsize = sizeof(uint64_t); /* FIXME */\
+          unsigned position_in_cacheline = (paddr & 0x3f) / memwordsize; \
+          memcpy(correct_quadword, reinterpret_cast<char*>(mem+paddr), sizeof(uint64_t)); \
+          memcpy(cacheline, reinterpret_cast<char*>(reinterpret_cast<reg_t>(mem+(paddr & (~0x000000000000003f)))), 64); /* FIXME */ \
+          \
+          std::cout.fill('0'); \
+          std::cout << "Injecting DUE on data! Correct return value is 0x" \
+                    << std::hex \
+                    << std::setw(sizeof(type##_t)) \
+                    << correct_retval \
+                    << ", correct 64-bit message is 0x"; \
+          for (size_t i = 0; i < sizeof(uint64_t); i++) { \
+              std::cout << std::hex \
+                        << std::setw(2) \
+                        << correct_quadword[i]; \
+          } \
+          std::cout << "." << std::endl; \
+          \
+          std::cout << "Quadword/message is block number " \
+                    << std::dec \
+                    << position_in_cacheline \
+                    << "in: "; \
+          for (size_t i = 0; i < 64; i++) { /* FIXME */ \
+              std::cout << std::hex \
+                        << std::setw(2) \
+                        << cacheline[i]; \
+          } \
+          std::cout << "." << std::endl; \
+          \
+          /* Construct command line */ \
+          std::string cmd = swd_ecc_script_filename_ + " "; \
+          for (size_t i = 0; i < sizeof(uint64_t); i++) { \
+              cmd += std::bitset<8>(correct_quadword[i]).to_string(); \
+          } \
+          cmd += " {"; \
+          for (size_t i = 0; i < words_per_block_; i++) { \
+              for (size_t j = 0; j < sizeof(uint64_t); j++) { \
+                  cmd += std::bitset<8>(cacheline[i*sizeof(uint64_t)+j]).to_string(); \
+              } \
+              cmd += ","; \
+          } \
+          cmd += "}"; \
+          std::cout << "Cmd: " << cmd << std::endl; \
+          std::string script_stdout = myexec(cmd);     \
+           \
+          /* Parse recovery */ \
+          \
+          /* Output is expected to be simply a 64-bit message in binary characters, e.g. '001010100101001...001010' */ \
+          for (size_t i = 0; i < sizeof(uint64_t); i++) { \
+              recovered_quadword[i] = 0; \
+              for (size_t j = 0; j < 8; j++) { \
+                  recovered_quadword[i] |= (script_stdout[i*8+j] == '1' ? (1 << (8-j-1)) : 0); \
+              } \
+          } \
+          std::cout << "Recovered 64-bit message: 0x"; \
+          for (size_t i = 0; i < sizeof(uint64_t); i++) { \
+              std::cout << std::hex \
+                        << std::setw(2) \
+                        << recovered_quadword[i]; \
+          } \
+          std::cout << ", which yields a recovered return value of 0x"; \
+          type##_t recovered_retval = (type##_t)(*(recovered_quadword + (paddr & 0x7))); \
+          std::cout << std::setw(sizeof(type##_t)) \
+                    << recovered_retval; \
+          \
+          if (correct_quadword == recovered_quadword) \
+              std::cout << ", which is correct!" << std::endl; \
+          else \
+              std::cout << ", which is CORRUPT!" << std::endl; \
+          retval = recovered_retval; \
           inject_error_now_ = false; \
           err_inj_enable_ = false; \
       } else \
@@ -142,17 +217,17 @@ public:
                   << "."
                   << std::endl;
     
-        //Construct command line
+        /* Construct command line */
         std::string cmd = swd_ecc_script_filename_ + " " + std::bitset<32>(insn).to_string();
         std::cout << "Cmd: " << cmd << std::endl;
         std::string script_stdout = myexec(cmd);    
         
-        //Parse recovery
+        /* Parse recovery */
         insn_bits_t recovered_message = 0x0000000000000000; 
     
-        //Output is expected to be simply a k-bit message in binary characters, e.g. '001010100101001...001010'
-        for (size_t i = 0; i < script_stdout.length(); i++)
-            recovered_message |= (script_stdout[i] == '1' ? (1 << (sizeof(insn_bits_t)-i-1)) : 0);
+        /* Output is expected to be simply a k-bit message in binary characters, e.g. '001010100101001...001010' */
+        for (size_t i = 0; i < 64; i++) //FIXME
+            recovered_message |= (script_stdout[i] == '1' ? (1 << (sizeof(insn_bits_t)*8-i-1)) : 0);
 
         std::cout << "Recovered message: 0x"
                   << std::hex
