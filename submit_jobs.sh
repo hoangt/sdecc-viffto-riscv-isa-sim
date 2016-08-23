@@ -25,9 +25,10 @@ SPEC_BENCHMARKS="416.gamess 429.mcf 433.milc 434.zeusmp 435.gromacs 436.cactusAD
 MAX_TIME_PER_RUN=335:00:00 	# Maximum time of each script that will be invoked, HH:MM:SS. If this is exceeded, job will be killed.
 MAX_MEM_PER_RUN=1536M 		# Maximum memory needed per script that will be invoked. If this is exceeded, job will be killed.
 MAILING_LIST=mgottsch 		# List of users to email with status updates, separated by commas
-OUTPUT_DIR=/u/home/m/mgottsch/project-eedept/swd_ecc_output/rv64g/spike # Hoffman2
+OUTPUT_DIR=/u/home/m/mgottsch/project-eedept/swd_ecc_data/rv64g/spike # Hoffman2
 ###############################################################################################
 
+mkdir -p $OUTPUT_DIR
 
 # Submit all the SPEC CPU2006 benchmarks
 echo "Submitting jobs..."
