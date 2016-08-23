@@ -4,14 +4,9 @@
 # mgottscho@ucla.edu
 
 ################## SYSTEM-SPECIFIC VARIABLES: MODIFY ACCORDINGLY #######
-#SPEC_DIR=~/Git/spec-cpu2006-nanocad-prep # MWG-Desktop-UbuntuVM
-SPEC_DIR=/u/home/m/mgottsch/project-puneet/spec_cpu2006_install		# Hoffman2
-#SPIKE_DIR=~/Git/eccgrp-risc-isa-sim/build # MWG-Desktop-UbuntuVM
-SPIKE_DIR=/u/home/m/mgottsch/project-puneet/eccgrp-riscv-isa-sim/build # Hoffman2
-#OUTPUT_DIR=~/swd_ecc_output/spike # MWG-Desktop-UbuntuVM
-OUTPUT_DIR=/u/home/m/mgottsch/project-eedept/swd_ecc_output/rv64g/spike # Hoffman2
-#SYSTEM=mwg-desktop-ubuntuvm # MWG-Desktop-UbuntuVM
-SYSTEM=hoffman # Hoffman2
+SPEC_DIR=$MWG_DATA_PATH/spec_cpu2006_install
+SPIKE_DIR=$MWG_GIT_PATH/eccgrp-riscv-isa-sim/build
+OUTPUT_DIR=$MWG_DATA_PATH/swd_ecc_data/rv64g/spike
 ##################################################################
 
 mkdir -p $OUTPUT_DIR
@@ -23,8 +18,8 @@ if [[ "$ARGC" != 1 ]]; then # Bad number of arguments.
 	echo ""
 	echo "This script runs a single gem5 simulation of a single SPEC CPU2006 benchmark on Spike for RISC-V."
 	echo ""
-	echo "USAGE: run_spike_speccpu2006_benchmark.sh <BENCHMARK>"
-	echo "EXAMPLE: ./run_spike_speccpu2006_benchmark.sh 401.bzip2"
+	echo "USAGE: run_spike_speccpu2006_benchmark.sh <BENCHMARK> <MODE>"
+	echo "EXAMPLE: ./run_spike_speccpu2006_benchmark.sh 401.bzip2 memdatatrace"
 	echo ""
 	echo "A single --help help or -h argument will bring this message back."
 	exit
@@ -32,6 +27,7 @@ fi
 
 # Get command line input. We will need to check these.
 BENCHMARK=$1					# Benchmark name, e.g. bzip2
+MODE=$2                         # Spike mode, i.e. memdatatrace or faultinj
 
 ######################### BENCHMARK CODENAMES ####################
 PERLBENCH=400.perlbench
@@ -209,7 +205,7 @@ fi
 
 ##################################################################
 
-SPEC_CONFIG_SUFFIX=$SYSTEM-rv64g-priv-1.7-stable
+SPEC_CONFIG_SUFFIX=$MWG_MACHINE_NAME-rv64g-priv-1.7-stable
 RUN_DIR=$SPEC_DIR/benchspec/CPU2006/$BENCHMARK/run/run_base_ref_${SPEC_CONFIG_SUFFIX}.0000		# Run directory for the selected SPEC benchmark
 
 #################### LAUNCH SIMULATION ######################
@@ -224,8 +220,16 @@ echo ""
 echo ""
 
 # Actually launch spike.
-CMD="$SPIKE_DIR/spike --randmemdatatrace=1000000:$OUTPUT_DIR/spike_mem_data_trace_${BENCHMARK}.txt --memwordsize=8 --ic=1:1:64 --dc=1:1:64 --isa=RV64G -m1024 -p1 $RISCV/riscv64-unknown-elf/bin/pk ${BENCHMARK_NAME}_base.${SPEC_CONFIG_SUFFIX} $BENCHMARK_ARGS"
-#CMD="$SPIKE_DIR/spike --faultinj=10:inst:/u/home/m/mgottsch/project-puneet/eccgrp-ecc-ctrl/inst_recovery_spike_wrapper.sh --memwordsize=8 --ic=1:1:64 --dc=1:1:64 --isa=RV64G -m1024 -p1 $RISCV/riscv64-unknown-elf/bin/pk ${BENCHMARK_NAME}_base.${SPEC_CONFIG_SUFFIX} $BENCHMARK_ARGS"
+CMD=""
+
+if [[ "$MODE" == "memdatatrace" ]]; then
+    CMD="$SPIKE_DIR/spike --randmemdatatrace=1000000:$OUTPUT_DIR/spike_mem_data_trace_${BENCHMARK}.txt --memwordsize=8 --ic=1:1:64 --dc=1:1:64 --isa=RV64G -m1024 -p1 $RISCV/riscv64-unknown-elf/bin/pk ${BENCHMARK_NAME}_base.${SPEC_CONFIG_SUFFIX} $BENCHMARK_ARGS"
+fi
+
+if [[ "$MODE" == "faultinj" ]]; then
+    CMD="$SPIKE_DIR/spike --faultinj=10:inst:$MWG_GIT_PATH/eccgrp-ecc-ctrl/inst_recovery_spike_wrapper.sh --memwordsize=8 --ic=1:1:64 --dc=1:1:64 --isa=RV64G -m1024 -p1 $RISCV/riscv64-unknown-elf/bin/pk ${BENCHMARK_NAME}_base.${SPEC_CONFIG_SUFFIX} $BENCHMARK_ARGS"
+fi
+
 echo $CMD
 $CMD
 

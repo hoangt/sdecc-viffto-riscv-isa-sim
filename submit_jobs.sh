@@ -8,9 +8,11 @@ if [[ "$ARGC" != 0 ]]; then # Bad number of arguments.
 	echo "Author: Mark Gottscho"
 	echo "mgottscho@ucla.edu"
 	echo ""
-	echo "USAGE: ./submit_jobs.sh"
+	echo "USAGE: ./submit_jobs.sh <MODE>"
 	exit
 fi
+
+MODE=$1
 
 ########################## FEEL FREE TO CHANGE THESE OPTIONS ##################################
 #SPEC_BENCHMARKS="400.perlbench 401.bzip2 403.gcc 410.bwaves 416.gamess 429.mcf 433.milc 434.zeusmp 435.gromacs 436.cactusADM 437.leslie3d 444.namd 445.gobmk 447.dealII 450.soplex 453.povray 454.calculix 456.hmmer 458.sjeng 459.GemsFDTD 462.libquantum 464.h264ref 465.tonto 470.lbm 471.omnetpp 473.astar 481.wrf 482.sphinx3 483.xalancbmk 998.specrand 999.specrand" # All benchmarks
@@ -25,7 +27,7 @@ SPEC_BENCHMARKS="416.gamess 429.mcf 433.milc 434.zeusmp 435.gromacs 436.cactusAD
 MAX_TIME_PER_RUN=335:00:00 	# Maximum time of each script that will be invoked, HH:MM:SS. If this is exceeded, job will be killed.
 MAX_MEM_PER_RUN=1536M 		# Maximum memory needed per script that will be invoked. If this is exceeded, job will be killed.
 MAILING_LIST=mgottsch 		# List of users to email with status updates, separated by commas
-OUTPUT_DIR=/u/home/m/mgottsch/project-eedept/swd_ecc_data/rv64g/spike # Hoffman2
+OUTPUT_DIR=$MWG_DATA_DIR/swd_ecc_data/rv64g/spike
 ###############################################################################################
 
 mkdir -p $OUTPUT_DIR
@@ -38,7 +40,7 @@ for SPEC_BENCHMARK in $SPEC_BENCHMARKS; do
 	JOB_NAME="spike_${SPEC_BENCHMARK}"
     JOB_STDOUT=$OUTPUT_DIR/${SPEC_BENCHMARK}.stdout
     JOB_STDERR=$OUTPUT_DIR/${SPEC_BENCHMARK}.stderr
-	qsub -V -N $JOB_NAME -l h_data=$MAX_MEM_PER_RUN,time=$MAX_TIME_PER_RUN,highp -M $MAILING_LIST -o $JOB_STDOUT -e $JOB_STDERR -m as run_spike_speccpu2006_benchmark.sh $SPEC_BENCHMARK
+	qsub -V -N $JOB_NAME -l h_data=$MAX_MEM_PER_RUN,time=$MAX_TIME_PER_RUN,highp -M $MAILING_LIST -o $JOB_STDOUT -e $JOB_STDERR -m as run_spike_speccpu2006_benchmark.sh $SPEC_BENCHMARK $MODE
 done
 
 echo "Done submitting jobs."
