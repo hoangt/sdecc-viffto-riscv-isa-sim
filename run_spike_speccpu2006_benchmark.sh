@@ -202,6 +202,11 @@ fi
 # Extract just the part after the numeric code in the beginning of the benchmark name, e.g. 401.bzip2 --> bzip2
 BENCHMARK_NAME=`echo $BENCHMARK | sed 's/[0-9]*\.\([a-z0-9]*\)/\1/'`
 
+# Special case for 483.xalancbmk
+if [[ "$BENCHMARK" == "483.xalancbmk" ]]; then
+    BENCHMARK_NAME=Xalan
+fi
+
 ##################################################################
 
 SPEC_CONFIG_SUFFIX=$SYSTEM-rv64g-priv-1.7-stable
@@ -219,8 +224,8 @@ echo ""
 echo ""
 
 # Actually launch spike.
-#CMD="$SPIKE_DIR/spike --randmemdatatrace=1000000:$OUTPUT_DIR/spike_mem_data_trace_${BENCHMARK}.txt --memwordsize=8 --ic=1:1:64 --dc=1:1:64 --isa=RV64G -m1024 -p1 $RISCV/riscv64-unknown-elf/bin/pk ${BENCHMARK_NAME}_base.${SPEC_CONFIG_SUFFIX} $BENCHMARK_ARGS"
-CMD="$SPIKE_DIR/spike --faultinj=10:inst:/u/home/m/mgottsch/project-puneet/eccgrp-ecc-ctrl/inst_recovery_spike_wrapper.sh --memwordsize=8 --ic=1:1:64 --dc=1:1:64 --isa=RV64G -m1024 -p1 $RISCV/riscv64-unknown-elf/bin/pk ${BENCHMARK_NAME}_base.${SPEC_CONFIG_SUFFIX} $BENCHMARK_ARGS"
+CMD="$SPIKE_DIR/spike --randmemdatatrace=1000000:$OUTPUT_DIR/spike_mem_data_trace_${BENCHMARK}.txt --memwordsize=8 --ic=1:1:64 --dc=1:1:64 --isa=RV64G -m1024 -p1 $RISCV/riscv64-unknown-elf/bin/pk ${BENCHMARK_NAME}_base.${SPEC_CONFIG_SUFFIX} $BENCHMARK_ARGS"
+#CMD="$SPIKE_DIR/spike --faultinj=10:inst:/u/home/m/mgottsch/project-puneet/eccgrp-ecc-ctrl/inst_recovery_spike_wrapper.sh --memwordsize=8 --ic=1:1:64 --dc=1:1:64 --isa=RV64G -m1024 -p1 $RISCV/riscv64-unknown-elf/bin/pk ${BENCHMARK_NAME}_base.${SPEC_CONFIG_SUFFIX} $BENCHMARK_ARGS"
 echo $CMD
 $CMD
 
