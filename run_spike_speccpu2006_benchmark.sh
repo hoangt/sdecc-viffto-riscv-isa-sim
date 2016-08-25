@@ -140,7 +140,7 @@ fi
 if [[ "$BENCHMARK" == "$GOBMK" ]]; then
 	BENCHMARK_ARGS=$GOBMK_ARGS
 fi
-if [[ "$BENCHMARK" == "$DEALII" ]]; then # DOES NOT WORK
+if [[ "$BENCHMARK" == "$DEALII" ]]; then
 	BENCHMARK_ARGS=$DEALII_ARGS
 fi
 if [[ "$BENCHMARK" == "$SOPLEX" ]]; then
@@ -182,10 +182,10 @@ fi
 if [[ "$BENCHMARK" == "$WRF" ]]; then
 	BENCHMARK_ARGS=$WRF_ARGS
 fi
-if [[ "$BENCHMARK" == "SPHINX3" ]]; then
+if [[ "$BENCHMARK" == "$SPHINX3" ]]; then
 	BENCHMARK_ARGS=$SPHINX3_ARGS
 fi
-if [[ "$BENCHMARK" == "$XALANCBMK" ]]; then # DOES NOT WORK
+if [[ "$BENCHMARK" == "$XALANCBMK" ]]; then 
 	BENCHMARK_ARGS=$XALANCBMK_ARGS
 fi
 if [[ "$BENCHMARK" == "$SPECRAND_INT" ]]; then
@@ -197,6 +197,11 @@ fi
 
 # Extract just the part after the numeric code in the beginning of the benchmark name, e.g. 401.bzip2 --> bzip2
 BENCHMARK_NAME=`echo $BENCHMARK | sed 's/[0-9]*\.\([a-z0-9]*\)/\1/'`
+
+# Special case for 482.sphinx3
+if [[ "$BENCHMARK" == "482.sphinx3" ]]; then
+    BENCHMARK_NAME=sphinx_livepretend
+fi
 
 # Special case for 483.xalancbmk
 if [[ "$BENCHMARK" == "483.xalancbmk" ]]; then
