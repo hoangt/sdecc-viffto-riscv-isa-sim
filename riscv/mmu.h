@@ -65,6 +65,10 @@ public:
           load_slow_path(addr, sizeof(type##_t), (uint8_t*)&correct_retval); \
           /* load_slow_path((addr & (~0x0000000000000007)), sizeof(uint64_t), (uint8_t*)&correct_quadword); */\
       } \
+      if (likely(err_inj_enable_) && err_inj_target_.compare("data") == 0 && the_sim->total_steps >= err_inj_step_) { /* FIXME the_sim */\
+          inject_error_now_ = true; \
+          std::cout << "ERROR INJECTION ARMED for data memory on step " << the_sim->total_steps << "." << std::endl; /* FIXME the_sim */\
+      } \
       if (unlikely(inject_error_now_) && err_inj_target_.compare("data") == 0) { \
           uint8_t correct_quadword[sizeof(uint64_t)]; \
           uint8_t recovered_quadword[sizeof(uint64_t)]; \
@@ -108,7 +112,7 @@ public:
               for (size_t j = 0; j < sizeof(uint64_t); j++) { \
                   cmd += std::bitset<8>(cacheline[i*sizeof(uint64_t)+j]).to_string(); \
               } \
-              if (i < words_per_block-1) \
+              if (i < words_per_block_-1) \
                   cmd += ","; \
           } \
           std::cout << "Cmd: " << cmd << std::endl; \
@@ -138,6 +142,7 @@ public:
               std::cout << ", which is correct!" << std::endl; \
           else \
               std::cout << ", which is CORRUPT!" << std::endl; \
+          std::cout << "ERROR INJECTION COMPLETED, now disarmed." << std::endl; \
           retval = recovered_retval; \
           inject_error_now_ = false; \
           err_inj_enable_ = false; \
@@ -212,7 +217,7 @@ public:
         std::cout << "Injecting DUE on instruction! Correct message is 0x"
                   << std::hex
                   << std::setw(8)
-                  << insn
+                  << (insn & 0x00000000FFFFFFFF) //FIXME: we just mask out upper 32-bits, we are assuming RV64G only here
                   << "."
                   << std::endl;
     
@@ -220,18 +225,19 @@ public:
         std::string cmd = swd_ecc_script_filename_ + " " + std::bitset<32>(insn).to_string();
         std::cout << "Cmd: " << cmd << std::endl;
         std::string script_stdout = myexec(cmd);    
+        std::cout << "Raw script stdout: " << script_stdout << std::endl;
         
         /* Parse recovery */
-        insn_bits_t recovered_message = 0x0000000000000000; 
-    
+        insn_bits_t recovered_message = 0; 
+
         /* Output is expected to be simply a k-bit message in binary characters, e.g. '001010100101001...001010' */
-        for (size_t i = 0; i < 64; i++) //FIXME
-            recovered_message |= (script_stdout[i] == '1' ? (1 << (sizeof(insn_bits_t)*8-i-1)) : 0);
+        for (size_t i = 0; i < 32; i++) //FIXME
+            recovered_message |= (script_stdout[i] == '1' ? (1 << (32-i-1)) : 0);
 
         std::cout << "Recovered message: 0x"
                   << std::hex
                   << std::setw(8)
-                  << recovered_message;
+                  << (recovered_message & 0x00000000FFFFFFFF);
 
         if (insn == recovered_message)
             std::cout << " is correct!" << std::endl;
