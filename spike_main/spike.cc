@@ -104,6 +104,14 @@ int main(int argc, char** argv)
       if (!tmp3++) help();
 
       memdatatrace_output_filename = std::string(tmp3);
+      
+      output_file.open(memdatatrace_output_filename, std::fstream::out);
+      if (!output_file.is_open()) {
+         std::cerr << "FAILED to open " << memdatatrace_output_filename << ". Exiting." << std::endl;
+         exit(-1);
+      } else {
+         std::cout << "memdatatrace output file is " << memdatatrace_output_filename << std::endl;
+      }
   });
   
   //MWG
@@ -115,6 +123,14 @@ int main(int argc, char** argv)
       if (!tmp++) help();
 
       memdatatrace_output_filename = std::string(tmp);
+      
+      output_file.open(memdatatrace_output_filename, std::fstream::out);
+      if (!output_file.is_open()) {
+         std::cerr << "FAILED to open " << memdatatrace_output_filename << ". Exiting." << std::endl;
+         exit(-1);
+      } else {
+         std::cout << "memdatatrace output file is " << memdatatrace_output_filename << std::endl;
+      }
   });
 
   //MWG
@@ -146,16 +162,6 @@ int main(int argc, char** argv)
   std::vector<std::string> htif_args(argv1, (const char*const*)argv + argc);
   sim_t s(isa, nprocs, mem_mb, htif_args);
   the_sim = &s; //MWG THIS IS DANGEROUS HACK
-  
-  //MWG BEGIN
-  output_file.open(memdatatrace_output_filename, std::fstream::out);
-  if (!output_file.is_open()) {
-     std::cerr << "FAILED to open " << memdatatrace_output_filename << ". Exiting." << std::endl;
-     exit(-1);
-  } else {
-     std::cout << "memdatatrace output file is " << memdatatrace_output_filename << std::endl;
-  }
-  //MWG END
   
   if (ic && l2) ic->set_miss_handler(&*l2);
   if (dc && l2) dc->set_miss_handler(&*l2);
