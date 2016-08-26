@@ -104,14 +104,13 @@ public:
           for (size_t i = 0; i < sizeof(uint64_t); i++) { \
               cmd += std::bitset<8>(correct_quadword[i]).to_string(); \
           } \
-          cmd += " {"; \
           for (size_t i = 0; i < words_per_block_; i++) { \
               for (size_t j = 0; j < sizeof(uint64_t); j++) { \
                   cmd += std::bitset<8>(cacheline[i*sizeof(uint64_t)+j]).to_string(); \
               } \
-              cmd += ","; \
+              if (i < words_per_block-1) \
+                  cmd += ","; \
           } \
-          cmd += "}"; \
           std::cout << "Cmd: " << cmd << std::endl; \
           std::string script_stdout = myexec(cmd);     \
            \
