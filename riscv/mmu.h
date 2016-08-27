@@ -80,7 +80,7 @@ public:
           uint8_t cacheline[64]; /* FIXME */ \
           uint32_t memwordsize = sizeof(uint64_t); /* FIXME */\
           unsigned position_in_cacheline = (paddr & 0x3f) / memwordsize; \
-          memcpy(correct_quadword, reinterpret_cast<char*>(mem+paddr), sizeof(uint64_t)); \
+          memcpy(correct_quadword, reinterpret_cast<char*>(reinterpret_cast<reg_t>(mem+(paddr & (~0x0000000000000007)))), sizeof(uint64_t)); \
           memcpy(cacheline, reinterpret_cast<char*>(reinterpret_cast<reg_t>(mem+(paddr & (~0x000000000000003f)))), 64); /* FIXME */ \
           \
           std::cout.fill('0'); \
@@ -124,6 +124,7 @@ public:
               if (i < words_per_block_-1) \
                   cmd += ","; \
           } \
+          cmd += " " + std::to_string(position_in_cacheline); \
           std::cout << "Cmd: " << cmd << std::endl; \
           std::string script_stdout = myexec(cmd);     \
            \
@@ -142,16 +143,23 @@ public:
                         << std::setw(2) \
                         << static_cast<uint64_t>(recovered_quadword[i]); \
           } \
-          std::cout << ", which yields a recovered return value of 0x"; \
+          bool correctly_recovered = true; \
+          for (size_t i = 0; i < sizeof(uint64_t); i++) { \
+              if (correct_quadword[i] != recovered_quadword[i]) { \
+                  correctly_recovered = false; \
+                  break; \
+              } \
+          } \
+          if (correctly_recovered) \
+              std::cout << ", which is correct"; \
+          else \
+              std::cout << ", which is CORRUPT"; \
+          std::cout << ", and which yields a recovered return value of 0x" << std::endl; \
           type##_t recovered_retval = (type##_t)(*(recovered_quadword + (paddr & 0x7))); \
           std::cout << std::hex \
                     << std::setw(sizeof(type##_t)*2) \
                     << static_cast<uint64_t>(recovered_retval); \
           \
-          if (correct_quadword == recovered_quadword) \
-              std::cout << ", which is correct!" << std::endl; \
-          else \
-              std::cout << ", which is CORRUPT!" << std::endl; \
           std::cout << "ERROR INJECTION COMPLETED, now disarmed." << std::endl; \
           retval = recovered_retval; \
           inject_error_now_ = false; \
