@@ -232,7 +232,7 @@ if [[ "$MODE" == "memdatatrace" ]]; then
 fi
 
 if [[ "$MODE" == "faultinj" ]]; then
-    CMD="$SPIKE_DIR/spike --faultinj=10:inst:$MWG_GIT_PATH/eccgrp-ecc-ctrl/inst_recovery_spike_wrapper.sh --memwordsize=8 --ic=1:1:64 --dc=1:1:64 --isa=RV64G -m1024 -p1 $RISCV/riscv64-unknown-elf/bin/pk ${BENCHMARK_NAME}_base.${SPEC_CONFIG_SUFFIX} $BENCHMARK_ARGS"
+    CMD="$SPIKE_DIR/spike --faultinj=10000:data:$MWG_GIT_PATH/eccgrp-ecc-ctrl/data_recovery_spike_wrapper.sh --memwordsize=8 --ic=1:1:64 --dc=1:1:64 --isa=RV64G -m1024 -p1 $RISCV/riscv64-unknown-elf/bin/pk ${BENCHMARK_NAME}_base.${SPEC_CONFIG_SUFFIX} $BENCHMARK_ARGS"
 fi
 
 echo $CMD

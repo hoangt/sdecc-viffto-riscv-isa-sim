@@ -22,6 +22,8 @@
 #include <bitset> //MWG
 #include "cachesim.h" //MWG
 
+extern size_t total_steps; //MWG
+
 // virtual memory configuration
 #define PGSHIFT 12
 const reg_t PGSIZE = 1 << PGSHIFT;
@@ -65,9 +67,11 @@ public:
           load_slow_path(addr, sizeof(type##_t), (uint8_t*)&correct_retval); \
           /* load_slow_path((addr & (~0x0000000000000007)), sizeof(uint64_t), (uint8_t*)&correct_quadword); */\
       } \
-      if (likely(err_inj_enable_) && err_inj_target_.compare("data") == 0 && the_sim->total_steps >= err_inj_step_) { /* FIXME the_sim */\
+      /*if (likely(err_inj_enable_) && err_inj_target_.compare("data") == 0 && the_sim->total_steps >= err_inj_step_) {*/\
+      if (likely(err_inj_enable_) && err_inj_target_.compare("data") == 0 && total_steps >= err_inj_step_) { \
           inject_error_now_ = true; \
-          std::cout << "ERROR INJECTION ARMED for data memory on step " << the_sim->total_steps << "." << std::endl; /* FIXME the_sim */\
+          /*std::cout << "ERROR INJECTION ARMED for data memory on step " << the_sim->total_steps << "." << std::endl; */\
+          std::cout << "ERROR INJECTION ARMED for data memory on step " << total_steps << "." << std::endl; \
       } \
       if (unlikely(inject_error_now_) && err_inj_target_.compare("data") == 0) { \
           uint8_t correct_quadword[sizeof(uint64_t)]; \
@@ -82,24 +86,28 @@ public:
           std::cout.fill('0'); \
           std::cout << "Injecting DUE on data! Correct return value is 0x" \
                     << std::hex \
-                    << std::setw(sizeof(type##_t)) \
-                    << correct_retval \
+                    << std::setw(sizeof(type##_t)*2) \
+                    << static_cast<uint64_t>(correct_retval) \
                     << ", correct 64-bit message is 0x"; \
           for (size_t i = 0; i < sizeof(uint64_t); i++) { \
               std::cout << std::hex \
                         << std::setw(2) \
-                        << correct_quadword[i]; \
+                        << static_cast<uint64_t>(correct_quadword[i]); \
           } \
           std::cout << "." << std::endl; \
           \
           std::cout << "Quadword/message is block number " \
                     << std::dec \
                     << position_in_cacheline \
-                    << "in: "; \
-          for (size_t i = 0; i < 64; i++) { /* FIXME */ \
-              std::cout << std::hex \
-                        << std::setw(2) \
-                        << cacheline[i]; \
+                    << " in: "; \
+          for (size_t i = 0; i < words_per_block_; i++) { \
+              for (size_t j = 0; j < sizeof(uint64_t); j++) { \
+                  std::cout << std::hex \
+                            << std::setw(2) \
+                            << static_cast<uint64_t>(cacheline[i*8+j]); \
+              } \
+              if (i < words_per_block_-1) \
+                  std::cout << ","; \
           } \
           std::cout << "." << std::endl; \
           \
@@ -108,6 +116,7 @@ public:
           for (size_t i = 0; i < sizeof(uint64_t); i++) { \
               cmd += std::bitset<8>(correct_quadword[i]).to_string(); \
           } \
+          cmd += " "; \
           for (size_t i = 0; i < words_per_block_; i++) { \
               for (size_t j = 0; j < sizeof(uint64_t); j++) { \
                   cmd += std::bitset<8>(cacheline[i*sizeof(uint64_t)+j]).to_string(); \
@@ -131,12 +140,13 @@ public:
           for (size_t i = 0; i < sizeof(uint64_t); i++) { \
               std::cout << std::hex \
                         << std::setw(2) \
-                        << recovered_quadword[i]; \
+                        << static_cast<uint64_t>(recovered_quadword[i]); \
           } \
           std::cout << ", which yields a recovered return value of 0x"; \
           type##_t recovered_retval = (type##_t)(*(recovered_quadword + (paddr & 0x7))); \
-          std::cout << std::setw(sizeof(type##_t)) \
-                    << recovered_retval; \
+          std::cout << std::hex \
+                    << std::setw(sizeof(type##_t)*2) \
+                    << static_cast<uint64_t>(recovered_retval); \
           \
           if (correct_quadword == recovered_quadword) \
               std::cout << ", which is correct!" << std::endl; \

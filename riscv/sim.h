@@ -67,7 +67,7 @@ private:
   static const size_t INSNS_PER_RTC_TICK = 100; // 10 MHz clock for 1 BIPS core
   reg_t rtc;
   size_t current_step;
-  size_t total_steps; //MWG
+  //size_t total_steps; //MWG
   size_t current_proc;
   bool debug;
   bool log;

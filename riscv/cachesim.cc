@@ -15,6 +15,7 @@ mmu_t* the_mmu;
 sim_t* the_sim;
 size_t general_linesz;
 std::fstream output_file;
+size_t total_steps = 0; //MWG
 //MWG END
 
 cache_sim_t::cache_sim_t(size_t _sets, size_t _ways, size_t _linesz, const char* _name)
@@ -160,7 +161,8 @@ void cache_sim_t::memdatatrace(uint64_t addr, size_t bytes, bool store, size_t a
     output_file.fill('0');
     output_file 
         << std::dec
-        << static_cast<uint64_t>(the_sim->total_steps)
+        //<< static_cast<uint64_t>(the_sim->total_steps)
+        << static_cast<uint64_t>(total_steps)
         << ","
         << name
         << (store ? " WR " : " RD ")
@@ -221,8 +223,10 @@ void cache_sim_t::access(uint64_t addr, size_t bytes, bool store)
   //MWG
   if (the_sim->memdatatrace_enabled()) {
       if (!the_sim->get_memdatatrace_rand()) {
-          if (unlikely(the_sim->total_steps >= the_sim->get_memdatatrace_step_begin()
-              && the_sim->total_steps < the_sim->get_memdatatrace_step_end()
+          //if (unlikely(the_sim->total_steps >= the_sim->get_memdatatrace_step_begin()
+          if (unlikely(total_steps >= the_sim->get_memdatatrace_step_begin()
+              //&& the_sim->total_steps < the_sim->get_memdatatrace_step_end()
+              && total_steps < the_sim->get_memdatatrace_step_end()
               && memdatatrace_accesses_since_last_sample == the_sim->get_memdatatrace_sample_interval())
           ) { 
               memdatatrace(addr,bytes,store,memdatatrace_accesses_since_last_sample);

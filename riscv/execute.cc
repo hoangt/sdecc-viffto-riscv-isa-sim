@@ -5,6 +5,7 @@
 #include "cachesim.h" //MWG HACK
 #include <cassert>
 
+extern size_t total_steps; //MWG
 
 static void commit_log_stash_privilege(state_t* state)
 {
@@ -79,9 +80,11 @@ void processor_t::step(size_t n)
         while (instret < n)
         {
           //MWG: error injection armed on inst fetch
-          if (likely(mmu->err_inj_enable_) && mmu->err_inj_target_.compare("inst") == 0 && the_sim->total_steps >= mmu->err_inj_step_) {
+          //if (likely(mmu->err_inj_enable_) && mmu->err_inj_target_.compare("inst") == 0 && the_sim->total_steps >= mmu->err_inj_step_) {
+          if (likely(mmu->err_inj_enable_) && mmu->err_inj_target_.compare("inst") == 0 && total_steps >= mmu->err_inj_step_) {
               mmu->inject_error_now_ = true;
-              std::cout << "ERROR INJECTION ARMED for instruction memory on step " << the_sim->total_steps << "." << std::endl;
+              //std::cout << "ERROR INJECTION ARMED for instruction memory on step " << the_sim->total_steps << "." << std::endl;
+              std::cout << "ERROR INJECTION ARMED for instruction memory on step " << total_steps << "." << std::endl;
           }
 
           insn_fetch_t fetch = mmu->load_insn(pc); //MWG: if error injection is armed, this will be the victim memory access.
@@ -101,9 +104,11 @@ void processor_t::step(size_t n)
       else while (instret < n)
       {
         //MWG: error injection armed on inst fetch
-        if (likely(mmu->err_inj_enable_) && mmu->err_inj_target_.compare("inst") == 0 && the_sim->total_steps >= mmu->err_inj_step_) {
+        //if (likely(mmu->err_inj_enable_) && mmu->err_inj_target_.compare("inst") == 0 && the_sim->total_steps >= mmu->err_inj_step_) {
+        if (likely(mmu->err_inj_enable_) && mmu->err_inj_target_.compare("inst") == 0 && total_steps >= mmu->err_inj_step_) {
             mmu->inject_error_now_ = true;
-            std::cout << "ERROR INJECTION ARMED for instruction memory on step " << the_sim->total_steps << "." << std::endl;
+            //std::cout << "ERROR INJECTION ARMED for instruction memory on step " << the_sim->total_steps << "." << std::endl;
+            std::cout << "ERROR INJECTION ARMED for instruction memory on step " << total_steps << "." << std::endl;
         }
 
         //MWG: check for err inj step here
