@@ -81,13 +81,13 @@ const uint16_t* mmu_t::fetch_slow_path(reg_t addr)
   return (const uint16_t*)(mem + paddr);
 }
 
-void mmu_t::load_slow_path(reg_t addr, reg_t len, uint8_t* bytes)
+void mmu_t::load_slow_path(reg_t addr, reg_t len, uint8_t* bytes, bool fpunit) //MWG
 {
   reg_t paddr = translate(addr, LOAD);
   if (paddr < memsz) {
     memcpy(bytes, mem + paddr, len);
     if (tracer.interested_in_range(paddr, paddr + PGSIZE, LOAD))
-      tracer.trace(paddr, len, LOAD);
+      tracer.trace(paddr, len, LOAD, fpunit); //MWG
     else
       refill_tlb(addr, paddr, LOAD);
   } else if (!proc || !proc->sim->mmio_load(paddr, len, bytes)) {
@@ -95,13 +95,13 @@ void mmu_t::load_slow_path(reg_t addr, reg_t len, uint8_t* bytes)
   }
 }
 
-void mmu_t::store_slow_path(reg_t addr, reg_t len, const uint8_t* bytes)
+void mmu_t::store_slow_path(reg_t addr, reg_t len, const uint8_t* bytes, bool fpunit) //MWG
 {
   reg_t paddr = translate(addr, STORE);
   if (paddr < memsz) {
     memcpy(mem + paddr, bytes, len);
     if (tracer.interested_in_range(paddr, paddr + PGSIZE, STORE))
-      tracer.trace(paddr, len, STORE);
+      tracer.trace(paddr, len, STORE, fpunit); //MWG
     else
       refill_tlb(addr, paddr, STORE);
   } else if (!proc || !proc->sim->mmio_store(paddr, len, bytes)) {

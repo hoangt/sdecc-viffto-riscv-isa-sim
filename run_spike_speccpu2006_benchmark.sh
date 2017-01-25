@@ -6,7 +6,7 @@
 ################## SYSTEM-SPECIFIC VARIABLES: MODIFY ACCORDINGLY #######
 SPEC_DIR=$MWG_GIT_PATH/spec_cpu2006_install
 SPIKE_DIR=$MWG_GIT_PATH/eccgrp-riscv-isa-sim/build
-OUTPUT_DIR=$MWG_DATA_PATH/swd_ecc_data/rv64g/spike
+OUTPUT_DIR=$MWG_DATA_PATH/swd_ecc_data/rv64g/spike_test
 ##################################################################
 
 mkdir -p $OUTPUT_DIR

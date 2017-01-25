@@ -136,7 +136,7 @@ uint64_t cache_sim_t::victimize(uint64_t addr)
 }
 
 //MWG
-void cache_sim_t::memdatatrace(uint64_t addr, size_t bytes, bool store, size_t accesses_since_last_sample) {
+void cache_sim_t::memdatatrace(uint64_t addr, size_t bytes, bool store, bool fpunit, size_t accesses_since_last_sample) { 
     //Only track cache misses
     reg_t paddr;
     //if (name.compare("L2$") != 0) //skip everything except L2
@@ -168,6 +168,8 @@ void cache_sim_t::memdatatrace(uint64_t addr, size_t bytes, bool store, size_t a
         << (store ? " WR " : " RD ")
         << (store ? "to " : "fr ")
         << "MEM"
+        << ","
+        << (fpunit ? "FLOAT" : "INT")
         << ","
         << accesses_since_last_sample
         << ",VADDR 0x"
@@ -216,7 +218,7 @@ void cache_sim_t::memdatatrace(uint64_t addr, size_t bytes, bool store, size_t a
     output_file << std::endl;
 }
 
-void cache_sim_t::access(uint64_t addr, size_t bytes, bool store)
+void cache_sim_t::access(uint64_t addr, size_t bytes, bool store, bool fpunit) //MWG
 {
   static size_t memdatatrace_accesses_since_last_sample = 0;
 
@@ -229,11 +231,11 @@ void cache_sim_t::access(uint64_t addr, size_t bytes, bool store)
               && total_steps < the_sim->get_memdatatrace_step_end()
               && memdatatrace_accesses_since_last_sample == the_sim->get_memdatatrace_sample_interval())
           ) { 
-              memdatatrace(addr,bytes,store,memdatatrace_accesses_since_last_sample);
+              memdatatrace(addr,bytes,store,fpunit,memdatatrace_accesses_since_last_sample);
               memdatatrace_accesses_since_last_sample = 0;
           }
       } else if (rand() % the_sim->memdatatrace_rand_prob_recip == 0) {
-          memdatatrace(addr,bytes,store,memdatatrace_accesses_since_last_sample);
+          memdatatrace(addr,bytes,store,fpunit,memdatatrace_accesses_since_last_sample);
           memdatatrace_accesses_since_last_sample = 0;
       }
   }
@@ -258,12 +260,12 @@ void cache_sim_t::access(uint64_t addr, size_t bytes, bool store)
   {
     uint64_t dirty_addr = (victim & ~(VALID | DIRTY)) << idx_shift;
     if (miss_handler)
-      miss_handler->access(dirty_addr, linesz, true);
+      miss_handler->access(dirty_addr, linesz, true, fpunit); //MWG
     writebacks++;
   }
 
   if (miss_handler)
-    miss_handler->access(addr & ~(linesz-1), linesz, false);
+    miss_handler->access(addr & ~(linesz-1), linesz, false, fpunit); //MWG
 
   if (store)
     *check_tag(addr) |= DIRTY;

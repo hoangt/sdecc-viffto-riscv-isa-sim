@@ -35,7 +35,7 @@ class cache_sim_t
   cache_sim_t(const cache_sim_t& rhs);
   virtual ~cache_sim_t();
 
-  void access(uint64_t addr, size_t bytes, bool store);
+  void access(uint64_t addr, size_t bytes, bool store, bool fpunit); //MWG
   void print_stats();
   void set_miss_handler(cache_sim_t* mh) { miss_handler = mh; }
 
@@ -71,7 +71,7 @@ class cache_sim_t
   std::string name;
 
   void init();
-  void memdatatrace(uint64_t addr, size_t bytes, bool store, size_t accesses_since_last_sample); //MWG
+  void memdatatrace(uint64_t addr, size_t bytes, bool store, bool fpunit, size_t accesses_since_last_sample); //MWG
 
   friend class mmu_t; //MWG
 };
@@ -115,9 +115,9 @@ class icache_sim_t : public cache_memtracer_t
   {
     return type == FETCH;
   }
-  void trace(uint64_t addr, size_t bytes, access_type type)
+  void trace(uint64_t addr, size_t bytes, access_type type, bool fpunit) //MWG
   {
-    if (type == FETCH) cache->access(addr, bytes, false);
+    if (type == FETCH) cache->access(addr, bytes, false, fpunit); //MWG
   }
 };
 
@@ -129,9 +129,9 @@ class dcache_sim_t : public cache_memtracer_t
   {
     return type == LOAD || type == STORE;
   }
-  void trace(uint64_t addr, size_t bytes, access_type type)
+  void trace(uint64_t addr, size_t bytes, access_type type, bool fpunit) //MWG
   {
-    if (type == LOAD || type == STORE) cache->access(addr, bytes, type == STORE);
+    if (type == LOAD || type == STORE) cache->access(addr, bytes, type == STORE, fpunit); //MWG
   }
 };
 

@@ -54,7 +54,7 @@ public:
   // template for functions that load an aligned value from memory
   //MWG modifications: error injection for data memory only
   #define load_func(type) \
-    type##_t load_##type(reg_t addr) __attribute__((always_inline)) { \
+    type##_t load_##type(reg_t addr, bool fpunit) __attribute__((always_inline)) { \
       if (addr & (sizeof(type##_t)-1)) \
         throw trap_load_address_misaligned(addr); \
       reg_t vpn = addr >> PGSHIFT; \
@@ -64,7 +64,7 @@ public:
         correct_retval = *(type##_t*)(tlb_data[vpn % TLB_ENTRIES] + addr); \
         /* correct_quadword = *(uint64_t*)(tlb_data[vpn % TLB_ENTRIES] + (addr & (~0x0000000000000007))); */\
       } else { \
-          load_slow_path(addr, sizeof(type##_t), (uint8_t*)&correct_retval); \
+          load_slow_path(addr, sizeof(type##_t), (uint8_t*)&correct_retval, fpunit); \
           /* load_slow_path((addr & (~0x0000000000000007)), sizeof(uint64_t), (uint8_t*)&correct_quadword); */\
       } \
       /*if (likely(err_inj_enable_) && err_inj_target_.compare("data") == 0 && the_sim->total_steps >= err_inj_step_) {*/\
@@ -183,14 +183,14 @@ public:
 
   // template for functions that store an aligned value to memory
   #define store_func(type) \
-    void store_##type(reg_t addr, type##_t val) { \
+    void store_##type(reg_t addr, type##_t val, bool fpunit) { \
       if (addr & (sizeof(type##_t)-1)) \
         throw trap_store_address_misaligned(addr); \
       reg_t vpn = addr >> PGSHIFT; \
       if (likely(tlb_store_tag[vpn % TLB_ENTRIES] == vpn)) \
         *(type##_t*)(tlb_data[vpn % TLB_ENTRIES] + addr) = val; \
       else \
-        store_slow_path(addr, sizeof(type##_t), (const uint8_t*)&val); \
+        store_slow_path(addr, sizeof(type##_t), (const uint8_t*)&val, fpunit); \
     }
 
   // store value to memory at aligned address
@@ -273,7 +273,7 @@ public:
     reg_t paddr = (const char*)iaddr - mem;
     if (tracer.interested_in_range(paddr, paddr + 1, FETCH)) {
       entry->tag = -1;
-      tracer.trace(paddr, length, FETCH);
+      tracer.trace(paddr, length, FETCH, false); //MWG
     }
     return entry;
   }
@@ -338,8 +338,8 @@ private:
 
   // handle uncommon cases: TLB misses, page faults, MMIO
   const uint16_t* fetch_slow_path(reg_t addr);
-  void load_slow_path(reg_t addr, reg_t len, uint8_t* bytes);
-  void store_slow_path(reg_t addr, reg_t len, const uint8_t* bytes);
+  void load_slow_path(reg_t addr, reg_t len, uint8_t* bytes, bool fpunit); //MWG
+  void store_slow_path(reg_t addr, reg_t len, const uint8_t* bytes, bool fpunit); //MWG
   bool get_page_permissions(reg_t addr, bool& ur, bool& uw, bool& ux, bool& sr, bool& sw, bool& sx); //MWG
   reg_t translate(reg_t addr, access_type type);
 
