@@ -30,7 +30,7 @@ if [[ "$MWG_MACHINE_NAME" == "hoffman" ]]; then
     MAX_MEM_PER_RUN=1536M 		# Maximum memory needed per script that will be invoked. If this is exceeded, job will be killed.
     MAILING_LIST=mgottsch 		# List of users to email with status updates, separated by commas
 fi
-OUTPUT_DIR=$MWG_DATA_PATH/swd_ecc_data/rv64g/spike
+OUTPUT_DIR=$MWG_DATA_PATH/swd_ecc_data/rv64g/spike_fpunit_test
 ###############################################################################################
 
 mkdir -p $OUTPUT_DIR
