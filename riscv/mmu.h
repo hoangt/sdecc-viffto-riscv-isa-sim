@@ -154,16 +154,19 @@ public:
               std::cout << ", which is correct"; \
           else \
               std::cout << ", which is CORRUPT"; \
-          std::cout << ", and which yields a recovered return value of 0x" << std::endl; \
+          std::cout << ", and which yields a recovered return value of 0x"; \
           type##_t recovered_retval = (type##_t)(*(recovered_quadword + (paddr & 0x7))); \
           std::cout << std::hex \
                     << std::setw(sizeof(type##_t)*2) \
-                    << static_cast<uint64_t>(recovered_retval); \
+                    << static_cast<uint64_t>(recovered_retval) \
+                    << std::endl; \
           \
           std::cout << "ERROR INJECTION COMPLETED, now disarmed." << std::endl; \
-          retval = recovered_retval; \
+          /*retval = recovered_retval; TEMP */ \
+          retval = correct_retval; \
           inject_error_now_ = false; \
           err_inj_enable_ = false; \
+          throw trap_memory_due(addr); /*TEMP*/\
       } else \
           retval = correct_retval; \
       return retval; \

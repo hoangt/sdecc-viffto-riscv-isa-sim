@@ -54,5 +54,6 @@ DECLARE_TRAP(CAUSE_USER_ECALL, user_ecall)
 DECLARE_TRAP(CAUSE_SUPERVISOR_ECALL, supervisor_ecall)
 DECLARE_TRAP(CAUSE_HYPERVISOR_ECALL, hypervisor_ecall)
 DECLARE_TRAP(CAUSE_MACHINE_ECALL, machine_ecall)
+DECLARE_MEM_TRAP(CAUSE_MEMORY_DUE, memory_due) //MWG: this is non-standard
 
 #endif
