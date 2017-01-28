@@ -45,9 +45,9 @@ for SPEC_BENCHMARK in $SPEC_BENCHMARKS; do
 
     if [[ "$MWG_MACHINE_NAME" == "hoffman" ]]; then
         JOB_NAME="spike_${SPEC_BENCHMARK}"
-        qsub -V -N $JOB_NAME -l h_data=$MAX_MEM_PER_RUN,time=$MAX_TIME_PER_RUN,highp -M $MAILING_LIST -o $JOB_STDOUT -e $JOB_STDERR -m as run_spike_speccpu2006_benchmark.sh $SPEC_BENCHMARK $MODE
+        qsub -V -N $JOB_NAME -l h_data=$MAX_MEM_PER_RUN,time=$MAX_TIME_PER_RUN,highp -M $MAILING_LIST -o $JOB_STDOUT -e $JOB_STDERR -m as run_spike_benchmark.sh $MODE $SPEC_BENCHMARK
     else
-        ./run_spike_speccpu2006_benchmark.sh $SPEC_BENCHMARK $MODE > $JOB_STDOUT 2> $JOB_STDERR &
+        ./run_spike_benchmark.sh $MODE $SPEC_BENCHMARK > $JOB_STDOUT 2> $JOB_STDERR &
     fi
 done
 
