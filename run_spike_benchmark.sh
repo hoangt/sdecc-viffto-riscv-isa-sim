@@ -272,7 +272,7 @@ if [[ "$MODE" == "memdatatrace" ]]; then
 fi
 
 if [[ "$MODE" == "faultinj" ]]; then
-    FAULT_INJECTION_STEP=10000000
+    FAULT_INJECTION_STEP=399999990
     FAULT_INJECTION_TARGET=data
     FAULT_RECOVERY_SCRIPT=$MWG_GIT_PATH/eccgrp-ecc-ctrl/data_recovery_spike_wrapper.sh
     PK=$MWG_GIT_PATH/eccgrp-riscv-pk/build/riscv64-unknown-elf/bin/pk
