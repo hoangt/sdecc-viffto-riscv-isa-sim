@@ -161,7 +161,7 @@ public:
                     << static_cast<uint64_t>(recovered_retval) \
                     << std::endl; \
           \
-          std::cout << "ERROR INJECTION COMPLETED, now disarmed." << std::endl; \
+          std::cout << "ERROR INJECTION COMPLETED, now disarmed. It should have affected data memory access." << std::endl; \
           /*retval = recovered_retval; TEMP */ \
           retval = correct_retval; \
           inject_error_now_ = false; \
@@ -308,7 +308,12 @@ public:
     std::string swd_ecc_script_filename,
     uint32_t words_per_block
     );
-  bool errInjEnabled() { return err_inj_enable_; } //MWG
+  bool errInjEnabled() { return err_inj_mode_; } //MWG
+  
+  bool err_inj_mode_; //MWG
+  bool err_inj_enable_; //MWG
+  size_t err_inj_step_; //MWG
+  std::string err_inj_target_; //MWG
 
 private:
   char* mem;
@@ -316,12 +321,9 @@ private:
   processor_t* proc;
   memtracer_list_t tracer;
 
-  bool err_inj_enable_; //MWG
-  size_t err_inj_step_; //MWG
-  std::string err_inj_target_; //MWG
-  bool inject_error_now_; //MWG
   std::string swd_ecc_script_filename_; //MWG
   uint32_t words_per_block_; //MWG
+  bool inject_error_now_; //MWG
 
   // implement an instruction cache for simulator performance
   icache_entry_t icache[ICACHE_ENTRIES];

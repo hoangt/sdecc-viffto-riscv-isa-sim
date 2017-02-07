@@ -90,7 +90,7 @@ void processor_t::step(size_t n)
           insn_fetch_t fetch = mmu->load_insn(pc); //MWG: if error injection is armed, this will be the victim memory access.
           
           if (unlikely(mmu->inject_error_now_)) {
-              std::cout << "ERROR INJECTION COMPLETED, now disarmed." << std::endl;
+              std::cout << "ERROR INJECTION COMPLETED, now disarmed. It should have affected instruction memory access." << std::endl;
               mmu->inject_error_now_ = false; //MWG: Disarm
               mmu->err_inj_enable_ = false; //MWG: Disarm
           }
@@ -116,7 +116,7 @@ void processor_t::step(size_t n)
         auto ic_entry = _mmu->access_icache(pc);
           
         if (unlikely(mmu->inject_error_now_)) {
-            std::cout << "ERROR INJECTION COMPLETED, now disarmed." << std::endl;
+            std::cout << "ERROR INJECTION COMPLETED, now disarmed. It should have affected instruction memory access." << std::endl;
             mmu->inject_error_now_ = false; //MWG: Disarm
             mmu->err_inj_enable_ = false; //MWG: Disarm
         }

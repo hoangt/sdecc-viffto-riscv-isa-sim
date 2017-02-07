@@ -21,15 +21,16 @@ std::string myexec(std::string cmd) {
 
 
 mmu_t::mmu_t(char* _mem, size_t _memsz)
- : mem(_mem),
-   memsz(_memsz),
-   proc(NULL),
+ : err_inj_mode_(false),
    err_inj_enable_(false),
    err_inj_step_(0),
    err_inj_target_(),
-   inject_error_now_(false),
+   mem(_mem),
+   memsz(_memsz),
+   proc(NULL),
    swd_ecc_script_filename_(),
-   words_per_block_(8)
+   words_per_block_(8),
+   inject_error_now_(false)
 {
   flush_tlb();
 }
@@ -234,6 +235,7 @@ void mmu_t::enableErrInj(
         std::string swd_ecc_script_filename,
         uint32_t words_per_block
     ) {
+    err_inj_mode_ = true;
     err_inj_enable_ = true;
     err_inj_step_ = err_inj_step;
     err_inj_target_ = err_inj_target;
