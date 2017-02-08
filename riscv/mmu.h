@@ -14,13 +14,13 @@
 #include <iostream> //MWG
 #include <iomanip> //MWG
 #include <cstdio> //MWG
-#include <iostream> //MWG
 #include <memory> //MWG
 #include <stdexcept> //MWG
 #include <string> //MWG
 #include <sstream> //MWG
 #include <bitset> //MWG
 #include "cachesim.h" //MWG
+#include "sdecc.h" //MWG
 
 extern size_t total_steps; //MWG
 
@@ -39,9 +39,6 @@ struct icache_entry_t {
   reg_t pad;
   insn_fetch_t data;
 };
-
-//MWG: based on http://stackoverflow.com/questions/478898/how-to-execute-a-command-and-get-output-of-command-within-c-using-posix
-std::string myexec(std::string cmd);
 
 // this class implements a processor's port into the virtual memory system.
 // an MMU and instruction cache are maintained for simulator performance.
@@ -112,20 +109,7 @@ public:
           std::cout << "." << std::endl; \
           \
           /* Construct command line */ \
-          std::string cmd = swd_ecc_script_filename_ + " "; \
-          for (size_t i = 0; i < sizeof(uint64_t); i++) { \
-              cmd += std::bitset<8>(correct_quadword[i]).to_string(); \
-          } \
-          cmd += " "; \
-          for (size_t i = 0; i < words_per_block_; i++) { \
-              for (size_t j = 0; j < sizeof(uint64_t); j++) { \
-                  cmd += std::bitset<8>(cacheline[i*sizeof(uint64_t)+j]).to_string(); \
-              } \
-              if (i < words_per_block_-1) \
-                  cmd += ","; \
-          } \
-          cmd += " " + std::to_string(position_in_cacheline); \
-          std::cout << "Cmd: " << cmd << std::endl; \
+          std::string cmd = construct_sdecc_recovery_cmd(swd_ecc_script_filename_, correct_quadword, words_per_block_, cacheline, position_in_cacheline); \
           std::string script_stdout = myexec(cmd);     \
            \
           /* Parse recovery */ \

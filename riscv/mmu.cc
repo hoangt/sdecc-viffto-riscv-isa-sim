@@ -7,19 +7,6 @@
 #include <iomanip> //MWG
 #include <string> //MWG
 
-std::string myexec(std::string cmd) {
-    char buffer[128];
-    std::string result = "";
-    std::shared_ptr<FILE> pipe(popen(cmd.c_str(), "r"), pclose);
-    if (!pipe) throw std::runtime_error("popen() failed!");
-    while (!feof(pipe.get())) {
-        if (fgets(buffer, 128, pipe.get()) != NULL)
-            result += buffer;
-    }
-    return result;
-}
-
-
 mmu_t::mmu_t(char* _mem, size_t _memsz)
  : err_inj_mode_(false),
    err_inj_enable_(false),
