@@ -71,86 +71,62 @@ public:
           std::cout << "ERROR INJECTION ARMED for data memory on step " << total_steps << "." << std::endl; \
       } \
       if (unlikely(inject_error_now_) && err_inj_target_.compare("data") == 0) { \
-          uint8_t correct_quadword[sizeof(uint64_t)]; \
-          uint8_t recovered_quadword[sizeof(uint64_t)]; \
+          uint8_t correct_quadword[8]; \
+          /* uint8_t recovered_quadword[8]; */ \
           reg_t paddr = translate(addr, LOAD); \
-          uint8_t cacheline[64]; /* FIXME */ \
-          uint32_t memwordsize = sizeof(uint64_t); /* FIXME */\
+          uint8_t cacheline[64]; \
+          uint32_t memwordsize = 8; \
           unsigned position_in_cacheline = (paddr & 0x3f) / memwordsize; \
-          memcpy(correct_quadword, reinterpret_cast<char*>(reinterpret_cast<reg_t>(mem+(paddr & (~0x0000000000000007)))), sizeof(uint64_t)); \
-          memcpy(cacheline, reinterpret_cast<char*>(reinterpret_cast<reg_t>(mem+(paddr & (~0x000000000000003f)))), 64); /* FIXME */ \
+          memcpy(correct_quadword, reinterpret_cast<char*>(reinterpret_cast<reg_t>(mem+(paddr & (~0x0000000000000007)))), 8); \
+          memcpy(cacheline, reinterpret_cast<char*>(reinterpret_cast<reg_t>(mem+(paddr & (~0x000000000000003f)))), 64); \
           \
-          std::cout.fill('0'); \
-          std::cout << "Injecting DUE on data! Correct return value is 0x" \
-                    << std::hex \
-                    << std::setw(sizeof(type##_t)*2) \
-                    << static_cast<uint64_t>(correct_retval) \
-                    << ", correct 64-bit message is 0x"; \
-          for (size_t i = 0; i < sizeof(uint64_t); i++) { \
-              std::cout << std::hex \
-                        << std::setw(2) \
-                        << static_cast<uint64_t>(correct_quadword[i]); \
-          } \
-          std::cout << "." << std::endl; \
+          setPenaltyBox(proc, correct_quadword, cacheline, position_in_cacheline); \
+          /* std::cout.fill('0'); */ \
+          std::cout << "Injecting DUE on data!" << std::endl; \
+          /*std::cout << "Correct return value is 0x" */\
+          /*          << std::hex  */\
+          /*          << std::setw(sizeof(type##_t)*2) */ \
+          /*          << correct_retval */ \
+          /*          << ", correct 64-bit message is 0x"; */ \
+          /*for (size_t i = 0; i < 8; i++) { */ \
+          /*    std::cout << std::hex */ \
+          /*              << std::setw(2) */ \
+          /*              << static_cast<uint64_t>(correct_quadword[i]); */ \
+          /*} */ \
+          /*std::cout << "." << std::endl; */ \
           \
-          std::cout << "Quadword/message is block number " \
-                    << std::dec \
-                    << position_in_cacheline \
-                    << " in: "; \
-          for (size_t i = 0; i < words_per_block_; i++) { \
-              for (size_t j = 0; j < sizeof(uint64_t); j++) { \
-                  std::cout << std::hex \
-                            << std::setw(2) \
-                            << static_cast<uint64_t>(cacheline[i*8+j]); \
-              } \
-              if (i < words_per_block_-1) \
-                  std::cout << ","; \
-          } \
-          std::cout << "." << std::endl; \
+          /*std::cout << "Quadword/message is block number " */ \
+          /*          << std::dec */ \
+          /*          << position_in_cacheline */ \
+          /*          << " in: "; */ \
+          /*for (size_t i = 0; i < words_per_block_; i++) { */ \
+          /*    for (size_t j = 0; j < 8; j++) { */ \
+          /*        std::cout << std::hex */ \
+          /*                  << std::setw(2) */ \
+          /*                  << static_cast<uint64_t>(cacheline[i*8+j]); */ \
+          /*    } */ \
+          /*    if (i < words_per_block_-1) */ \
+          /*        std::cout << ","; */ \
+          /*} */ \
+          /*std::cout << "." << std::endl; */ \
           \
-          /* Construct command line */ \
-          std::string cmd = construct_sdecc_recovery_cmd(swd_ecc_script_filename_, correct_quadword, words_per_block_, cacheline, position_in_cacheline); \
-          std::string script_stdout = myexec(cmd);     \
+          /* Call out to recovery script */ \
+          /* std::string cmd = construct_sdecc_recovery_cmd(swd_ecc_script_filename_, correct_quadword, words_per_block_, cacheline, position_in_cacheline); */ \
+          /* std::string script_stdout = myexec(cmd); */\
+          /* parse_sdecc_recovery_output(script_stdout, recovered_quadword, correct_quadword); */\
+          /* std::cout << "This yields the recovered return value of 0x"; */\
+          /* type##_t recovered_retval = (type##_t)(*(recovered_quadword + (paddr & 0x7))); */\
+          /* std::cout << std::hex */\
+                    /*<< std::setw(sizeof(type##_t)*2) */\
+                    /*<< recovered_retval */\
+                    /*<< std::endl; */\
            \
-          /* Parse recovery */ \
-          \
-          /* Output is expected to be simply a 64-bit message in binary characters, e.g. '001010100101001...001010' */ \
-          for (size_t i = 0; i < sizeof(uint64_t); i++) { \
-              recovered_quadword[i] = 0; \
-              for (size_t j = 0; j < 8; j++) { \
-                  recovered_quadword[i] |= (script_stdout[i*8+j] == '1' ? (1 << (8-j-1)) : 0); \
-              } \
-          } \
-          std::cout << "Recovered 64-bit message: 0x"; \
-          for (size_t i = 0; i < sizeof(uint64_t); i++) { \
-              std::cout << std::hex \
-                        << std::setw(2) \
-                        << static_cast<uint64_t>(recovered_quadword[i]); \
-          } \
-          bool correctly_recovered = true; \
-          for (size_t i = 0; i < sizeof(uint64_t); i++) { \
-              if (correct_quadword[i] != recovered_quadword[i]) { \
-                  correctly_recovered = false; \
-                  break; \
-              } \
-          } \
-          if (correctly_recovered) \
-              std::cout << ", which is correct"; \
-          else \
-              std::cout << ", which is CORRUPT"; \
-          std::cout << ", and which yields a recovered return value of 0x"; \
-          type##_t recovered_retval = (type##_t)(*(recovered_quadword + (paddr & 0x7))); \
-          std::cout << std::hex \
-                    << std::setw(sizeof(type##_t)*2) \
-                    << static_cast<uint64_t>(recovered_retval) \
-                    << std::endl; \
-          \
-          std::cout << "ERROR INJECTION COMPLETED, now disarmed. It should have affected data memory access." << std::endl; \
           /*retval = recovered_retval; TEMP */ \
-          retval = correct_retval; \
+          /* retval = correct_retval; */\
           inject_error_now_ = false; \
           err_inj_enable_ = false; \
-          throw trap_memory_due(addr); /*TEMP*/\
+          std::cout << "ERROR INJECTION COMPLETED, now disarmed. It should affect data memory access." << std::endl; \
+          throw trap_memory_due(addr); \
       } else \
           retval = correct_retval; \
       return retval; \
