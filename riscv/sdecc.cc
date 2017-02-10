@@ -51,6 +51,7 @@ std::string construct_sdecc_candidate_messages_cmd(std::string script_filename, 
     cmd += std::to_string(k);
     cmd += " ";
     cmd += code_type;
+    cmd += " ";
     cmd += std::to_string(verbose);
     std::cout << "Cmd: " << cmd << std::endl;
     return cmd;

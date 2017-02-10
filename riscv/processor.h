@@ -72,6 +72,13 @@ struct state_t
 #endif
 };
 
+//MWG
+typedef struct {
+    reg_t victim_msg;
+    reg_t cacheline_words[8];
+    reg_t cacheline_blockpos;
+} penaltybox_t;
+
 // this class represents one processor in a RISC-V machine.
 class processor_t : public abstract_device_t
 {
@@ -120,6 +127,8 @@ private:
   bool run; // !reset
   bool debug;
   bool histogram_enabled;
+
+  penaltybox_t pb; //MWG
 
   std::vector<insn_desc_t> instructions;
   std::map<reg_t,uint64_t> pc_histogram;

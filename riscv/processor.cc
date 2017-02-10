@@ -19,6 +19,7 @@
 #undef STATE
 #define STATE state
 
+
 processor_t::processor_t(const char* isa, sim_t* sim, uint32_t id)
   : sim(sim), ext(NULL), disassembler(new disassembler_t),
     id(id), run(false), debug(false)
@@ -252,6 +253,38 @@ void processor_t::set_csr(int which, reg_t val)
       dirty_fp_state;
       state.fflags = val & (FSR_AEXC >> FSR_AEXC_SHIFT);
       break;
+    //Begin MWG
+    case CSR_PENALTY_BOX_MSG:
+        pb.victim_msg = val;
+        break;
+    case CSR_PENALTY_BOX_CACHELINE_BLK0:
+        pb.cacheline_words[0] = val;
+        break;
+    case CSR_PENALTY_BOX_CACHELINE_BLK1:
+        pb.cacheline_words[1] = val;
+        break;
+    case CSR_PENALTY_BOX_CACHELINE_BLK2:
+        pb.cacheline_words[2] = val;
+        break;
+    case CSR_PENALTY_BOX_CACHELINE_BLK3:
+        pb.cacheline_words[3] = val;
+        break;
+    case CSR_PENALTY_BOX_CACHELINE_BLK4:
+        pb.cacheline_words[4] = val;
+        break;
+    case CSR_PENALTY_BOX_CACHELINE_BLK5:
+        pb.cacheline_words[5] = val;
+        break;
+    case CSR_PENALTY_BOX_CACHELINE_BLK6:
+        pb.cacheline_words[6] = val;
+        break;
+    case CSR_PENALTY_BOX_CACHELINE_BLK7:
+        pb.cacheline_words[7] = val;
+        break;
+    case CSR_PENALTY_BOX_CACHELINE_BLKPOS:
+        pb.cacheline_blockpos = val;
+        break;
+    //End MWG
     case CSR_FRM:
       dirty_fp_state;
       state.frm = val & (FSR_RD >> FSR_RD_SHIFT);
@@ -386,6 +419,28 @@ reg_t processor_t::get_csr(int which)
       if (!supports_extension('F'))
         break;
       return state.fflags;
+    //Begin MWG
+    case CSR_PENALTY_BOX_MSG:
+        return pb.victim_msg;
+    case CSR_PENALTY_BOX_CACHELINE_BLK0:
+        return pb.cacheline_words[0];
+    case CSR_PENALTY_BOX_CACHELINE_BLK1:
+        return pb.cacheline_words[1];
+    case CSR_PENALTY_BOX_CACHELINE_BLK2:
+        return pb.cacheline_words[2];
+    case CSR_PENALTY_BOX_CACHELINE_BLK3:
+        return pb.cacheline_words[3];
+    case CSR_PENALTY_BOX_CACHELINE_BLK4:
+        return pb.cacheline_words[4];
+    case CSR_PENALTY_BOX_CACHELINE_BLK5:
+        return pb.cacheline_words[5];
+    case CSR_PENALTY_BOX_CACHELINE_BLK6:
+        return pb.cacheline_words[6];
+    case CSR_PENALTY_BOX_CACHELINE_BLK7:
+        return pb.cacheline_words[7];
+    case CSR_PENALTY_BOX_CACHELINE_BLKPOS:
+        return pb.cacheline_blockpos;
+    //End MWG
     case CSR_FRM:
       require_fp;
       if (!supports_extension('F'))

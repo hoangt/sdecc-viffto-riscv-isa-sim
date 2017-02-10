@@ -80,35 +80,35 @@ public:
           memcpy(correct_quadword, reinterpret_cast<char*>(reinterpret_cast<reg_t>(mem+(paddr & (~0x0000000000000007)))), 8); \
           memcpy(cacheline, reinterpret_cast<char*>(reinterpret_cast<reg_t>(mem+(paddr & (~0x000000000000003f)))), 64); \
           \
-          setPenaltyBox(proc, correct_quadword, cacheline, position_in_cacheline); \
-          /* std::cout.fill('0'); */ \
+          std::cout.fill('0'); \
           std::cout << "Injecting DUE on data!" << std::endl; \
-          /*std::cout << "Correct return value is 0x" */\
-          /*          << std::hex  */\
-          /*          << std::setw(sizeof(type##_t)*2) */ \
-          /*          << correct_retval */ \
-          /*          << ", correct 64-bit message is 0x"; */ \
-          /*for (size_t i = 0; i < 8; i++) { */ \
-          /*    std::cout << std::hex */ \
-          /*              << std::setw(2) */ \
-          /*              << static_cast<uint64_t>(correct_quadword[i]); */ \
-          /*} */ \
-          /*std::cout << "." << std::endl; */ \
+          setPenaltyBox(proc, correct_quadword, cacheline, position_in_cacheline); \
+          std::cout << "Correct return value is 0x" \
+                    << std::hex \
+                    << std::setw(sizeof(type##_t)*2) \
+                    << correct_retval \
+                    << ", correct 64-bit message is 0x"; \
+          for (size_t i = 0; i < 8; i++) { \
+              std::cout << std::hex \
+                        << std::setw(2) \
+                        << static_cast<uint64_t>(correct_quadword[i]); \
+          } \
+          std::cout << "." << std::endl; \
           \
-          /*std::cout << "Quadword/message is block number " */ \
-          /*          << std::dec */ \
-          /*          << position_in_cacheline */ \
-          /*          << " in: "; */ \
-          /*for (size_t i = 0; i < words_per_block_; i++) { */ \
-          /*    for (size_t j = 0; j < 8; j++) { */ \
-          /*        std::cout << std::hex */ \
-          /*                  << std::setw(2) */ \
-          /*                  << static_cast<uint64_t>(cacheline[i*8+j]); */ \
-          /*    } */ \
-          /*    if (i < words_per_block_-1) */ \
-          /*        std::cout << ","; */ \
-          /*} */ \
-          /*std::cout << "." << std::endl; */ \
+          std::cout << "Quadword/message is block number " \
+                    << std::dec \
+                    << position_in_cacheline \
+                    << " in: "; \
+          for (size_t i = 0; i < words_per_block_; i++) { \
+              for (size_t j = 0; j < 8; j++) { \
+                  std::cout << std::hex \
+                            << std::setw(2) \
+                            << static_cast<uint64_t>(cacheline[i*8+j]); \
+              } \
+              if (i < words_per_block_-1) \
+                  std::cout << ","; \
+          } \
+          std::cout << "." << std::endl; \
           \
           /* Call out to recovery script */ \
           /* std::string cmd = construct_sdecc_recovery_cmd(swd_ecc_script_filename_, correct_quadword, words_per_block_, cacheline, position_in_cacheline); */ \
@@ -274,6 +274,8 @@ public:
   bool err_inj_enable_; //MWG
   size_t err_inj_step_; //MWG
   std::string err_inj_target_; //MWG
+  
+  void store_slow_path(reg_t addr, reg_t len, const uint8_t* bytes, bool fpunit); //MWG
 
 private:
   char* mem;
@@ -304,7 +306,6 @@ private:
   // handle uncommon cases: TLB misses, page faults, MMIO
   const uint16_t* fetch_slow_path(reg_t addr);
   void load_slow_path(reg_t addr, reg_t len, uint8_t* bytes, bool fpunit); //MWG
-  void store_slow_path(reg_t addr, reg_t len, const uint8_t* bytes, bool fpunit); //MWG
   bool get_page_permissions(reg_t addr, bool& ur, bool& uw, bool& ux, bool& sr, bool& sw, bool& sx); //MWG
   reg_t translate(reg_t addr, access_type type);
 
