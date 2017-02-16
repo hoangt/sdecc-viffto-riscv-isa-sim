@@ -64,10 +64,8 @@ public:
           load_slow_path(addr, sizeof(type##_t), (uint8_t*)&correct_retval, fpunit); \
           /* load_slow_path((addr & (~0x0000000000000007)), sizeof(uint64_t), (uint8_t*)&correct_quadword); */\
       } \
-      /*if (likely(err_inj_enable_) && err_inj_target_.compare("data") == 0 && the_sim->total_steps >= err_inj_step_) {*/\
       if (likely(err_inj_enable) && err_inj_target.compare("data") == 0 && total_steps >= err_inj_step) { \
           inject_error_now = true; \
-          /*std::cout << "ERROR INJECTION ARMED for data memory on step " << the_sim->total_steps << "." << std::endl; */\
           std::cout << "ERROR INJECTION ARMED for data memory on step " << total_steps << "." << std::endl; \
       } \
       if (unlikely(inject_error_now) && err_inj_target.compare("data") == 0) { \
@@ -250,17 +248,20 @@ public:
 
   //MWG
   void enableErrInj(
-    size_t err_inj_step,
+    size_t err_inj_step_start,
+    size_t err_inj_step_stop,
     std::string err_inj_target,
     std::string data_sdecc_script_filename,
     std::string inst_sdecc_script_filename,
     std::string candidates_sdecc_script_filename,
     uint32_t words_per_block
     );
-  bool errInjEnabled() { return err_inj_mode; } //MWG
+  bool errInjMode() { return err_inj_mode; } //MWG
   
   bool err_inj_mode; //MWG
   bool err_inj_enable; //MWG
+  size_t err_inj_step_start; //MWG
+  size_t err_inj_step_stop; //MWG
   size_t err_inj_step; //MWG
   std::string err_inj_target; //MWG
   

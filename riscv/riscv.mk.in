@@ -249,8 +249,8 @@ riscv_insn_list = \
 	wfi \
 	xor \
 	xori \
-    custom0 \
-    custom1 \
+    custom0_rs1_rs2 \
+    custom1_rs1_rs2 \
     custom2_rs1 \
     custom3_rs1 \
 

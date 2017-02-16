@@ -8,18 +8,20 @@
 #include <string> //MWG
 
 mmu_t::mmu_t(char* _mem, size_t _memsz)
- : err_inj_mode(false),
-   err_inj_enable(false),
-   err_inj_step(0),
-   err_inj_target(),
-   data_sdecc_script_filename(),
-   inst_sdecc_script_filename(),
-   candidates_sdecc_script_filename(),
-   words_per_block(8),
+ : err_inj_mode(false), //MWG
+   err_inj_enable(false), //MWG
+   err_inj_step_start(0), //MWG
+   err_inj_step_stop(0), //MWG
+   err_inj_step(0), //MWG
+   err_inj_target(), //MWG
+   data_sdecc_script_filename(), //MWG
+   inst_sdecc_script_filename(), //MWG
+   candidates_sdecc_script_filename(), //MWG
+   words_per_block(8), //MWG
    mem(_mem),
    memsz(_memsz),
    proc(NULL),
-   inject_error_now(false)
+   inject_error_now(false) //MWG
 {
   flush_tlb();
 }
@@ -219,7 +221,8 @@ void mmu_t::register_memtracer(memtracer_t* t)
 
 //MWG
 void mmu_t::enableErrInj(
-        size_t err_inj_step,
+        size_t err_inj_step_start,
+        size_t err_inj_step_stop,
         std::string err_inj_target,
         std::string data_sdecc_script_filename,
         std::string inst_sdecc_script_filename,
@@ -228,10 +231,14 @@ void mmu_t::enableErrInj(
     ) {
     err_inj_mode = true;
     err_inj_enable = true;
-    this->err_inj_step = err_inj_step;
+    this->err_inj_step_start = err_inj_step_start;
+    this->err_inj_step_stop = err_inj_step_stop;
     this->err_inj_target = err_inj_target;
     this->data_sdecc_script_filename = data_sdecc_script_filename;
     this->inst_sdecc_script_filename = inst_sdecc_script_filename;
     this->candidates_sdecc_script_filename = candidates_sdecc_script_filename;
     this->words_per_block = words_per_block;
+
+    err_inj_step = err_inj_step_start + (rand() % (1 + err_inj_step_stop - err_inj_step_start)); 
+    std::cout << "Random target step in range is " << err_inj_step << std::endl;
 }

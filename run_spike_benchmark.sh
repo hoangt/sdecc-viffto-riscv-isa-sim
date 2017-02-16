@@ -272,13 +272,14 @@ if [[ "$MODE" == "memdatatrace" ]]; then
 fi
 
 if [[ "$MODE" == "faultinj_sim" ]]; then
-    FAULT_INJECTION_STEP=10000
+    FAULT_INJECTION_STEP_START=100000
+    FAULT_INJECTION_STEP_STOP=100100
     FAULT_INJECTION_TARGET=data
     CANDIDATES_SCRIPT=$MWG_GIT_PATH/eccgrp-ecc-ctrl/candidate_messages_spike_wrapper.sh
     DATA_FAULT_RECOVERY_SCRIPT=$MWG_GIT_PATH/eccgrp-ecc-ctrl/data_recovery_spike_wrapper.sh
     INST_FAULT_RECOVERY_SCRIPT=$MWG_GIT_PATH/eccgrp-ecc-ctrl/inst_recovery_spike_wrapper.sh
     PK=$MWG_GIT_PATH/eccgrp-riscv-pk/build/riscv64-unknown-elf/bin/pk
-    CMD="$SPIKE_DIR/spike -d --faultinj_sim=${FAULT_INJECTION_STEP}:${FAULT_INJECTION_TARGET}:${CANDIDATES_SCRIPT}:${DATA_FAULT_RECOVERY_SCRIPT}:${INST_FAULT_RECOVERY_SCRIPT} --memwordsize=8 --ic=1:1:64 --dc=1:1:64 --isa=RV64G -m1024 -p1 $PK $BENCHMARK_NAME $BENCHMARK_ARGS"
+    CMD="$SPIKE_DIR/spike -d --faultinj_sim=${FAULT_INJECTION_STEP_START}:${FAULT_INJECTION_STEP_STOP}:${FAULT_INJECTION_TARGET}:${CANDIDATES_SCRIPT}:${DATA_FAULT_RECOVERY_SCRIPT}:${INST_FAULT_RECOVERY_SCRIPT} --memwordsize=8 --ic=1:1:64 --dc=1:1:64 --isa=RV64G -m1024 -p1 $PK $BENCHMARK_NAME $BENCHMARK_ARGS"
 fi
 
 if [[ "$MODE" == "faultinj_user" ]]; then

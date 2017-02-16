@@ -35,7 +35,7 @@ static void help()
   fprintf(stderr, "  --periodicmemdatatrace=<begin>:<end>:<interval>:<output_file>    MWG: Enable periodic tracing of raw memory traffic data payloads starting from step begin, until step end, with interval accesses between trace points. Dump to output_file.\n"); //MWG
   fprintf(stderr, "  --randmemdatatrace=<recip_sampl_prob_per_step>:<output_file>    MWG: Enable random tracing of raw memory traffic data payloads. Each simulation step has a probability of a trace sample being taken that is the reciprocal of the input value. The expected number of steps between samples is governed by the geometric distribution. Dump to output_file.\n"); //MWG
   fprintf(stderr, "  --memwordsize=<value>     MWG: Specify the bit width of the memory bus that carries information bits. This can either be 4 or 8 bytes.");
-  fprintf(stderr, "  --faultinj_sim=<step>:<target>:<candidates_sdecc_script_filename>:<data_sdecc_script_filename>:<inst_sdecc_script_filename}     MWG: Enable fault injection and SDECC recovery. Inject at specified step, if the execution has not already completed. Target is either inst or data memory. If data memory, the first memory load after the step has been reached will be used. User application can, but should not, also control injections."); //MWG
+  fprintf(stderr, "  --faultinj_sim=<start_step>:<stop_step>:<target>:<candidates_sdecc_script_filename>:<data_sdecc_script_filename>:<inst_sdecc_script_filename}     MWG: Enable fault injection and SDECC recovery. Inject at random step in specified range, if the execution has not already completed. Target is either inst or data memory. If data memory, the first memory load after the step has been reached will be used. User application can, but should not, also control injections."); //MWG
   fprintf(stderr, "  --faultinj_user=<candidates_sdecc_script_filename>:<data_sdecc_script_filename>:<inst_sdecc_script_filename}     MWG: Enable fault injection and SDECC recovery. User-driven injection."); //MWG
   exit(1);
 }
@@ -64,7 +64,8 @@ int main(int argc, char** argv)
   uint32_t words_per_block = 8; //MWG
   std::string memdatatrace_output_filename; //MWG
   bool err_inj_enable = false; //MWG
-  size_t err_inj_step = 0; //MWG
+  size_t err_inj_step_start = 0; //MWG
+  size_t err_inj_step_stop = 0; //MWG
   std::string err_inj_target = "N/A"; //MWG
   std::string data_sdecc_script_filename; //MWG
   std::string inst_sdecc_script_filename; //MWG
@@ -147,23 +148,27 @@ int main(int argc, char** argv)
   parser.option(0, "faultinj_sim", 1, [&](const char* s){
       err_inj_enable = true;
       const char* tmp = strchr(s, ':');
-      err_inj_step = atoi(std::string(s, tmp).c_str()); //FIXME: potential overflow issue
+      err_inj_step_start = atoi(std::string(s, tmp).c_str()); //FIXME: potential overflow issue
       if (!tmp++) help();
-     
-      const char* tmp2 = strchr(tmp, ':');
-      err_inj_target = std::string(tmp, tmp2); 
-      if (err_inj_target.compare("inst") && err_inj_target.compare("data")) help();
-      if (!tmp2++) help();
       
+      const char* tmp2 = strchr(tmp, ':');
+      err_inj_step_stop = atoi(std::string(tmp, tmp2).c_str()); //FIXME: potential overflow issue
+      if (!tmp2++) help();
+     
       const char* tmp3 = strchr(tmp2, ':');
-      candidates_sdecc_script_filename = std::string(tmp2, tmp3);
+      err_inj_target = std::string(tmp2, tmp3); 
+      if (err_inj_target.compare("inst") && err_inj_target.compare("data")) help();
       if (!tmp3++) help();
       
       const char* tmp4 = strchr(tmp3, ':');
-      data_sdecc_script_filename = std::string(tmp3, tmp4);
+      candidates_sdecc_script_filename = std::string(tmp3, tmp4);
       if (!tmp4++) help();
+      
+      const char* tmp5 = strchr(tmp4, ':');
+      data_sdecc_script_filename = std::string(tmp4, tmp5);
+      if (!tmp5++) help();
 
-      inst_sdecc_script_filename = std::string(tmp4);
+      inst_sdecc_script_filename = std::string(tmp5);
   });
   //MWG END
   
@@ -205,7 +210,8 @@ int main(int argc, char** argv)
       words_per_block = static_cast<uint32_t>(general_linesz / memwordsize);
 
       the_mmu->enableErrInj(
-         err_inj_step,
+         err_inj_step_start,
+         err_inj_step_stop,
          err_inj_target,
          data_sdecc_script_filename,
          inst_sdecc_script_filename,
@@ -213,7 +219,7 @@ int main(int argc, char** argv)
          words_per_block);
 
       std::cout << "Error injection/SDECC enabled!" << std::endl;
-      std::cout << "...Step: " << err_inj_step << std::endl;
+      std::cout << "...Step Range: " << err_inj_step_start << " to " << err_inj_step_stop << std::endl;
       std::cout << "...Target: " << err_inj_target << std::endl;
       std::cout << "...Candidates recovery script filename: " << candidates_sdecc_script_filename << std::endl;
       std::cout << "...Data recovery script filename: " << data_sdecc_script_filename << std::endl;
