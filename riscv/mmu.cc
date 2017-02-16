@@ -8,16 +8,18 @@
 #include <string> //MWG
 
 mmu_t::mmu_t(char* _mem, size_t _memsz)
- : err_inj_mode_(false),
-   err_inj_enable_(false),
-   err_inj_step_(0),
-   err_inj_target_(),
+ : err_inj_mode(false),
+   err_inj_enable(false),
+   err_inj_step(0),
+   err_inj_target(),
+   data_sdecc_script_filename(),
+   inst_sdecc_script_filename(),
+   candidates_sdecc_script_filename(),
+   words_per_block(8),
    mem(_mem),
    memsz(_memsz),
    proc(NULL),
-   swd_ecc_script_filename_(),
-   words_per_block_(8),
-   inject_error_now_(false)
+   inject_error_now(false)
 {
   flush_tlb();
 }
@@ -219,13 +221,17 @@ void mmu_t::register_memtracer(memtracer_t* t)
 void mmu_t::enableErrInj(
         size_t err_inj_step,
         std::string err_inj_target,
-        std::string swd_ecc_script_filename,
+        std::string data_sdecc_script_filename,
+        std::string inst_sdecc_script_filename,
+        std::string candidates_sdecc_script_filename,
         uint32_t words_per_block
     ) {
-    err_inj_mode_ = true;
-    err_inj_enable_ = true;
-    err_inj_step_ = err_inj_step;
-    err_inj_target_ = err_inj_target;
-    swd_ecc_script_filename_ = swd_ecc_script_filename;
-    words_per_block_ = words_per_block;
+    err_inj_mode = true;
+    err_inj_enable = true;
+    this->err_inj_step = err_inj_step;
+    this->err_inj_target = err_inj_target;
+    this->data_sdecc_script_filename = data_sdecc_script_filename;
+    this->inst_sdecc_script_filename = inst_sdecc_script_filename;
+    this->candidates_sdecc_script_filename = candidates_sdecc_script_filename;
+    this->words_per_block = words_per_block;
 }

@@ -65,12 +65,12 @@ public:
           /* load_slow_path((addr & (~0x0000000000000007)), sizeof(uint64_t), (uint8_t*)&correct_quadword); */\
       } \
       /*if (likely(err_inj_enable_) && err_inj_target_.compare("data") == 0 && the_sim->total_steps >= err_inj_step_) {*/\
-      if (likely(err_inj_enable_) && err_inj_target_.compare("data") == 0 && total_steps >= err_inj_step_) { \
-          inject_error_now_ = true; \
+      if (likely(err_inj_enable) && err_inj_target.compare("data") == 0 && total_steps >= err_inj_step) { \
+          inject_error_now = true; \
           /*std::cout << "ERROR INJECTION ARMED for data memory on step " << the_sim->total_steps << "." << std::endl; */\
           std::cout << "ERROR INJECTION ARMED for data memory on step " << total_steps << "." << std::endl; \
       } \
-      if (unlikely(inject_error_now_) && err_inj_target_.compare("data") == 0) { \
+      if (unlikely(inject_error_now) && err_inj_target.compare("data") == 0) { \
           uint8_t correct_quadword[8]; \
           /* uint8_t recovered_quadword[8]; */ \
           reg_t paddr = translate(addr, LOAD); \
@@ -99,32 +99,19 @@ public:
                     << std::dec \
                     << position_in_cacheline \
                     << " in: "; \
-          for (size_t i = 0; i < words_per_block_; i++) { \
+          for (size_t i = 0; i < words_per_block; i++) { \
               for (size_t j = 0; j < 8; j++) { \
                   std::cout << std::hex \
                             << std::setw(2) \
                             << static_cast<uint64_t>(cacheline[i*8+j]); \
               } \
-              if (i < words_per_block_-1) \
+              if (i < words_per_block-1) \
                   std::cout << ","; \
           } \
           std::cout << "." << std::endl; \
           \
-          /* Call out to recovery script */ \
-          /* std::string cmd = construct_sdecc_recovery_cmd(swd_ecc_script_filename_, correct_quadword, words_per_block_, cacheline, position_in_cacheline); */ \
-          /* std::string script_stdout = myexec(cmd); */\
-          /* parse_sdecc_recovery_output(script_stdout, recovered_quadword, correct_quadword); */\
-          /* std::cout << "This yields the recovered return value of 0x"; */\
-          /* type##_t recovered_retval = (type##_t)(*(recovered_quadword + (paddr & 0x7))); */\
-          /* std::cout << std::hex */\
-                    /*<< std::setw(sizeof(type##_t)*2) */\
-                    /*<< recovered_retval */\
-                    /*<< std::endl; */\
-           \
-          /*retval = recovered_retval; TEMP */ \
-          /* retval = correct_retval; */\
-          inject_error_now_ = false; \
-          err_inj_enable_ = false; \
+          inject_error_now = false; \
+          err_inj_enable = false; \
           std::cout << "ERROR INJECTION COMPLETED, now disarmed. It should affect data memory access." << std::endl; \
           throw trap_memory_due(addr); \
       } else \
@@ -193,7 +180,7 @@ public:
     }
 
     //MWG BEGIN: error injection armed here
-    if (unlikely(inject_error_now_) && err_inj_target_.compare("inst") == 0) {
+    if (unlikely(inject_error_now) && err_inj_target.compare("inst") == 0) {
         std::cout.fill('0');
         std::cout << "Injecting DUE on instruction! Correct message is 0x"
                   << std::hex
@@ -203,7 +190,7 @@ public:
                   << std::endl;
     
         /* Construct command line */
-        std::string cmd = swd_ecc_script_filename_ + " " + std::bitset<32>(insn).to_string();
+        std::string cmd = inst_sdecc_script_filename + " " + std::bitset<32>(insn).to_string();
         std::cout << "Cmd: " << cmd << std::endl;
         std::string script_stdout = myexec(cmd);    
         std::cout << "Raw script stdout: " << script_stdout << std::endl;
@@ -244,7 +231,7 @@ public:
   inline icache_entry_t* access_icache(reg_t addr)
   {
     icache_entry_t* entry = &icache[icache_index(addr)];
-    if (likely(entry->tag == addr) && likely(!inject_error_now_)) //MWG: if we are injecting a fault this access, don't use the fast path. use slow refill_icache() path.
+    if (likely(entry->tag == addr) && likely(!inject_error_now)) //MWG: if we are injecting a fault this access, don't use the fast path. use slow refill_icache() path.
       return entry;
     return refill_icache(addr, entry);
   }
@@ -265,17 +252,23 @@ public:
   void enableErrInj(
     size_t err_inj_step,
     std::string err_inj_target,
-    std::string swd_ecc_script_filename,
+    std::string data_sdecc_script_filename,
+    std::string inst_sdecc_script_filename,
+    std::string candidates_sdecc_script_filename,
     uint32_t words_per_block
     );
-  bool errInjEnabled() { return err_inj_mode_; } //MWG
+  bool errInjEnabled() { return err_inj_mode; } //MWG
   
-  bool err_inj_mode_; //MWG
-  bool err_inj_enable_; //MWG
-  size_t err_inj_step_; //MWG
-  std::string err_inj_target_; //MWG
+  bool err_inj_mode; //MWG
+  bool err_inj_enable; //MWG
+  size_t err_inj_step; //MWG
+  std::string err_inj_target; //MWG
   
   void store_slow_path(reg_t addr, reg_t len, const uint8_t* bytes, bool fpunit); //MWG
+  std::string data_sdecc_script_filename; //MWG
+  std::string inst_sdecc_script_filename; //MWG
+  std::string candidates_sdecc_script_filename; //MWG
+  uint32_t words_per_block; //MWG
 
 private:
   char* mem;
@@ -283,9 +276,7 @@ private:
   processor_t* proc;
   memtracer_list_t tracer;
 
-  std::string swd_ecc_script_filename_; //MWG
-  uint32_t words_per_block_; //MWG
-  bool inject_error_now_; //MWG
+  bool inject_error_now; //MWG
 
   // implement an instruction cache for simulator performance
   icache_entry_t icache[ICACHE_ENTRIES];

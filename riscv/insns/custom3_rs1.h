@@ -21,8 +21,7 @@ uint8_t cacheline[64];
 memcpy(cacheline, cl, 64);
 
 //Run external command
-std::string script_filename = "/home/mgottscho/Git/eccgrp-ecc-ctrl/data_recovery_spike_wrapper.sh";
-std::string cmd = construct_sdecc_recovery_cmd(script_filename, victim_message, 8, cacheline, (unsigned)(blockpos));
+std::string cmd = construct_sdecc_recovery_cmd(MMU.data_sdecc_script_filename, victim_message, 8, cacheline, (unsigned)(blockpos));
 std::string output = myexec(cmd);
 const char* output_cstr = output.c_str();
 
