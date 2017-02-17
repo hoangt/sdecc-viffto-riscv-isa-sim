@@ -91,7 +91,7 @@ public:
                         << std::setw(2) \
                         << static_cast<uint64_t>(correct_quadword[i]); \
           } \
-          std::cout << "." << std::endl; \
+          std::cout << "." << std::dec << std::endl; \
           \
           std::cout << "Quadword/message is block number " \
                     << std::dec \
@@ -106,7 +106,7 @@ public:
               if (i < words_per_block-1) \
                   std::cout << ","; \
           } \
-          std::cout << "." << std::endl; \
+          std::cout << "." << std::dec << std::endl; \
           \
           inject_error_now = false; \
           err_inj_enable = false; \
@@ -185,6 +185,7 @@ public:
                   << std::setw(8)
                   << (insn & 0x00000000FFFFFFFF) //FIXME: we just mask out upper 32-bits, we are assuming RV64G only here
                   << "."
+                  << std::dec
                   << std::endl;
     
         /* Construct command line */
@@ -203,7 +204,8 @@ public:
         std::cout << "Recovered message: 0x"
                   << std::hex
                   << std::setw(8)
-                  << (recovered_message & 0x00000000FFFFFFFF);
+                  << (recovered_message & 0x00000000FFFFFFFF)
+                  << std::dec;
 
         if (insn == recovered_message)
             std::cout << " is correct!" << std::endl;
