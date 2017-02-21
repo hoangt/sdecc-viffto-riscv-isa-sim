@@ -272,8 +272,8 @@ if [[ "$MODE" == "memdatatrace" ]]; then
 fi
 
 if [[ "$MODE" == "faultinj_sim" ]]; then
-    FAULT_INJECTION_STEP_START=100000
-    FAULT_INJECTION_STEP_STOP=100100
+    FAULT_INJECTION_STEP_START=250000
+    FAULT_INJECTION_STEP_STOP=1000000
     FAULT_INJECTION_TARGET=data
     CANDIDATES_SCRIPT=$MWG_GIT_PATH/eccgrp-ecc-ctrl/candidate_messages_spike_wrapper.sh
     DATA_FAULT_RECOVERY_SCRIPT=$MWG_GIT_PATH/eccgrp-ecc-ctrl/data_recovery_spike_wrapper.sh

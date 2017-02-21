@@ -22,15 +22,15 @@ std::string myexec(std::string cmd) {
     return result;
 }
 
-std::string construct_sdecc_recovery_cmd(std::string script_filename, uint8_t correct_quadword[8], size_t words_per_block, uint8_t cacheline[64], unsigned position_in_cacheline) {
+std::string construct_sdecc_recovery_cmd(std::string script_filename, uint8_t* correct_word, uint8_t* cacheline, uint32_t memwordsize, uint32_t words_per_block, unsigned position_in_cacheline) {
     std::string cmd = script_filename + " ";
-    for (size_t i = 0; i < 8; i++) {
-      cmd += std::bitset<8>(correct_quadword[i]).to_string();
+    for (size_t i = 0; i < memwordsize; i++) {
+      cmd += std::bitset<8>(correct_word[i]).to_string();
     }
     cmd += " ";
     for (size_t i = 0; i < words_per_block; i++) {
-      for (size_t j = 0; j < 8; j++) {
-          cmd += std::bitset<8>(cacheline[i*8+j]).to_string();
+      for (size_t j = 0; j < memwordsize; j++) {
+          cmd += std::bitset<8>(cacheline[i*words_per_block+j]).to_string();
       }
       if (i < words_per_block-1)
           cmd += ",";
@@ -40,15 +40,13 @@ std::string construct_sdecc_recovery_cmd(std::string script_filename, uint8_t co
     return cmd;
 }
 
-std::string construct_sdecc_candidate_messages_cmd(std::string script_filename, uint8_t correct_quadword[8], int n, int k, std::string code_type, int verbose) {
+std::string construct_sdecc_candidate_messages_cmd(std::string script_filename, uint8_t* correct_word, uint32_t memwordsize, std::string code_type, int verbose) {
     std::string cmd = script_filename + " ";
-    for (size_t i = 0; i < 8; i++) {
-      cmd += std::bitset<8>(correct_quadword[i]).to_string();
+    for (size_t i = 0; i < memwordsize; i++) {
+      cmd += std::bitset<8>(correct_word[i]).to_string();
     }
     cmd += " ";
-    cmd += std::to_string(n);
-    cmd += " ";
-    cmd += std::to_string(k);
+    cmd += std::to_string(memwordsize*8);
     cmd += " ";
     cmd += code_type;
     cmd += " ";
@@ -57,23 +55,23 @@ std::string construct_sdecc_candidate_messages_cmd(std::string script_filename, 
     return cmd;
 }
 
-void parse_sdecc_recovery_output(std::string script_stdout, uint8_t recovered_quadword[8], const uint8_t correct_quadword[8]) {
-      // Output is expected to be simply a 64-bit message in binary characters, e.g. '001010100101001...001010'
-      for (size_t i = 0; i < 8; i++) {
-          recovered_quadword[i] = 0;
+void parse_sdecc_recovery_output(std::string script_stdout, uint8_t* recovered_word, const uint8_t* correct_word, uint32_t memwordsize) {
+      // Output is expected to be simply a k-bit message in binary characters, e.g. '001010100101001...001010'
+      for (size_t i = 0; i < memwordsize; i++) {
+          recovered_word[i] = 0;
           for (size_t j = 0; j < 8; j++) {
-              recovered_quadword[i] |= (script_stdout[i*8+j] == '1' ? (1 << (8-j-1)) : 0);
+              recovered_word[i] |= (script_stdout[i*8+j] == '1' ? (1 << (8-j-1)) : 0);
           }
       }
-      std::cout << "Recovered 64-bit message: 0x";
-      for (size_t i = 0; i < 8; i++) {
+      std::cout << "Recovered message: 0x";
+      for (size_t i = 0; i < memwordsize; i++) {
           std::cout << std::hex
                     << std::setw(2)
-                    << static_cast<uint64_t>(recovered_quadword[i]);
+                    << static_cast<uint64_t>(recovered_word[i]);
       }
       bool correctly_recovered = true;
-      for (size_t i = 0; i < 8; i++) {
-          if (correct_quadword[i] != recovered_quadword[i]) {
+      for (size_t i = 0; i < memwordsize; i++) {
+          if (correct_word[i] != recovered_word[i]) {
               correctly_recovered = false;
               break;
           }
@@ -85,15 +83,16 @@ void parse_sdecc_recovery_output(std::string script_stdout, uint8_t recovered_qu
       std::cout << std::endl;
 }
 
-void setPenaltyBox(processor_t* p, uint8_t victim_message[8], uint8_t cacheline[64], unsigned position_in_cacheline) {
+void setPenaltyBox(processor_t* p, uint8_t* victim_message, uint8_t* cacheline, uint32_t memwordsize, uint32_t words_per_block, unsigned position_in_cacheline) {
     //Message
     reg_t msg;
-    memcpy(&msg, victim_message, 8);
+    memcpy(&msg, victim_message, memwordsize);
     p->set_csr(CSR_PENALTY_BOX_MSG, msg);
 
     //Cacheline
-    reg_t cl[8];
-    memcpy(cl, cacheline, 64);
+    reg_t cl[words_per_block];
+    memcpy(cl, cacheline, words_per_block*memwordsize);
+    //FIXME: scale with cache line size and word size!!!
     p->set_csr(CSR_PENALTY_BOX_CACHELINE_BLK0, cl[0]);
     p->set_csr(CSR_PENALTY_BOX_CACHELINE_BLK1, cl[1]);
     p->set_csr(CSR_PENALTY_BOX_CACHELINE_BLK2, cl[2]);

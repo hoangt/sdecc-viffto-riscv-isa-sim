@@ -619,6 +619,7 @@
 #define CSR_FRM 0x2
 #define CSR_FCSR 0x3
 //Begin MWG
+//FIXME: Make penalty box scale with cacheline size!
 #define CSR_PENALTY_BOX_MSG 0x4
 #define CSR_PENALTY_BOX_CACHELINE_BLK0 0x5
 #define CSR_PENALTY_BOX_CACHELINE_BLK1 0x6
@@ -944,6 +945,7 @@ DECLARE_CSR(fflags, CSR_FFLAGS)
 DECLARE_CSR(frm, CSR_FRM)
 DECLARE_CSR(fcsr, CSR_FCSR)
 //MWG
+//FIXME: Make penalty box scale with cacheline size!
 DECLARE_CSR(penaltybox_message, CSR_PENALTY_BOX_MSG)
 DECLARE_CSR(penaltybox_cacheline_blk0, CSR_PENALTY_BOX_CACHELINE_BLK0)
 DECLARE_CSR(penaltybox_cacheline_blk1, CSR_PENALTY_BOX_CACHELINE_BLK1)

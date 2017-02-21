@@ -59,41 +59,37 @@ public:
       type##_t retval; \
       if (likely(tlb_load_tag[vpn % TLB_ENTRIES] == vpn)) { \
         correct_retval = *(type##_t*)(tlb_data[vpn % TLB_ENTRIES] + addr); \
-        /* correct_quadword = *(uint64_t*)(tlb_data[vpn % TLB_ENTRIES] + (addr & (~0x0000000000000007))); */\
       } else { \
           load_slow_path(addr, sizeof(type##_t), (uint8_t*)&correct_retval, fpunit); \
-          /* load_slow_path((addr & (~0x0000000000000007)), sizeof(uint64_t), (uint8_t*)&correct_quadword); */\
       } \
       if (likely(err_inj_enable) && err_inj_target.compare("data") == 0 && total_steps >= err_inj_step) { \
           inject_error_now = true; \
           std::cout << "ERROR INJECTION ARMED for data memory on step " << total_steps << "." << std::endl; \
       } \
       if (unlikely(inject_error_now) && err_inj_target.compare("data") == 0) { \
-          uint8_t correct_quadword[8]; \
-          /* uint8_t recovered_quadword[8]; */ \
+          uint8_t correct_word[memwordsize]; \
           reg_t paddr = translate(addr, LOAD); \
-          uint8_t cacheline[64]; \
-          uint32_t memwordsize = 8; \
-          unsigned position_in_cacheline = (paddr & 0x3f) / memwordsize; \
-          memcpy(correct_quadword, reinterpret_cast<char*>(reinterpret_cast<reg_t>(mem+(paddr & (~0x0000000000000007)))), 8); \
-          memcpy(cacheline, reinterpret_cast<char*>(reinterpret_cast<reg_t>(mem+(paddr & (~0x000000000000003f)))), 64); \
+          uint8_t cacheline[words_per_block*memwordsize]; \
+          unsigned position_in_cacheline = (paddr & (memwordsize*words_per_block-1)) / memwordsize; \
+          memcpy(correct_word, reinterpret_cast<char*>(reinterpret_cast<reg_t>(mem+(paddr & (~(memwordsize-1))))), memwordsize); \
+          memcpy(cacheline, reinterpret_cast<char*>(reinterpret_cast<reg_t>(mem+(paddr & (~(words_per_block*memwordsize-1))))), words_per_block*memwordsize); \
           \
           std::cout.fill('0'); \
           std::cout << "Injecting DUE on data!" << std::endl; \
-          setPenaltyBox(proc, correct_quadword, cacheline, position_in_cacheline); \
+          setPenaltyBox(proc, correct_word, cacheline, memwordsize, words_per_block, position_in_cacheline); \
           std::cout << "Correct return value is 0x" \
                     << std::hex \
                     << std::setw(sizeof(type##_t)*2) \
                     << correct_retval \
-                    << ", correct 64-bit message is 0x"; \
-          for (size_t i = 0; i < 8; i++) { \
+                    << ", correct message is 0x"; \
+          for (size_t i = 0; i < memwordsize; i++) { \
               std::cout << std::hex \
                         << std::setw(2) \
-                        << static_cast<uint64_t>(correct_quadword[i]); \
+                        << static_cast<uint64_t>(correct_word[i]); \
           } \
           std::cout << "." << std::dec << std::endl; \
           \
-          std::cout << "Quadword/message is block number " \
+          /*std::cout << "Quadword/message is block number " \
                     << std::dec \
                     << position_in_cacheline \
                     << " in: "; \
@@ -107,7 +103,7 @@ public:
                   std::cout << ","; \
           } \
           std::cout << "." << std::dec << std::endl; \
-          \
+          */\
           inject_error_now = false; \
           err_inj_enable = false; \
           std::cout << "ERROR INJECTION COMPLETED, now disarmed. It should affect data memory access." << std::endl; \
@@ -256,7 +252,8 @@ public:
     std::string data_sdecc_script_filename,
     std::string inst_sdecc_script_filename,
     std::string candidates_sdecc_script_filename,
-    uint32_t words_per_block
+    uint32_t words_per_block,
+    uint32_t memwordsize
     );
   bool errInjMode() { return err_inj_mode; } //MWG
   
@@ -272,6 +269,7 @@ public:
   std::string inst_sdecc_script_filename; //MWG
   std::string candidates_sdecc_script_filename; //MWG
   uint32_t words_per_block; //MWG
+  uint32_t memwordsize; //MWG
 
 private:
   char* mem;

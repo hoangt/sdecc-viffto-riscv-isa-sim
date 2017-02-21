@@ -207,16 +207,8 @@ int main(int argc, char** argv)
 
   //MWG BEGIN
   if (err_inj_enable) {
+      srand(time(NULL)); //MWG
       words_per_block = static_cast<uint32_t>(general_linesz / memwordsize);
-
-      the_mmu->enableErrInj(
-         err_inj_step_start,
-         err_inj_step_stop,
-         err_inj_target,
-         data_sdecc_script_filename,
-         inst_sdecc_script_filename,
-         candidates_sdecc_script_filename,
-         words_per_block);
 
       std::cout << "Error injection/SDECC enabled!" << std::endl;
       std::cout << "...Step Range: " << err_inj_step_start << " to " << err_inj_step_stop << std::endl;
@@ -224,6 +216,16 @@ int main(int argc, char** argv)
       std::cout << "...Candidates recovery script filename: " << candidates_sdecc_script_filename << std::endl;
       std::cout << "...Data recovery script filename: " << data_sdecc_script_filename << std::endl;
       std::cout << "...Instruction recovery script filename: " << inst_sdecc_script_filename << std::endl;
+      
+      the_mmu->enableErrInj(
+         err_inj_step_start,
+         err_inj_step_stop,
+         err_inj_target,
+         data_sdecc_script_filename,
+         inst_sdecc_script_filename,
+         candidates_sdecc_script_filename,
+         words_per_block,
+         memwordsize);
   }
   //END MWG
 
