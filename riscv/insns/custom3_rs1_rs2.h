@@ -9,7 +9,7 @@ original_msg = p->get_csr(CSR_PENALTY_BOX_MSG);
 reg_t msg_size = p->get_csr(CSR_PENALTY_BOX_MSG_SIZE);
 reg_t cacheline_size = p->get_csr(CSR_PENALTY_BOX_CACHELINE_SIZE);
 blockpos = p->get_csr(CSR_PENALTY_BOX_CACHELINE_BLKPOS);
-for (uint32_t i = 0; i < cacheline_size; i++)
+for (uint32_t i = 0; i < cacheline_size/msg_size; i++)
     cl[i] = p->get_csr(CSR_PENALTY_BOX_CACHELINE_BLK0+i);
 
 //Convert values to lumps of bytes
