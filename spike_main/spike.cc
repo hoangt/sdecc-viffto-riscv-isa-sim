@@ -140,7 +140,7 @@ int main(int argc, char** argv)
   //MWG
   parser.option(0, "memwordsize", 1, [&](const char* s) { 
       memwordsize = atoi(s);
-      if (memwordsize != 4 && memwordsize != 8) //error
+      if (memwordsize != 2 && memwordsize != 4 && memwordsize != 8 && memwordsize != 16) //error
           help();
   });
   

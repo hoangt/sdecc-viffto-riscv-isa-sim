@@ -154,9 +154,9 @@ void cache_sim_t::memdatatrace(uint64_t addr, size_t bytes, bool store, bool fpu
     uint8_t payload[bytes];
     uint8_t cacheline[linesz];
     uint32_t memwordsize = the_sim->get_memwordsize();
-    unsigned position_in_cacheline = (paddr & 0x3f) / memwordsize;
+    unsigned position_in_cacheline = (paddr & (linesz-1)) / memwordsize;
     memcpy(payload, reinterpret_cast<char*>(the_mmu->mem+paddr), bytes);
-    memcpy(cacheline, reinterpret_cast<char*>(reinterpret_cast<reg_t>(the_mmu->mem+(paddr & (~0x000000000000003f)))), linesz);
+    memcpy(cacheline, reinterpret_cast<char*>(reinterpret_cast<reg_t>(the_mmu->mem+(paddr & (~(linesz-1))))), linesz);
 
     output_file.fill('0');
     output_file 

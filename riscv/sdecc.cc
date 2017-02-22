@@ -22,12 +22,21 @@ std::string myexec(std::string cmd) {
     return result;
 }
 
-std::string construct_sdecc_recovery_cmd(std::string script_filename, uint8_t* correct_word, uint8_t* cacheline, uint32_t memwordsize, uint32_t words_per_block, unsigned position_in_cacheline) {
+std::string construct_sdecc_recovery_cmd(std::string script_filename, uint8_t* correct_word, char* candidates, uint8_t* cacheline, uint32_t memwordsize, uint32_t words_per_block, unsigned position_in_cacheline) {
+    uint32_t k = memwordsize*8;
     std::string cmd = script_filename + " ";
+    cmd += std::to_string(k);
+    cmd += " ";
     for (size_t i = 0; i < memwordsize; i++) {
       cmd += std::bitset<8>(correct_word[i]).to_string();
     }
     cmd += " ";
+   
+    size_t i = 0;
+    while (candidates[i] != '\0') //Unsafe
+        cmd += candidates[i++];
+    cmd += " ";
+
     for (size_t i = 0; i < words_per_block; i++) {
       for (size_t j = 0; j < memwordsize; j++) {
           cmd += std::bitset<8>(cacheline[i*words_per_block+j]).to_string();
@@ -40,17 +49,19 @@ std::string construct_sdecc_recovery_cmd(std::string script_filename, uint8_t* c
     return cmd;
 }
 
-std::string construct_sdecc_candidate_messages_cmd(std::string script_filename, uint8_t* correct_word, uint32_t memwordsize, std::string code_type, int verbose) {
+std::string construct_sdecc_candidate_messages_cmd(std::string script_filename, uint8_t* correct_word, uint32_t memwordsize, uint32_t n, std::string code_type) {
+    uint32_t k = memwordsize*8;
+
     std::string cmd = script_filename + " ";
     for (size_t i = 0; i < memwordsize; i++) {
       cmd += std::bitset<8>(correct_word[i]).to_string();
     }
     cmd += " ";
-    cmd += std::to_string(memwordsize*8);
+    cmd += std::to_string(n);
+    cmd += " ";
+    cmd += std::to_string(k);
     cmd += " ";
     cmd += code_type;
-    cmd += " ";
-    cmd += std::to_string(verbose);
     std::cout << "Cmd: " << cmd << std::endl;
     return cmd;
 }

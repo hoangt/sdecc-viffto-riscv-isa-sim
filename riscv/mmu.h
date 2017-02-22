@@ -264,12 +264,15 @@ public:
   size_t err_inj_step; //MWG
   std::string err_inj_target; //MWG
   
+  void load_slow_path(reg_t addr, reg_t len, uint8_t* bytes, bool fpunit); //MWG
   void store_slow_path(reg_t addr, reg_t len, const uint8_t* bytes, bool fpunit); //MWG
   std::string data_sdecc_script_filename; //MWG
   std::string inst_sdecc_script_filename; //MWG
   std::string candidates_sdecc_script_filename; //MWG
   uint32_t words_per_block; //MWG
   uint32_t memwordsize; //MWG
+
+  reg_t translate(reg_t addr, access_type type); //MWG
 
 private:
   char* mem;
@@ -297,9 +300,7 @@ private:
 
   // handle uncommon cases: TLB misses, page faults, MMIO
   const uint16_t* fetch_slow_path(reg_t addr);
-  void load_slow_path(reg_t addr, reg_t len, uint8_t* bytes, bool fpunit); //MWG
   bool get_page_permissions(reg_t addr, bool& ur, bool& uw, bool& ux, bool& sr, bool& sw, bool& sx); //MWG
-  reg_t translate(reg_t addr, access_type type);
 
   // ITLB lookup
   const uint16_t* translate_insn_addr(reg_t addr) __attribute__((always_inline)) {
