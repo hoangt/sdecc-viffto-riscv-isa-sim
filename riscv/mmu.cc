@@ -19,6 +19,8 @@ mmu_t::mmu_t(char* _mem, size_t _memsz)
    candidates_sdecc_script_filename(), //MWG
    words_per_block(8), //MWG
    memwordsize(8), //MWG
+   ncodewordbits(72), //MWG
+   code_type("hsiao1970"), //MWG
    mem(_mem),
    memsz(_memsz),
    proc(NULL),
@@ -229,7 +231,9 @@ void mmu_t::enableErrInj(
         std::string inst_sdecc_script_filename,
         std::string candidates_sdecc_script_filename,
         uint32_t words_per_block,
-        uint32_t memwordsize
+        uint32_t memwordsize,
+        uint32_t ncodewordbits,
+        std::string code_type
     ) {
     err_inj_mode = true;
     err_inj_enable = true;
@@ -241,6 +245,8 @@ void mmu_t::enableErrInj(
     this->candidates_sdecc_script_filename = candidates_sdecc_script_filename;
     this->words_per_block = words_per_block;
     this->memwordsize = memwordsize;
+    this->ncodewordbits = ncodewordbits;
+    this->code_type = code_type;
 
     err_inj_step = err_inj_step_start + (rand() % (1 + err_inj_step_stop - err_inj_step_start)); 
     std::cout << "Random target step in range is " << err_inj_step << std::endl;

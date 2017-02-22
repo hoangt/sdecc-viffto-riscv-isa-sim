@@ -12,13 +12,13 @@ OUTPUT_DIR=$MWG_DATA_PATH/swd_ecc_data/rv64g/spike_fpunit_test
 mkdir -p $OUTPUT_DIR
 
 ARGC=$# # Get number of arguments excluding arg0 (the script itself). Check for help message condition.
-if [[ "$ARGC" < 4 ]]; then # Bad number of arguments. 
+if [[ "$ARGC" < 6 ]]; then # Bad number of arguments. 
 	echo "Author: Mark Gottscho"
 	echo "mgottscho@ucla.edu"
 	echo ""
 	echo "This script runs a single RISC-V Spike simulation of a single program (compiled for embedded Newlib, not Linux)."
 	echo ""
-	echo "USAGE: run_spike_benchmark.sh <MODE> <WORD_SIZE> <CACHELINE_SIZE> <BENCHMARK> <OPTIONAL_BENCHMARK_ARGS>"
+	echo "USAGE: run_spike_benchmark.sh <MODE> <N> <K> <CODE_TYPE> <CACHELINE_SIZE> <BENCHMARK> <OPTIONAL_BENCHMARK_ARGS>"
 	echo "EXAMPLE: ./run_spike_speccpu2006_benchmark.sh memdatatrace 401.bzip2"
 	echo ""
 	echo "A single --help help or -h argument will bring this message back."
@@ -27,10 +27,12 @@ fi
 
 # Get command line input. We will need to check these.
 MODE=$1                         # Spike mode, i.e. memdatatrace or faultinj
-WORD_SIZE=$2
-CACHELINE_SIZE=$3
-BENCHMARK=$4					# Benchmark name, e.g. bzip2
-OPTIONAL_BENCHMARK_ARGS="${@:5}" # Remaining args, if any
+N=$2
+K=$3
+CODE_TYPE=$4
+CACHELINE_SIZE=$5
+BENCHMARK=$6					# Benchmark name, e.g. bzip2
+OPTIONAL_BENCHMARK_ARGS="${@:7}" # Remaining args, if any
 
 SPEC_BENCH=1
 RUN_DIR=$PWD
@@ -270,7 +272,7 @@ if [[ "$MODE" == "memdatatrace" ]]; then
     MEMDATATRACE_EXPECTED_INTERVAL=1000000
     MEMDATATRACE_OUTPUT_FILE=$OUTPUT_DIR/spike_mem_data_trace_${BENCHMARK}.txt
     PK=$RISCV/riscv64-unknown-elf/bin/pk
-    CMD="$SPIKE_DIR/spike --randmemdatatrace=${MEMDATATRACE_EXPECTED_INTERVAL}:${MEMDATATRACE_OUTPUT_FILE} --memwordsize=$WORD_SIZE --ic=1:1:$CACHELINE_SIZE --dc=1:1:$CACHELINE_SIZE --isa=RV64G -m2048 -p1 $PK $BENCHMARK_NAME $BENCHMARK_ARGS"
+    CMD="$SPIKE_DIR/spike --randmemdatatrace=${MEMDATATRACE_EXPECTED_INTERVAL}:${MEMDATATRACE_OUTPUT_FILE} --memwordsizebits=$K --ncodewordbits=$N --code_type=$CODE_TYPE --ic=1:1:$CACHELINE_SIZE --dc=1:1:$CACHELINE_SIZE --isa=RV64G -m2048 -p1 $PK $BENCHMARK_NAME $BENCHMARK_ARGS"
 fi
 
 if [[ "$MODE" == "faultinj_sim" ]]; then
@@ -281,7 +283,7 @@ if [[ "$MODE" == "faultinj_sim" ]]; then
     DATA_FAULT_RECOVERY_SCRIPT=$MWG_GIT_PATH/eccgrp-ecc-ctrl/data_recovery_spike_wrapper.sh
     INST_FAULT_RECOVERY_SCRIPT=$MWG_GIT_PATH/eccgrp-ecc-ctrl/inst_recovery_spike_wrapper.sh
     PK=$MWG_GIT_PATH/eccgrp-riscv-pk/build/riscv64-unknown-elf/bin/pk
-    CMD="$SPIKE_DIR/spike -d --faultinj_sim=${FAULT_INJECTION_STEP_START}:${FAULT_INJECTION_STEP_STOP}:${FAULT_INJECTION_TARGET}:${CANDIDATES_SCRIPT}:${DATA_FAULT_RECOVERY_SCRIPT}:${INST_FAULT_RECOVERY_SCRIPT} --memwordsize=$WORD_SIZE --ic=1:1:$CACHELINE_SIZE --dc=1:1:$CACHELINE_SIZE --isa=RV64G -m2048 -p1 $PK $BENCHMARK_NAME $BENCHMARK_ARGS"
+    CMD="$SPIKE_DIR/spike -d --faultinj_sim=${FAULT_INJECTION_STEP_START}:${FAULT_INJECTION_STEP_STOP}:${FAULT_INJECTION_TARGET}:${CANDIDATES_SCRIPT}:${DATA_FAULT_RECOVERY_SCRIPT}:${INST_FAULT_RECOVERY_SCRIPT} --memwordsizebits=$K --ncodewordbits=$N --code_type=$CODE_TYPE --ic=1:1:$CACHELINE_SIZE --dc=1:1:$CACHELINE_SIZE --isa=RV64G -m2048 -p1 $PK $BENCHMARK_NAME $BENCHMARK_ARGS"
 fi
 
 if [[ "$MODE" == "faultinj_user" ]]; then
@@ -289,7 +291,7 @@ if [[ "$MODE" == "faultinj_user" ]]; then
     DATA_FAULT_RECOVERY_SCRIPT=$MWG_GIT_PATH/eccgrp-ecc-ctrl/data_recovery_spike_wrapper.sh
     INST_FAULT_RECOVERY_SCRIPT=$MWG_GIT_PATH/eccgrp-ecc-ctrl/inst_recovery_spike_wrapper.sh
     PK=$MWG_GIT_PATH/eccgrp-riscv-pk/build/riscv64-unknown-elf/bin/pk
-    CMD="$SPIKE_DIR/spike -d --faultinj_user=${CANDIDATES_SCRIPT}:${DATA_FAULT_RECOVERY_SCRIPT}:${INST_FAULT_RECOVERY_SCRIPT} --memwordsize=$WORD_SIZE --ic=1:1:$CACHELINE_SIZE --dc=1:1:$CACHELINE_SIZE --isa=RV64G -m2048 -p1 $PK $BENCHMARK_NAME $BENCHMARK_ARGS"
+    CMD="$SPIKE_DIR/spike -d --faultinj_user=${CANDIDATES_SCRIPT}:${DATA_FAULT_RECOVERY_SCRIPT}:${INST_FAULT_RECOVERY_SCRIPT} --memwordsizebits=$K --ncodewordbits=$N --code_type=$CODE_TYPE --ic=1:1:$CACHELINE_SIZE --dc=1:1:$CACHELINE_SIZE --isa=RV64G -m2048 -p1 $PK $BENCHMARK_NAME $BENCHMARK_ARGS"
 fi
 
 echo $CMD

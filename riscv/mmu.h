@@ -253,7 +253,9 @@ public:
     std::string inst_sdecc_script_filename,
     std::string candidates_sdecc_script_filename,
     uint32_t words_per_block,
-    uint32_t memwordsize
+    uint32_t memwordsize,
+    uint32_t ncodewordbits,
+    std::string code_type
     );
   bool errInjMode() { return err_inj_mode; } //MWG
   
@@ -271,6 +273,8 @@ public:
   std::string candidates_sdecc_script_filename; //MWG
   uint32_t words_per_block; //MWG
   uint32_t memwordsize; //MWG
+  uint32_t ncodewordbits; //MWG
+  std::string code_type; //MWG
 
   reg_t translate(reg_t addr, access_type type); //MWG
 

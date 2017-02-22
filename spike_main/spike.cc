@@ -34,7 +34,9 @@ static void help()
   fprintf(stderr, "  --extlib=<name>    Shared library to load\n");
   fprintf(stderr, "  --periodicmemdatatrace=<begin>:<end>:<interval>:<output_file>    MWG: Enable periodic tracing of raw memory traffic data payloads starting from step begin, until step end, with interval accesses between trace points. Dump to output_file.\n"); //MWG
   fprintf(stderr, "  --randmemdatatrace=<recip_sampl_prob_per_step>:<output_file>    MWG: Enable random tracing of raw memory traffic data payloads. Each simulation step has a probability of a trace sample being taken that is the reciprocal of the input value. The expected number of steps between samples is governed by the geometric distribution. Dump to output_file.\n"); //MWG
-  fprintf(stderr, "  --memwordsize=<value>     MWG: Specify the bit width of the memory bus that carries information bits. This can either be 4 or 8 bytes.");
+  fprintf(stderr, "  --memwordsizebits=<value>     MWG: Specify the bit width of the memory bus that carries information bits. This can either be 16, 32, 64, or 128 bits.");
+  fprintf(stderr, "  --ncodewordbits=<value>     MWG: Specify the bit width of an ECC codeword. E.g. 17, 18, 19, 33, 34, 35, 39, 45, 72, 79, or 144. It must always be > memwordsizebits");
+  fprintf(stderr, "  --code_type=<value>     MWG: code type of ECC, e.g. hsiao1970");
   fprintf(stderr, "  --faultinj_sim=<start_step>:<stop_step>:<target>:<candidates_sdecc_script_filename>:<data_sdecc_script_filename>:<inst_sdecc_script_filename}     MWG: Enable fault injection and SDECC recovery. Inject at random step in specified range, if the execution has not already completed. Target is either inst or data memory. If data memory, the first memory load after the step has been reached will be used. User application can, but should not, also control injections."); //MWG
   fprintf(stderr, "  --faultinj_user=<candidates_sdecc_script_filename>:<data_sdecc_script_filename>:<inst_sdecc_script_filename}     MWG: Enable fault injection and SDECC recovery. User-driven injection."); //MWG
   exit(1);
@@ -60,7 +62,10 @@ int main(int argc, char** argv)
   size_t memdatatrace_step_end = static_cast<size_t>(-1); //MWG
   size_t memdatatrace_sample_interval = 1; //MWG
   size_t memdatatrace_rand_prob_recip = 1; //MWG 
+  uint32_t memwordsizebits = 64; //MWG
   uint32_t memwordsize = 8; //MWG
+  uint32_t ncodewordbits = 72; //MWG
+  std::string code_type = "hsiao1970"; //MWG
   uint32_t words_per_block = 8; //MWG
   std::string memdatatrace_output_filename; //MWG
   bool err_inj_enable = false; //MWG
@@ -138,10 +143,23 @@ int main(int argc, char** argv)
   });
 
   //MWG
-  parser.option(0, "memwordsize", 1, [&](const char* s) { 
-      memwordsize = atoi(s);
+  parser.option(0, "memwordsizebits", 1, [&](const char* s) { 
+      memwordsizebits = atoi(s);
+      memwordsize = memwordsizebits / 8;
       if (memwordsize != 2 && memwordsize != 4 && memwordsize != 8 && memwordsize != 16) //error
           help();
+  });
+
+  //MWG
+  parser.option(0, "ncodewordbits", 1, [&](const char* s) { 
+      ncodewordbits = atoi(s);
+      if (ncodewordbits <= memwordsize*8) //error
+          help();
+  });
+
+  //MWG
+  parser.option(0, "code_type", 1, [&](const char* s) { 
+      code_type = s;
   });
   
   //MWG BEGIN
@@ -225,7 +243,9 @@ int main(int argc, char** argv)
          inst_sdecc_script_filename,
          candidates_sdecc_script_filename,
          words_per_block,
-         memwordsize);
+         memwordsize,
+         ncodewordbits,
+         code_type);
   }
   //END MWG
 
