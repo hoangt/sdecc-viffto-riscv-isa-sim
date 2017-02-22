@@ -100,6 +100,16 @@ void setPenaltyBox(processor_t* p, uint8_t* victim_message, uint8_t* cacheline, 
     memcpy(&msg, victim_message, memwordsize);
     p->set_csr(CSR_PENALTY_BOX_MSG, msg);
 
+    //Sizes
+    reg_t msg_size = static_cast<reg_t>(memwordsize);
+    p->set_csr(CSR_PENALTY_BOX_MSG_SIZE, msg_size);
+    reg_t cacheline_size = static_cast<reg_t>(words_per_block*memwordsize);
+    p->set_csr(CSR_PENALTY_BOX_CACHELINE_SIZE, cacheline_size);
+
+    //Blockpos
+    reg_t bp = static_cast<reg_t>(position_in_cacheline);
+    p->set_csr(CSR_PENALTY_BOX_CACHELINE_BLKPOS, bp);
+
     //Cacheline
     reg_t cl[words_per_block];
     memcpy(cl, cacheline, words_per_block*memwordsize);
@@ -112,9 +122,5 @@ void setPenaltyBox(processor_t* p, uint8_t* victim_message, uint8_t* cacheline, 
     p->set_csr(CSR_PENALTY_BOX_CACHELINE_BLK5, cl[5]);
     p->set_csr(CSR_PENALTY_BOX_CACHELINE_BLK6, cl[6]);
     p->set_csr(CSR_PENALTY_BOX_CACHELINE_BLK7, cl[7]);
-
-    //Blockpos
-    reg_t bp = static_cast<reg_t>(position_in_cacheline);
-    p->set_csr(CSR_PENALTY_BOX_CACHELINE_BLKPOS, bp);
 }
 

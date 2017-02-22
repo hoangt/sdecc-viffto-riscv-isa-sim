@@ -6,25 +6,21 @@ reg_t original_msg;
 reg_t cl[MMU.words_per_block];
 reg_t blockpos;
 original_msg = p->get_csr(CSR_PENALTY_BOX_MSG);
-cl[0] = p->get_csr(CSR_PENALTY_BOX_CACHELINE_BLK0);
-cl[1] = p->get_csr(CSR_PENALTY_BOX_CACHELINE_BLK1);
-cl[2] = p->get_csr(CSR_PENALTY_BOX_CACHELINE_BLK2);
-cl[3] = p->get_csr(CSR_PENALTY_BOX_CACHELINE_BLK3);
-cl[4] = p->get_csr(CSR_PENALTY_BOX_CACHELINE_BLK4);
-cl[5] = p->get_csr(CSR_PENALTY_BOX_CACHELINE_BLK5);
-cl[6] = p->get_csr(CSR_PENALTY_BOX_CACHELINE_BLK6);
-cl[7] = p->get_csr(CSR_PENALTY_BOX_CACHELINE_BLK7);
+reg_t msg_size = p->get_csr(CSR_PENALTY_BOX_MSG_SIZE);
+reg_t cacheline_size = p->get_csr(CSR_PENALTY_BOX_CACHELINE_SIZE);
 blockpos = p->get_csr(CSR_PENALTY_BOX_CACHELINE_BLKPOS);
+for (uint32_t i = 0; i < cacheline_size; i++)
+    cl[i] = p->get_csr(CSR_PENALTY_BOX_CACHELINE_BLK0+i);
 
 //Convert values to lumps of bytes
 uint8_t* victim_message = reinterpret_cast<uint8_t*>(&original_msg);
 char* candidates = (char*)(malloc(2048)); //FIXME
 MMU.load_slow_path(RS2, 2048, (uint8_t*)(candidates), 0);
-uint8_t cacheline[MMU.words_per_block*MMU.memwordsize];
-memcpy(cacheline, cl, MMU.words_per_block*MMU.memwordsize); //FIXME
+uint8_t cacheline[cacheline_size];
+memcpy(cacheline, cl, cacheline_size); //FIXME
 
 //Run external command
-std::string cmd = construct_sdecc_recovery_cmd(MMU.data_sdecc_script_filename, victim_message, candidates, cacheline, MMU.memwordsize, MMU.words_per_block, (unsigned)(blockpos));
+std::string cmd = construct_sdecc_recovery_cmd(MMU.data_sdecc_script_filename, victim_message, candidates, cacheline, msg_size, cacheline_size/msg_size, (unsigned)(blockpos));
 std::string output = myexec(cmd);
 const char* output_cstr = output.c_str();
 

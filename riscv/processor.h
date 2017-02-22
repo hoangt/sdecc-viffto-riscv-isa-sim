@@ -75,8 +75,10 @@ struct state_t
 //MWG
 typedef struct {
     reg_t victim_msg;
-    reg_t cacheline_words[8];
+    reg_t msg_size;
+    reg_t cacheline_size;
     reg_t cacheline_blockpos;
+    reg_t cacheline_words[8];
 } penaltybox_t;
 
 // this class represents one processor in a RISC-V machine.
