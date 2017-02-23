@@ -1,14 +1,13 @@
 //RS1: address of output cstring buffer for recovered message, e.g. '010010101'
 //RS2: address of input cstring buffer for candidate messages, e.g. '010010101,00000000,....,01010101,...'
 
-//FIXME: remove CSR dependency here
-reg_t original_msg = p->get_csr(CSR_PENALTY_BOX_MSG);
-reg_t msg_size = p->get_csr(CSR_PENALTY_BOX_MSG_SIZE);
-reg_t cacheline_size = p->get_csr(CSR_PENALTY_BOX_CACHELINE_SIZE);
-reg_t blockpos = p->get_csr(CSR_PENALTY_BOX_CACHELINE_BLKPOS);
+reg_t msg_size = p->pb.msg_size;
+reg_t cacheline_size = p->pb.cacheline_size;
+reg_t blockpos = p->pb.cacheline_blockpos;
 
 //Convert values to lumps of bytes
-uint8_t* victim_message = reinterpret_cast<uint8_t*>(&original_msg);
+uint8_t victim_message[msg_size];
+memcpy(victim_message, p->pb.victim_msg, msg_size);
 char* candidates = (char*)(malloc(2048)); //FIXME
 MMU.load_slow_path(RS2, 2048, (uint8_t*)(candidates), 0);
 uint8_t cacheline[cacheline_size];
