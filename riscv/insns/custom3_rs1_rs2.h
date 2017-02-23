@@ -2,22 +2,17 @@
 //RS2: address of input cstring buffer for candidate messages, e.g. '010010101,00000000,....,01010101,...'
 
 //FIXME: remove CSR dependency here
-reg_t original_msg;
-reg_t cl[MMU.words_per_block];
-reg_t blockpos;
-original_msg = p->get_csr(CSR_PENALTY_BOX_MSG);
+reg_t original_msg = p->get_csr(CSR_PENALTY_BOX_MSG);
 reg_t msg_size = p->get_csr(CSR_PENALTY_BOX_MSG_SIZE);
 reg_t cacheline_size = p->get_csr(CSR_PENALTY_BOX_CACHELINE_SIZE);
-blockpos = p->get_csr(CSR_PENALTY_BOX_CACHELINE_BLKPOS);
-for (uint32_t i = 0; i < cacheline_size/msg_size; i++)
-    cl[i] = p->get_csr(CSR_PENALTY_BOX_CACHELINE_BLK0+i);
+reg_t blockpos = p->get_csr(CSR_PENALTY_BOX_CACHELINE_BLKPOS);
 
 //Convert values to lumps of bytes
 uint8_t* victim_message = reinterpret_cast<uint8_t*>(&original_msg);
 char* candidates = (char*)(malloc(2048)); //FIXME
 MMU.load_slow_path(RS2, 2048, (uint8_t*)(candidates), 0);
 uint8_t cacheline[cacheline_size];
-memcpy(cacheline, cl, cacheline_size); //FIXME
+memcpy(cacheline, p->pb.cacheline_words, cacheline_size);
 
 //Run external command
 std::string cmd = construct_sdecc_recovery_cmd(MMU.data_sdecc_script_filename, victim_message, candidates, cacheline, msg_size, cacheline_size/msg_size, (unsigned)(blockpos));

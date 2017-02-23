@@ -98,24 +98,20 @@ void setPenaltyBox(processor_t* p, uint8_t* victim_message, uint8_t* cacheline, 
     //Message
     reg_t msg;
     memcpy(&msg, victim_message, memwordsize);
-    p->set_csr(CSR_PENALTY_BOX_MSG, msg);
+    p->pb.victim_msg = msg;
 
     //Sizes
     reg_t msg_size = static_cast<reg_t>(memwordsize);
-    p->set_csr(CSR_PENALTY_BOX_MSG_SIZE, msg_size);
+    p->pb.msg_size = msg_size;
     reg_t cacheline_size = static_cast<reg_t>(words_per_block*memwordsize);
-    p->set_csr(CSR_PENALTY_BOX_CACHELINE_SIZE, cacheline_size);
+    p->pb.cacheline_size = cacheline_size;
 
     //Blockpos
     reg_t bp = static_cast<reg_t>(position_in_cacheline);
-    p->set_csr(CSR_PENALTY_BOX_CACHELINE_BLKPOS, bp);
+    p->pb.cacheline_blockpos = bp;
 
     //Cacheline
-    reg_t cl[words_per_block];
-    memcpy(cl, cacheline, words_per_block*memwordsize);
-   
-    //FIXME: what about when sizeof(reg_t) != memwordsize??
-    for (unsigned long i = 0; i < words_per_block; i++)
-        p->set_csr(CSR_PENALTY_BOX_CACHELINE_BLK0+i, cl[i]);
+    p->pb.word_ptr = 0; //Extremely important for software csr reads to function correctly
+    memcpy(p->pb.cacheline_words, cacheline, words_per_block*memwordsize); //Copy cacheline into penalty box
 }
 

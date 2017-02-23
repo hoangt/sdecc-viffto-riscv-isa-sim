@@ -79,6 +79,7 @@ typedef struct {
     reg_t cacheline_size;
     reg_t cacheline_blockpos;
     reg_t cacheline_words[128]; //Support max 32 words per cacheline, but a word could be up to 256-bit (TODO). Thus we would need up to 128 64-bit elements to store 32 256-bit memory words.
+    reg_t word_ptr;
 } penaltybox_t;
 
 // this class represents one processor in a RISC-V machine.
@@ -115,6 +116,8 @@ public:
   bool load(reg_t addr, size_t len, uint8_t* bytes);
   bool store(reg_t addr, size_t len, const uint8_t* bytes);
 
+  penaltybox_t pb; //MWG
+
 private:
   sim_t* sim;
   mmu_t* mmu; // main memory is always accessed via the mmu
@@ -129,8 +132,6 @@ private:
   bool run; // !reset
   bool debug;
   bool histogram_enabled;
-
-  penaltybox_t pb; //MWG
 
   std::vector<insn_desc_t> instructions;
   std::map<reg_t,uint64_t> pc_histogram;

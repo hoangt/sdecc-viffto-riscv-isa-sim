@@ -257,63 +257,6 @@ void processor_t::set_csr(int which, reg_t val)
     case CSR_PENALTY_BOX_MSG:
         pb.victim_msg = val;
         break;
-    case CSR_PENALTY_BOX_MSG_SIZE:
-        pb.msg_size = val;
-        break;
-    case CSR_PENALTY_BOX_CACHELINE_SIZE:
-        pb.cacheline_size = val;
-        break;
-    case CSR_PENALTY_BOX_CACHELINE_BLKPOS:
-        pb.cacheline_blockpos = val;
-        break;
-    case CSR_PENALTY_BOX_CACHELINE_BLK0:
-        pb.cacheline_words[0] = val;
-        break;
-    case CSR_PENALTY_BOX_CACHELINE_BLK1:
-        pb.cacheline_words[1] = val;
-        break;
-    case CSR_PENALTY_BOX_CACHELINE_BLK2:
-        pb.cacheline_words[2] = val;
-        break;
-    case CSR_PENALTY_BOX_CACHELINE_BLK3:
-        pb.cacheline_words[3] = val;
-        break;
-    case CSR_PENALTY_BOX_CACHELINE_BLK4:
-        pb.cacheline_words[4] = val;
-        break;
-    case CSR_PENALTY_BOX_CACHELINE_BLK5:
-        pb.cacheline_words[5] = val;
-        break;
-    case CSR_PENALTY_BOX_CACHELINE_BLK6:
-        pb.cacheline_words[6] = val;
-        break;
-    case CSR_PENALTY_BOX_CACHELINE_BLK7:
-        pb.cacheline_words[7] = val;
-        break;
-    case CSR_PENALTY_BOX_CACHELINE_BLK8:
-        pb.cacheline_words[8] = val;
-        break;
-    case CSR_PENALTY_BOX_CACHELINE_BLK9:
-        pb.cacheline_words[9] = val;
-        break;
-    case CSR_PENALTY_BOX_CACHELINE_BLK10:
-        pb.cacheline_words[10] = val;
-        break;
-    case CSR_PENALTY_BOX_CACHELINE_BLK11:
-        pb.cacheline_words[11] = val;
-        break;
-    case CSR_PENALTY_BOX_CACHELINE_BLK12:
-        pb.cacheline_words[12] = val;
-        break;
-    case CSR_PENALTY_BOX_CACHELINE_BLK13:
-        pb.cacheline_words[13] = val;
-        break;
-    case CSR_PENALTY_BOX_CACHELINE_BLK14:
-        pb.cacheline_words[14] = val;
-        break;
-    case CSR_PENALTY_BOX_CACHELINE_BLK15:
-        pb.cacheline_words[15] = val;
-        break;
     //End MWG
     case CSR_FRM:
       dirty_fp_state;
@@ -458,38 +401,10 @@ reg_t processor_t::get_csr(int which)
         return pb.cacheline_size;
     case CSR_PENALTY_BOX_CACHELINE_BLKPOS:
         return pb.cacheline_blockpos;
-    case CSR_PENALTY_BOX_CACHELINE_BLK0:
-        return pb.cacheline_words[0];
-    case CSR_PENALTY_BOX_CACHELINE_BLK1:
-        return pb.cacheline_words[1];
-    case CSR_PENALTY_BOX_CACHELINE_BLK2:
-        return pb.cacheline_words[2];
-    case CSR_PENALTY_BOX_CACHELINE_BLK3:
-        return pb.cacheline_words[3];
-    case CSR_PENALTY_BOX_CACHELINE_BLK4:
-        return pb.cacheline_words[4];
-    case CSR_PENALTY_BOX_CACHELINE_BLK5:
-        return pb.cacheline_words[5];
-    case CSR_PENALTY_BOX_CACHELINE_BLK6:
-        return pb.cacheline_words[6];
-    case CSR_PENALTY_BOX_CACHELINE_BLK7:
-        return pb.cacheline_words[7];
-    case CSR_PENALTY_BOX_CACHELINE_BLK8:
-        return pb.cacheline_words[8];
-    case CSR_PENALTY_BOX_CACHELINE_BLK9:
-        return pb.cacheline_words[9];
-    case CSR_PENALTY_BOX_CACHELINE_BLK10:
-        return pb.cacheline_words[10];
-    case CSR_PENALTY_BOX_CACHELINE_BLK11:
-        return pb.cacheline_words[11];
-    case CSR_PENALTY_BOX_CACHELINE_BLK12:
-        return pb.cacheline_words[12];
-    case CSR_PENALTY_BOX_CACHELINE_BLK13:
-        return pb.cacheline_words[13];
-    case CSR_PENALTY_BOX_CACHELINE_BLK14:
-        return pb.cacheline_words[14];
-    case CSR_PENALTY_BOX_CACHELINE_BLK15:
-        return pb.cacheline_words[15];
+    case CSR_PENALTY_BOX_CACHELINE_WORD:
+        if (pb.word_ptr < pb.cacheline_size/sizeof(reg_t))
+            return pb.cacheline_words[pb.word_ptr++];
+        break;
     //End MWG
     case CSR_FRM:
       require_fp;
