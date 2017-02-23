@@ -78,7 +78,7 @@ typedef struct {
     reg_t msg_size;
     reg_t cacheline_size;
     reg_t cacheline_blockpos;
-    reg_t cacheline_words[8];
+    reg_t cacheline_words[128]; //Support max 32 words per cacheline, but a word could be up to 256-bit (TODO). Thus we would need up to 128 64-bit elements to store 32 256-bit memory words.
 } penaltybox_t;
 
 // this class represents one processor in a RISC-V machine.

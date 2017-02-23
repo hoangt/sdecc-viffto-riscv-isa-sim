@@ -89,21 +89,21 @@ public:
           } \
           std::cout << "." << std::dec << std::endl; \
           \
-          /*std::cout << "Quadword/message is block number " \
+          /*std::cout << "Word/message is block number " \
                     << std::dec \
                     << position_in_cacheline \
                     << " in: "; \
           for (size_t i = 0; i < words_per_block; i++) { \
-              for (size_t j = 0; j < 8; j++) { \
+              for (size_t j = 0; j < memwordsize; j++) { \
                   std::cout << std::hex \
                             << std::setw(2) \
-                            << static_cast<uint64_t>(cacheline[i*8+j]); \
+                            << static_cast<uint64_t>(cacheline[i*memwordsize+j]); \
               } \
               if (i < words_per_block-1) \
                   std::cout << ","; \
           } \
-          std::cout << "." << std::dec << std::endl; \
-          */\
+          std::cout << "." << std::dec << std::endl; */\
+          \
           inject_error_now = false; \
           err_inj_enable = false; \
           std::cout << "ERROR INJECTION COMPLETED, now disarmed. It should affect data memory access." << std::endl; \
@@ -174,6 +174,7 @@ public:
     }
 
     //MWG BEGIN: error injection armed here
+    //MWG FIXME: instruction stuff is not up-to-date compatible with data stuff 2/22/2017
     if (unlikely(inject_error_now) && err_inj_target.compare("inst") == 0) {
         std::cout.fill('0');
         std::cout << "Injecting DUE on instruction! Correct message is 0x"
