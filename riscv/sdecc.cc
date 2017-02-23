@@ -113,14 +113,9 @@ void setPenaltyBox(processor_t* p, uint8_t* victim_message, uint8_t* cacheline, 
     //Cacheline
     reg_t cl[words_per_block];
     memcpy(cl, cacheline, words_per_block*memwordsize);
-    //FIXME: scale with cache line size and word size!!!
-    p->set_csr(CSR_PENALTY_BOX_CACHELINE_BLK0, cl[0]);
-    p->set_csr(CSR_PENALTY_BOX_CACHELINE_BLK1, cl[1]);
-    p->set_csr(CSR_PENALTY_BOX_CACHELINE_BLK2, cl[2]);
-    p->set_csr(CSR_PENALTY_BOX_CACHELINE_BLK3, cl[3]);
-    p->set_csr(CSR_PENALTY_BOX_CACHELINE_BLK4, cl[4]);
-    p->set_csr(CSR_PENALTY_BOX_CACHELINE_BLK5, cl[5]);
-    p->set_csr(CSR_PENALTY_BOX_CACHELINE_BLK6, cl[6]);
-    p->set_csr(CSR_PENALTY_BOX_CACHELINE_BLK7, cl[7]);
+   
+    //FIXME: what about when sizeof(reg_t) != memwordsize??
+    for (unsigned long i = 0; i < words_per_block; i++)
+        p->set_csr(CSR_PENALTY_BOX_CACHELINE_BLK0+i, cl[i]);
 }
 
