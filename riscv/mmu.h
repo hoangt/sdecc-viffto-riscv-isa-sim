@@ -71,6 +71,7 @@ public:
           reg_t paddr = translate(addr, LOAD); \
           uint8_t cacheline[words_per_block*memwordsize]; \
           unsigned position_in_cacheline = (paddr & (memwordsize*words_per_block-1)) / memwordsize; \
+          proc->pb.msg_offset = paddr - (paddr & (~(memwordsize-1))); \
           memcpy(correct_word, reinterpret_cast<char*>(reinterpret_cast<reg_t>(mem+(paddr & (~(memwordsize-1))))), memwordsize); \
           memcpy(cacheline, reinterpret_cast<char*>(reinterpret_cast<reg_t>(mem+(paddr & (~(words_per_block*memwordsize-1))))), words_per_block*memwordsize); \
           \
@@ -87,6 +88,7 @@ public:
                         << std::setw(2) \
                         << static_cast<uint64_t>(correct_word[i]); \
           } \
+          std::cout << " (offset " << proc->pb.msg_offset << " bytes in message)"; \
           std::cout << "." << std::dec << std::endl; \
           \
           /*std::cout << "Word/message is block number " \

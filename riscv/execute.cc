@@ -143,6 +143,46 @@ miss:
           _mmu->refill_icache(pc, ic_entry);
       }
     }
+    //Begin MWG
+    catch(trap_memory_due& t) {
+        take_trap(t, pc);
+
+        if (pb.rdy) {
+            std::cerr << "Abort! memory DUE trap handler completed without clearing Penalty Box RDY bit" << std::endl;
+            exit(-1);
+        }
+
+        if (!pb.mem_due_load_type.compare("int64") || !pb.mem_due_load_type.compare("uint64")) {
+            uint64_t value = *((uint64_t*)(pb.victim_msg+pb.msg_offset));
+            if (pb.mem_due_dest_reg_type) //int
+                state.XPR.write(pb.mem_due_dest_reg, value);
+            else //float
+                state.FPR.write(pb.mem_due_dest_reg, value);
+        } else if (!pb.mem_due_load_type.compare("int32") || !pb.mem_due_load_type.compare("uint32")) {
+            uint32_t value = *((uint32_t*)(pb.victim_msg+pb.msg_offset));
+            if (pb.mem_due_dest_reg_type) //int
+                state.XPR.write(pb.mem_due_dest_reg, value);
+            else //float
+                state.FPR.write(pb.mem_due_dest_reg, value);
+        } else if (!pb.mem_due_load_type.compare("int16") || !pb.mem_due_load_type.compare("uint16")) {
+            uint16_t value = *((uint16_t*)(pb.victim_msg+pb.msg_offset));
+            if (pb.mem_due_dest_reg_type) //int
+                state.XPR.write(pb.mem_due_dest_reg, value);
+            else //float
+                state.FPR.write(pb.mem_due_dest_reg, value);
+        } else if (!pb.mem_due_load_type.compare("int8") || !pb.mem_due_load_type.compare("uint8")) {
+            uint8_t value = *((uint8_t*)(pb.victim_msg+pb.msg_offset));
+            if (pb.mem_due_dest_reg_type) //int
+                state.XPR.write(pb.mem_due_dest_reg, value);
+            else //float
+                state.FPR.write(pb.mem_due_dest_reg, value);
+        } else {
+            std::cerr << "ERROR! Unknown type of memory load that suffered DUE" << std::endl;
+            exit(-1);
+        }
+
+    }
+    //End MWG
     catch(trap_t& t)
     {
       take_trap(t, pc);

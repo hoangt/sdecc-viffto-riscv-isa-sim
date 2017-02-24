@@ -259,6 +259,9 @@ void processor_t::set_csr(int which, reg_t val)
             pb.msg_ptr = 0;
         pb.victim_msg[pb.msg_ptr++] = val;
         break;
+    case CSR_PENALTY_BOX_RDY:
+        pb.rdy = val;
+        break;
     //End MWG
     case CSR_FRM:
       dirty_fp_state;
@@ -409,6 +412,8 @@ reg_t processor_t::get_csr(int which)
         if (pb.word_ptr < pb.cacheline_size/sizeof(reg_t))
             return pb.cacheline_words[pb.word_ptr++];
         break;
+    case CSR_PENALTY_BOX_RDY:
+        return pb.rdy;
     //End MWG
     case CSR_FRM:
       require_fp;
