@@ -18,7 +18,7 @@ std::string cmd = construct_sdecc_recovery_cmd(MMU.data_sdecc_script_filename, v
 std::string output = myexec(cmd);
 const char* output_cstr = output.c_str();
 
-MMU.store_slow_path(RS1, output.length(), (const uint8_t*)output_cstr, 0);
+MMU.store_slow_path(RS1, output.length()+1, (const uint8_t*)output_cstr, 0);
 
 std::cout << " Original message: ";
 for (size_t i = 0; i < MMU.memwordsize; i++)

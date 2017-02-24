@@ -253,13 +253,6 @@ void processor_t::set_csr(int which, reg_t val)
       dirty_fp_state;
       state.fflags = val & (FSR_AEXC >> FSR_AEXC_SHIFT);
       break;
-    //Begin MWG
-    case CSR_PENALTY_BOX_MSG:
-        if (pb.msg_ptr >= pb.msg_size/sizeof(reg_t))
-            pb.msg_ptr = 0;
-        pb.victim_msg[pb.msg_ptr++] = val;
-        break;
-    //End MWG
     case CSR_FRM:
       dirty_fp_state;
       state.frm = val & (FSR_RD >> FSR_RD_SHIFT);
@@ -395,10 +388,8 @@ reg_t processor_t::get_csr(int which)
         break;
       return state.fflags;
     //Begin MWG
-    case CSR_PENALTY_BOX_MSG:
-        if (pb.msg_ptr < pb.msg_size/sizeof(reg_t))
-            return pb.victim_msg[pb.msg_ptr++];
-        break;
+    case CSR_PENALTY_BOX_LOAD_SIZE:
+        return pb.load_size;
     case CSR_PENALTY_BOX_MSG_SIZE:
         return pb.msg_size;
     case CSR_PENALTY_BOX_CACHELINE_SIZE:

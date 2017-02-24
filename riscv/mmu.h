@@ -71,6 +71,7 @@ public:
           reg_t paddr = translate(addr, LOAD); \
           uint8_t cacheline[words_per_block*memwordsize]; \
           unsigned position_in_cacheline = (paddr & (memwordsize*words_per_block-1)) / memwordsize; \
+          proc->pb.load_size = sizeof(type##_t); \
           memcpy(correct_word, reinterpret_cast<char*>(reinterpret_cast<reg_t>(mem+(paddr & (~(memwordsize-1))))), memwordsize); \
           memcpy(cacheline, reinterpret_cast<char*>(reinterpret_cast<reg_t>(mem+(paddr & (~(words_per_block*memwordsize-1))))), words_per_block*memwordsize); \
           \

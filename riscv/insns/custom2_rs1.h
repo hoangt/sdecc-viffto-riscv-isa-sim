@@ -5,4 +5,4 @@ std::string cmd = construct_sdecc_candidate_messages_cmd(MMU.candidates_sdecc_sc
 std::string output = myexec(cmd);
 std::cout << output << std::endl;
 const char* output_cstr = output.c_str();
-MMU.store_slow_path(RS1, output.length(), (const uint8_t*)output_cstr, 0);
+MMU.store_slow_path(RS1, output.length()+1, (const uint8_t*)output_cstr, 0);
