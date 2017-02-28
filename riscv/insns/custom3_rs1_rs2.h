@@ -8,8 +8,8 @@ reg_t blockpos = p->pb.cacheline_blockpos;
 //Convert values to lumps of bytes
 uint8_t victim_message[msg_size];
 memcpy(victim_message, p->pb.victim_msg, msg_size);
-char* candidates = (char*)(malloc(2048)); //FIXME
-MMU.load_slow_path(RS2, 2048, (uint8_t*)(candidates), 0);
+char* candidates = (char*)(malloc(4096)); //FIXME
+MMU.load_slow_path(RS2, 4096, (uint8_t*)(candidates), 0);
 uint8_t cacheline[cacheline_size];
 memcpy(cacheline, p->pb.cacheline_words, cacheline_size);
 
@@ -20,8 +20,9 @@ const char* output_cstr = output.c_str();
 
 MMU.store_slow_path(RS1, output.length()+1, (const uint8_t*)output_cstr, 0);
 
-std::cout << " Original message: ";
+/*std::cout << " Original message: ";
 for (size_t i = 0; i < MMU.memwordsize; i++)
   std::cout << std::bitset<8>(victim_message[i]);
 std::cout << std::endl;
 std::cout << "Recovered message: " << output; //output has newline built in
+*/

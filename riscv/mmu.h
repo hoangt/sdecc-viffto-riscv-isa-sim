@@ -64,29 +64,39 @@ public:
       } \
       if (likely(err_inj_enable) && err_inj_target.compare("data") == 0 && total_steps >= err_inj_step) { \
           inject_error_now = true; \
-          std::cout << "ERROR INJECTION ARMED for data memory on step " << total_steps << "." << std::endl; \
+          /*std::cout << "ERROR INJECTION ARMED for data memory on step " << total_steps << "." << std::endl;*/ \
       } \
       if (unlikely(inject_error_now) && err_inj_target.compare("data") == 0) { \
           uint8_t correct_word[memwordsize]; \
+          uint8_t correct_load_value[sizeof(type##_t)]; \
           reg_t paddr = translate(addr, LOAD); \
           uint8_t cacheline[words_per_block*memwordsize]; \
           unsigned position_in_cacheline = (paddr & (memwordsize*words_per_block-1)) / memwordsize; \
           proc->pb.load_size = sizeof(type##_t); \
           memcpy(correct_word, reinterpret_cast<char*>(reinterpret_cast<reg_t>(mem+(paddr & (~(memwordsize-1))))), memwordsize); \
+          memcpy(correct_load_value, reinterpret_cast<char*>(reinterpret_cast<reg_t>(mem+(paddr & (~(sizeof(type##_t)-1))))), sizeof(type##_t)); \
           memcpy(cacheline, reinterpret_cast<char*>(reinterpret_cast<reg_t>(mem+(paddr & (~(words_per_block*memwordsize-1))))), words_per_block*memwordsize); \
           \
           std::cout.fill('0'); \
-          std::cout << "Injecting DUE on data!" << std::endl; \
           setPenaltyBox(proc, correct_word, cacheline, memwordsize, words_per_block, position_in_cacheline); \
-          std::cout << "Correct return value is 0x" \
+          std::cout << "---------> DUE injection on data (step " << total_steps << ")! Correct return value is 0x" \
                     << std::hex \
                     << std::setw(sizeof(type##_t)*2) \
                     << correct_retval \
-                    << ", correct message is 0x"; \
+                    << std::dec \
+                    << ", correct load value is 0x"; \
+          for (size_t i = 0; i < sizeof(type##_t); i++) { \
+              std::cout << std::hex \
+                        << std::setw(2) \
+                        << static_cast<uint64_t>(correct_load_value[i]) \
+                        << std::dec; \
+          } \
+          std::cout << ", correct message is 0x"; \
           for (size_t i = 0; i < memwordsize; i++) { \
               std::cout << std::hex \
                         << std::setw(2) \
-                        << static_cast<uint64_t>(correct_word[i]); \
+                        << static_cast<uint64_t>(correct_word[i]) \
+                        << std::dec; \
           } \
           std::cout << "." << std::dec << std::endl; \
           \
@@ -107,7 +117,7 @@ public:
           \
           inject_error_now = false; \
           err_inj_enable = false; \
-          std::cout << "ERROR INJECTION COMPLETED, now disarmed. It should affect data memory access." << std::endl; \
+          /*std::cout << "Data memory ERROR INJECTION disarmed." << std::endl; */\
           throw trap_memory_due(addr); \
       } else \
           retval = correct_retval; \

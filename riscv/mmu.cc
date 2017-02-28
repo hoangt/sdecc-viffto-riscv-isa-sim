@@ -249,5 +249,5 @@ void mmu_t::enableErrInj(
     this->code_type = code_type;
 
     err_inj_step = err_inj_step_start + (rand() % (1 + err_inj_step_stop - err_inj_step_start)); 
-    std::cout << "Random target step in range is " << err_inj_step << std::endl;
+    //std::cout << "Random target step in range is " << err_inj_step << std::endl;
 }

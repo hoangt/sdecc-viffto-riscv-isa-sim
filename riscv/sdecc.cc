@@ -45,7 +45,7 @@ std::string construct_sdecc_recovery_cmd(std::string script_filename, uint8_t* c
           cmd += ",";
     }
     cmd += " " + std::to_string(position_in_cacheline);
-    std::cout << "Cmd: " << cmd << std::endl;
+    //std::cout << "Cmd: " << cmd << std::endl;
     return cmd;
 }
 
@@ -62,7 +62,7 @@ std::string construct_sdecc_candidate_messages_cmd(std::string script_filename, 
     cmd += std::to_string(k);
     cmd += " ";
     cmd += code_type;
-    std::cout << "Cmd: " << cmd << std::endl;
+    //std::cout << "Cmd: " << cmd << std::endl;
     return cmd;
 }
 
@@ -74,7 +74,7 @@ void parse_sdecc_recovery_output(std::string script_stdout, uint8_t* recovered_w
               recovered_word[i] |= (script_stdout[i*8+j] == '1' ? (1 << (8-j-1)) : 0);
           }
       }
-      std::cout << "Recovered message: 0x";
+      /*std::cout << "Recovered message: 0x";
       for (size_t i = 0; i < memwordsize; i++) {
           std::cout << std::hex
                     << std::setw(2)
@@ -91,7 +91,7 @@ void parse_sdecc_recovery_output(std::string script_stdout, uint8_t* recovered_w
           std::cout << ", which is correct";
       else
           std::cout << ", which is CORRUPT";
-      std::cout << std::endl;
+      std::cout << std::endl;*/
 }
 
 void setPenaltyBox(processor_t* p, uint8_t* victim_message, uint8_t* cacheline, uint32_t memwordsize, uint32_t words_per_block, unsigned position_in_cacheline) {
