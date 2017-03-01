@@ -389,7 +389,7 @@ reg_t processor_t::get_csr(int which)
       return state.fflags;
     //Begin MWG
     case CSR_PENALTY_BOX_LOAD_SIZE:
-        return pb.load_size;
+        return pb.demand_load_size;
     case CSR_PENALTY_BOX_MSG_SIZE:
         return pb.msg_size;
     case CSR_PENALTY_BOX_CACHELINE_SIZE:

@@ -55,47 +55,56 @@ public:
       if (addr & (sizeof(type##_t)-1)) \
         throw trap_load_address_misaligned(addr); \
       reg_t vpn = addr >> PGSHIFT; \
-      type##_t correct_retval; \
       type##_t retval; \
       if (likely(tlb_load_tag[vpn % TLB_ENTRIES] == vpn)) { \
-        correct_retval = *(type##_t*)(tlb_data[vpn % TLB_ENTRIES] + addr); \
+        retval = *(type##_t*)(tlb_data[vpn % TLB_ENTRIES] + addr); \
       } else { \
-          load_slow_path(addr, sizeof(type##_t), (uint8_t*)&correct_retval, fpunit); \
+          load_slow_path(addr, sizeof(type##_t), (uint8_t*)&retval, fpunit); \
       } \
       if (likely(err_inj_enable) && err_inj_target.compare("data") == 0 && total_steps >= err_inj_step) { \
           inject_error_now = true; \
           /*std::cout << "ERROR INJECTION ARMED for data memory on step " << total_steps << "." << std::endl;*/ \
       } \
       if (unlikely(inject_error_now) && err_inj_target.compare("data") == 0) { \
-          uint8_t correct_word[memwordsize]; \
-          uint8_t correct_load_value[sizeof(type##_t)]; \
-          reg_t paddr = translate(addr, LOAD); \
+          uint8_t demand_load_value[sizeof(type##_t)]; \
+          reg_t demand_vaddr = addr; \
+          reg_t demand_paddr = translate(addr, LOAD); \
+          proc->pb.demand_load_size = sizeof(type##_t); \
+          memcpy(demand_load_value, reinterpret_cast<char*>(reinterpret_cast<reg_t>(mem+demand_paddr)), sizeof(type##_t)); \
+          \
           uint8_t cacheline[words_per_block*memwordsize]; \
-          unsigned position_in_cacheline = (paddr & (memwordsize*words_per_block-1)) / memwordsize; \
-          proc->pb.load_size = sizeof(type##_t); \
-          memcpy(correct_word, reinterpret_cast<char*>(reinterpret_cast<reg_t>(mem+(paddr & (~(memwordsize-1))))), memwordsize); \
-          memcpy(correct_load_value, reinterpret_cast<char*>(reinterpret_cast<reg_t>(mem+(paddr & (~(sizeof(type##_t)-1))))), sizeof(type##_t)); \
-          memcpy(cacheline, reinterpret_cast<char*>(reinterpret_cast<reg_t>(mem+(paddr & (~(words_per_block*memwordsize-1))))), words_per_block*memwordsize); \
+          unsigned position_in_cacheline = (demand_paddr & (memwordsize*words_per_block-1)) / memwordsize; \
+          reg_t cacheline_base_vaddr = demand_vaddr & (~(words_per_block*memwordsize-1)); \
+          reg_t cacheline_base_paddr = translate(cacheline_base_vaddr, LOAD); \
+          \
+          memcpy(cacheline, reinterpret_cast<char*>(reinterpret_cast<reg_t>(mem+cacheline_base_paddr)), words_per_block*memwordsize); \
+          \
+          uint8_t victim_word[memwordsize]; \
+          unsigned victim_blockpos = rand() % words_per_block; \
+          reg_t victim_vaddr = cacheline_base_vaddr + victim_blockpos*memwordsize; \
+          reg_t victim_paddr = translate(victim_vaddr, LOAD); \
+          memcpy(victim_word, reinterpret_cast<char*>(reinterpret_cast<reg_t>(mem+victim_paddr)), memwordsize); \
+          \
           \
           std::cout.fill('0'); \
-          setPenaltyBox(proc, correct_word, cacheline, memwordsize, words_per_block, position_in_cacheline); \
-          std::cout << "---------> DUE injection on data (step " << total_steps << ")! Correct return value is 0x" \
+          setPenaltyBox(proc, victim_word, cacheline, memwordsize, words_per_block, victim_blockpos); \
+          std::cout << "---------> DUE injection on data (step " << total_steps << ")! Correct demand return value (vaddr 0x" << std::hex << demand_vaddr << std::dec << ", blockpos " << position_in_cacheline << ") is 0x" \
                     << std::hex \
                     << std::setw(sizeof(type##_t)*2) \
-                    << correct_retval \
+                    << retval \
                     << std::dec \
-                    << ", correct load value is 0x"; \
+                    << ", correct demand load value is 0x"; \
           for (size_t i = 0; i < sizeof(type##_t); i++) { \
               std::cout << std::hex \
                         << std::setw(2) \
-                        << static_cast<uint64_t>(correct_load_value[i]) \
+                        << static_cast<uint64_t>(demand_load_value[i]) \
                         << std::dec; \
           } \
-          std::cout << ", correct message is 0x"; \
+          std::cout << ", correct victim message is (vaddr 0x" << std::hex << victim_vaddr << std::dec << ", blockpos " << victim_blockpos << ") 0x"; \
           for (size_t i = 0; i < memwordsize; i++) { \
               std::cout << std::hex \
                         << std::setw(2) \
-                        << static_cast<uint64_t>(correct_word[i]) \
+                        << static_cast<uint64_t>(victim_word[i]) \
                         << std::dec; \
           } \
           std::cout << "." << std::dec << std::endl; \
@@ -118,9 +127,8 @@ public:
           inject_error_now = false; \
           err_inj_enable = false; \
           /*std::cout << "Data memory ERROR INJECTION disarmed." << std::endl; */\
-          throw trap_memory_due(addr); \
-      } else \
-          retval = correct_retval; \
+          throw trap_memory_due(victim_vaddr); \
+      } \
       return retval; \
     }
 
