@@ -63,7 +63,6 @@ public:
       } \
       if (likely(err_inj_enable) && err_inj_target.compare("data") == 0 && total_steps >= err_inj_step) { \
           inject_error_now = true; \
-          /*std::cout << "ERROR INJECTION ARMED for data memory on step " << total_steps << "." << std::endl;*/ \
       } \
       if (unlikely(inject_error_now) && err_inj_target.compare("data") == 0) { \
           uint8_t demand_load_value[sizeof(type##_t)]; \
@@ -88,20 +87,20 @@ public:
           \
           std::cout.fill('0'); \
           setPenaltyBox(proc, victim_word, cacheline, memwordsize, words_per_block, victim_blockpos); \
-          std::cout << "---------> DUE injection on data (step " << total_steps << ")! Correct demand return value (vaddr 0x" << std::hex << demand_vaddr << std::dec << ", blockpos " << position_in_cacheline << ") is 0x" \
+          std::cout << "---S-P-I-K-E---> DUE injection on data (step " << total_steps << ")! Correct demand return value (vaddr 0x" << std::hex << demand_vaddr << std::dec << ", blockpos " << position_in_cacheline << ") is 0x" \
                     << std::hex \
                     << std::setw(sizeof(type##_t)*2) \
                     << retval \
                     << std::dec \
                     << ", correct demand load value is 0x"; \
-          for (size_t i = 0; i < sizeof(type##_t); i++) { \
+          for (unsigned i = 0; i < sizeof(type##_t); i++) { \
               std::cout << std::hex \
                         << std::setw(2) \
                         << static_cast<uint64_t>(demand_load_value[i]) \
                         << std::dec; \
           } \
           std::cout << ", correct victim message is (vaddr 0x" << std::hex << victim_vaddr << std::dec << ", blockpos " << victim_blockpos << ") 0x"; \
-          for (size_t i = 0; i < memwordsize; i++) { \
+          for (unsigned i = 0; i < memwordsize; i++) { \
               std::cout << std::hex \
                         << std::setw(2) \
                         << static_cast<uint64_t>(victim_word[i]) \
@@ -109,24 +108,8 @@ public:
           } \
           std::cout << "." << std::dec << std::endl; \
           \
-          /*std::cout << "Word/message is block number " \
-                    << std::dec \
-                    << position_in_cacheline \
-                    << " in: "; \
-          for (size_t i = 0; i < words_per_block; i++) { \
-              for (size_t j = 0; j < memwordsize; j++) { \
-                  std::cout << std::hex \
-                            << std::setw(2) \
-                            << static_cast<uint64_t>(cacheline[i*memwordsize+j]); \
-              } \
-              if (i < words_per_block-1) \
-                  std::cout << ","; \
-          } \
-          std::cout << "." << std::dec << std::endl; */\
-          \
           inject_error_now = false; \
           err_inj_enable = false; \
-          /*std::cout << "Data memory ERROR INJECTION disarmed." << std::endl; */\
           throw trap_memory_due(victim_vaddr); \
       } \
       return retval; \
@@ -193,42 +176,54 @@ public:
     }
 
     //MWG BEGIN: error injection armed here
-    //MWG FIXME: instruction stuff is not up-to-date compatible with data stuff 2/22/2017
     if (unlikely(inject_error_now) && err_inj_target.compare("inst") == 0) {
+        uint32_t retval = static_cast<uint32_t>(insn & 0xFFFFFFFF); //TODO: only explicitly support fixed-length RV64G at the moment
+        uint8_t demand_load_value[length];
+        reg_t demand_vaddr = addr;
+        reg_t demand_paddr = translate(addr, FETCH);
+        proc->pb.demand_load_size = length;
+        memcpy(demand_load_value, reinterpret_cast<char*>(reinterpret_cast<reg_t>(mem+demand_paddr)), length);
+       
+        uint8_t cacheline[words_per_block*memwordsize];
+        unsigned position_in_cacheline = (demand_paddr & (memwordsize*words_per_block-1)) / memwordsize;
+        reg_t cacheline_base_vaddr = demand_vaddr & (~(words_per_block*memwordsize-1));
+        reg_t cacheline_base_paddr = translate(cacheline_base_vaddr, FETCH);
+       
+        memcpy(cacheline, reinterpret_cast<char*>(reinterpret_cast<reg_t>(mem+cacheline_base_paddr)), words_per_block*memwordsize);
+       
+        uint8_t victim_word[memwordsize];
+        unsigned victim_blockpos = rand() % words_per_block;
+        reg_t victim_vaddr = cacheline_base_vaddr + victim_blockpos*memwordsize;
+        reg_t victim_paddr = translate(victim_vaddr, FETCH);
+        memcpy(victim_word, reinterpret_cast<char*>(reinterpret_cast<reg_t>(mem+victim_paddr)), memwordsize);
+       
+       
         std::cout.fill('0');
-        std::cout << "Injecting DUE on instruction! Correct message is 0x"
+        setPenaltyBox(proc, victim_word, cacheline, memwordsize, words_per_block, victim_blockpos);
+        std::cout << "---S-P-I-K-E---> DUE injection on instruction (step " << total_steps << ")! Correct demand return value (vaddr 0x" << std::hex << demand_vaddr << std::dec << ", blockpos " << position_in_cacheline << ") is 0x"
                   << std::hex
-                  << std::setw(8)
-                  << (insn & 0x00000000FFFFFFFF) //FIXME: we just mask out upper 32-bits, we are assuming RV64G only here
-                  << "."
+                  << std::setw(length*2)
+                  << retval
                   << std::dec
-                  << std::endl;
-    
-        /* Construct command line */
-        std::string cmd = inst_sdecc_script_filename + " " + std::bitset<32>(insn).to_string();
-        std::cout << "Cmd: " << cmd << std::endl;
-        std::string script_stdout = myexec(cmd);    
-        std::cout << "Raw script stdout: " << script_stdout << std::endl;
-        
-        /* Parse recovery */
-        insn_bits_t recovered_message = 0; 
-
-        /* Output is expected to be simply a k-bit message in binary characters, e.g. '001010100101001...001010' */
-        for (size_t i = 0; i < 32; i++) //FIXME
-            recovered_message |= (script_stdout[i] == '1' ? (1 << (32-i-1)) : 0);
-
-        std::cout << "Recovered message: 0x"
-                  << std::hex
-                  << std::setw(8)
-                  << (recovered_message & 0x00000000FFFFFFFF)
-                  << std::dec;
-
-        if (insn == recovered_message)
-            std::cout << " is correct!" << std::endl;
-        else
-            std::cout << " is CORRUPT!" << std::endl;
-
-        insn = recovered_message;
+                  << ", correct demand load value is 0x";
+        for (unsigned i = 0; i < (unsigned)length; i++) {
+            std::cout << std::hex
+                      << std::setw(2)
+                      << static_cast<uint64_t>(demand_load_value[i])
+                      << std::dec;
+        }
+        std::cout << ", correct victim message is (vaddr 0x" << std::hex << victim_vaddr << std::dec << ", blockpos " << victim_blockpos << ") 0x";
+        for (unsigned i = 0; i < memwordsize; i++) {
+            std::cout << std::hex
+                      << std::setw(2)
+                      << static_cast<uint64_t>(victim_word[i])
+                      << std::dec;
+        }
+        std::cout << "." << std::dec << std::endl;
+       
+        inject_error_now = false;
+        err_inj_enable = false;
+        throw trap_memory_due(victim_vaddr);
     }
     //MWG END
 

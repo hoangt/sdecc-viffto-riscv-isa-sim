@@ -82,14 +82,11 @@ void processor_t::step(size_t n)
           //MWG: error injection armed on inst fetch
           if (likely(mmu->err_inj_enable) && mmu->err_inj_target.compare("inst") == 0 && total_steps >= mmu->err_inj_step) {
               mmu->inject_error_now = true;
-              //std::cout << "ERROR INJECTION ARMED for instruction memory on step " << the_sim->total_steps << "." << std::endl;
-              std::cout << "ERROR INJECTION ARMED for instruction memory on step " << total_steps << "." << std::endl;
           }
 
           insn_fetch_t fetch = mmu->load_insn(pc); //MWG: if error injection is armed, this will be the victim memory access.
           
           if (unlikely(mmu->inject_error_now)) {
-              std::cout << "ERROR INJECTION COMPLETED, now disarmed. It should have affected instruction memory access." << std::endl;
               mmu->inject_error_now = false; //MWG: Disarm
               mmu->err_inj_enable = false; //MWG: Disarm
           }
@@ -105,7 +102,6 @@ void processor_t::step(size_t n)
         //MWG: error injection armed on inst fetch
         if (likely(mmu->err_inj_enable) && mmu->err_inj_target.compare("inst") == 0 && total_steps >= mmu->err_inj_step) {
             mmu->inject_error_now = true;
-            std::cout << "ERROR INJECTION ARMED for instruction memory on step " << total_steps << "." << std::endl;
         }
 
         //MWG: check for err inj step here
@@ -113,7 +109,6 @@ void processor_t::step(size_t n)
         auto ic_entry = _mmu->access_icache(pc);
           
         if (unlikely(mmu->inject_error_now)) {
-            std::cout << "ERROR INJECTION COMPLETED, now disarmed. It should have affected instruction memory access." << std::endl;
             mmu->inject_error_now = false; //MWG: Disarm
             mmu->err_inj_enable = false; //MWG: Disarm
         }
