@@ -23,6 +23,7 @@ else //instruction
     cmd = construct_sdecc_inst_recovery_cmd(MMU.inst_sdecc_script_filename, victim_message, candidates, msg_size);
 
 std::string output = myexec(cmd);
+//std::cout << output << std::endl; //TEMP
 const char* output_cstr = output.c_str();
 
 MMU.store_slow_path(RS1, output.length()+1, (const uint8_t*)output_cstr, 0);

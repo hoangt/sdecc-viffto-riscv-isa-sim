@@ -63,7 +63,7 @@ std::string construct_sdecc_inst_recovery_cmd(std::string script_filename, uint8
         cmd += candidates[i++];
     cmd += " ";
     
-    std::cout << cmd << std::endl; //TEMP
+    //std::cout << cmd << std::endl; //TEMP
     return cmd;
 }
 
