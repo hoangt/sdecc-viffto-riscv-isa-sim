@@ -86,7 +86,7 @@ public:
           \
           \
           std::cout.fill('0'); \
-          setPenaltyBox(proc, victim_word, cacheline, memwordsize, words_per_block, victim_blockpos); \
+          setPenaltyBox(proc, victim_word, cacheline, memwordsize, words_per_block, victim_blockpos, false); \
           std::cout << "---S-P-I-K-E---> DUE injection on data (step " << total_steps << ")! Correct demand return value (vaddr 0x" << std::hex << demand_vaddr << std::dec << ", blockpos " << position_in_cacheline << ") is 0x" \
                     << std::hex \
                     << std::setw(sizeof(type##_t)*2) \
@@ -199,7 +199,7 @@ public:
        
        
         std::cout.fill('0');
-        setPenaltyBox(proc, victim_word, cacheline, memwordsize, words_per_block, victim_blockpos);
+        setPenaltyBox(proc, victim_word, cacheline, memwordsize, words_per_block, victim_blockpos, true);
         std::cout << "---S-P-I-K-E---> DUE injection on instruction (step " << total_steps << ")! Correct demand return value (vaddr 0x" << std::hex << demand_vaddr << std::dec << ", blockpos " << position_in_cacheline << ") is 0x"
                   << std::hex
                   << std::setw(length*2)

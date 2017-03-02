@@ -400,6 +400,8 @@ reg_t processor_t::get_csr(int which)
         if (pb.word_ptr < pb.cacheline_size/sizeof(reg_t))
             return pb.cacheline_words[pb.word_ptr++];
         break;
+    case CSR_PENALTY_BOX_MEM_TYPE:
+        return pb.mem_type;
     //End MWG
     case CSR_FRM:
       require_fp;

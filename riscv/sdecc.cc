@@ -22,7 +22,7 @@ std::string myexec(std::string cmd) {
     return result;
 }
 
-std::string construct_sdecc_recovery_cmd(std::string script_filename, uint8_t* correct_word, char* candidates, uint8_t* cacheline, uint32_t memwordsize, uint32_t words_per_block, unsigned position_in_cacheline) {
+std::string construct_sdecc_data_recovery_cmd(std::string script_filename, uint8_t* correct_word, char* candidates, uint8_t* cacheline, uint32_t memwordsize, uint32_t words_per_block, unsigned position_in_cacheline) {
     uint32_t k = memwordsize*8;
     std::string cmd = script_filename + " ";
     cmd += std::to_string(k);
@@ -45,6 +45,25 @@ std::string construct_sdecc_recovery_cmd(std::string script_filename, uint8_t* c
           cmd += ",";
     }
     cmd += " " + std::to_string(position_in_cacheline);
+    return cmd;
+}
+
+std::string construct_sdecc_inst_recovery_cmd(std::string script_filename, uint8_t* correct_word, char* candidates, uint32_t memwordsize) {
+    uint32_t k = memwordsize*8;
+    std::string cmd = script_filename + " ";
+    cmd += std::to_string(k);
+    cmd += " ";
+    for (size_t i = 0; i < memwordsize; i++) {
+      cmd += std::bitset<8>(correct_word[i]).to_string();
+    }
+    cmd += " ";
+   
+    size_t i = 0;
+    while (candidates[i] != '\0') //Unsafe
+        cmd += candidates[i++];
+    cmd += " ";
+    
+    std::cout << cmd << std::endl; //TEMP
     return cmd;
 }
 
@@ -74,7 +93,7 @@ void parse_sdecc_recovery_output(std::string script_stdout, uint8_t* recovered_w
       }
 }
 
-void setPenaltyBox(processor_t* p, uint8_t* victim_message, uint8_t* cacheline, uint32_t memwordsize, uint32_t words_per_block, unsigned position_in_cacheline) {
+void setPenaltyBox(processor_t* p, uint8_t* victim_message, uint8_t* cacheline, uint32_t memwordsize, uint32_t words_per_block, unsigned position_in_cacheline, bool inst_mem) {
     //Message
     memcpy(p->pb.victim_msg, victim_message, memwordsize);
 
@@ -92,5 +111,11 @@ void setPenaltyBox(processor_t* p, uint8_t* victim_message, uint8_t* cacheline, 
 
     //Cacheline
     memcpy(p->pb.cacheline_words, cacheline, words_per_block*memwordsize); //Copy cacheline into penalty box
+
+    //Mem type
+    if (inst_mem)
+        p->pb.mem_type = 1;
+    else
+        p->pb.mem_type = 0;
 }
 

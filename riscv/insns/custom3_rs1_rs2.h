@@ -13,16 +13,16 @@ MMU.load_slow_path(RS2, 4096, (uint8_t*)(candidates), 0);
 uint8_t cacheline[cacheline_size];
 memcpy(cacheline, p->pb.cacheline_words, cacheline_size);
 
+short mem_type = p->pb.mem_type;
+
 //Run external command
-std::string cmd = construct_sdecc_recovery_cmd(MMU.data_sdecc_script_filename, victim_message, candidates, cacheline, msg_size, cacheline_size/msg_size, (unsigned)(blockpos));
+std::string cmd;
+if (mem_type == 0) //data 
+    cmd = construct_sdecc_data_recovery_cmd(MMU.data_sdecc_script_filename, victim_message, candidates, cacheline, msg_size, cacheline_size/msg_size, (unsigned)(blockpos));
+else //instruction
+    cmd = construct_sdecc_inst_recovery_cmd(MMU.inst_sdecc_script_filename, victim_message, candidates, msg_size);
+
 std::string output = myexec(cmd);
 const char* output_cstr = output.c_str();
 
 MMU.store_slow_path(RS1, output.length()+1, (const uint8_t*)output_cstr, 0);
-
-/*std::cout << " Original message: ";
-for (size_t i = 0; i < MMU.memwordsize; i++)
-  std::cout << std::bitset<8>(victim_message[i]);
-std::cout << std::endl;
-std::cout << "Recovered message: " << output; //output has newline built in
-*/
