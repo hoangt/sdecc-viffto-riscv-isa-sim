@@ -45,6 +45,8 @@ processor_t::~processor_t()
   }
 #endif
 
+  std::cout << "Total steps: " << total_steps << std::endl; //MWG
+
   delete mmu;
   delete disassembler;
 }
