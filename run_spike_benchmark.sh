@@ -117,6 +117,7 @@ KMEANS=kmeans
 SOBEL=sobel
 ##################################################################
 
+
 ################# AXBENCH BENCHMARK INPUTS #######################
 BLACKSCHOLES_ARGS="../test.data/input/blackscholesTest_200K.data ../test.data/output/blackscholesTest_200K_blackscholes_orig_ucla.data"
 FFT_ARGS="2048 ../test.data/output/fft_orig_ucla.data"
@@ -252,6 +253,7 @@ else
 if [[ "$BENCHMARK" == "$SPECRAND_FLOAT" ]]; then
 	BENCHMARK_ARGS=$SPECRAND_FLOAT_ARGS
     SPEC_BENCH=1
+else
 if [[ "$BENCHMARK" == "$BLACKSCHOLES" ]]; then
 	BENCHMARK_ARGS=$BLACKSCHOLES_ARGS
     AX_BENCH=1
@@ -279,7 +281,6 @@ else
 if [[ "$BENCHMARK" == "$SOBEL" ]]; then
 	BENCHMARK_ARGS=$SOBEL_ARGS
     AX_BENCH=1
-else
 else # Not a SPEC CPU2006 or axbench benchmark
     BENCHMARK_ARGS=$OPTIONAL_BENCHMARK_ARGS
 fi

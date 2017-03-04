@@ -79,6 +79,9 @@ void processor_t::step(size_t n)
       {
         while (instret < n)
         {
+          if (total_steps % 1000000 == 0) //MWG
+              std::cout << "---S-P-I-K-E---> Step " << total_steps << std::endl;
+
           //MWG: error injection armed on inst fetch
           if (likely(mmu->err_inj_enable) && mmu->err_inj_target.compare("inst") == 0 && total_steps >= mmu->err_inj_step) {
               mmu->inject_error_now = true;
@@ -99,6 +102,9 @@ void processor_t::step(size_t n)
       }
       else while (instret < n)
       {
+          if (total_steps % 1000000 == 0) //MWG
+              std::cout << "---S-P-I-K-E---> Step " << total_steps << std::endl;
+
         //MWG: error injection armed on inst fetch
         if (likely(mmu->err_inj_enable) && mmu->err_inj_target.compare("inst") == 0 && total_steps >= mmu->err_inj_step) {
             mmu->inject_error_now = true;
