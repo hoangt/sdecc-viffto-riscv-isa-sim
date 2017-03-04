@@ -5,8 +5,9 @@
 
 ################## SYSTEM-SPECIFIC VARIABLES: MODIFY ACCORDINGLY #######
 SPEC_DIR=$MWG_GIT_PATH/spec_cpu2006_install
+AXBENCH_DIR=$MWG_GIT_PATH/eccgrp-axbench
 SPIKE_DIR=$MWG_GIT_PATH/eccgrp-riscv-isa-sim/build
-OUTPUT_DIR=$MWG_DATA_PATH/swd_ecc_data/rv64g/spike_fpunit_test
+OUTPUT_DIR=$MWG_DATA_PATH/swd_ecc_data/rv64g/spike_separated_int_float
 ##################################################################
 
 mkdir -p $OUTPUT_DIR
@@ -34,10 +35,11 @@ CACHELINE_SIZE=$5
 BENCHMARK=$6					# Benchmark name, e.g. bzip2
 OPTIONAL_BENCHMARK_ARGS="${@:7}" # Remaining args, if any
 
-SPEC_BENCH=1
+SPEC_BENCH=0
+AX_BENCH=0
 RUN_DIR=$PWD
 
-####################SPEC CPU2006 BENCHMARK CODENAMES ####################
+################### SPEC CPU2006 BENCHMARK CODENAMES ####################
 PERLBENCH=400.perlbench
 BZIP2=401.bzip2
 GCC=403.gcc
@@ -71,7 +73,7 @@ SPECRAND_INT=998.specrand
 SPECRAND_FLOAT=999.specrand
 ##################################################################
 
-######################### BENCHMARK INPUTS ## ####################
+############### SPEC CPU2006 BENCHMARK INPUTS ####################
 PERLBENCH_ARGS="-I./lib checkspam.pl 2500 5 25 11 150 1 1 1 1"
 BZIP2_ARGS="input.source 280"
 GCC_ARGS="166.i -o 166.s"
@@ -105,105 +107,188 @@ SPECRAND_INT_ARGS="1255432124 234923"
 SPECRAND_FLOAT_ARGS="1255432124 234923"
 ##################################################################
 
-###############
+################### AXBENCH BENCHMARK CODENAMES ##################
+BLACKSCHOLES=blackscholes
+FFT=fft
+INVERSEK2J=inversek2j
+JMEINT=jmeint
+JPEG=jpeg
+KMEANS=kmeans
+SOBEL=sobel
+##################################################################
+
+################# AXBENCH BENCHMARK INPUTS #######################
+BLACKSCHOLES_ARGS="../test.data/input/blackscholesTest_200K.data ../test.data/output/blackscholesTest_200K_blackscholes_orig_ucla.data"
+FFT_ARGS="2048 ../test.data/output/fft_orig_ucla.data"
+INVERSEK2J_ARGS="../test.data/input/theta_1000K.data ../test.data/output/theta_1000K_inversek2j_orig_ucla.data"
+JMEINT_ARGS="../test.data/input/jmeint_1000K.data ../test.data/output/jmeint_1000K_jmeint_orig_ucla.data"
+JPEG_ARGS="../test.data/input/10.rgb ../test.data/output/10_jpeg_orig_ucla.jpg" # FIXME: need to run all inputs, not just first. See run_observation.sh for jpeg
+KMEANS_ARGS="../test.data/input/10.rgb ../test.data/output/10_kmeans_orig_ucla.rgb" # FIXME: need to run all inputs, not just first. Also need to run a conversion script to png. see run_observation.sh for kmeans
+SOBEL_ARGS="../test.data/input/10.rgb ../test.data/output/10_sobel_orig_ucla.rgb" # FIXME: need to run all inputs, not just first. Also need to run a conversion script to png. see run_observation.sh for sobel
+##################################################################
 
 # Check BENCHMARK input
 #################### BENCHMARK CODE MAPPING ######################
 if [[ "$BENCHMARK" == "$PERLBENCH" ]]; then
 	BENCHMARK_ARGS=$PERLBENCH_ARGS
+    SPEC_BENCH=1
 else
 if [[ "$BENCHMARK" == "$BZIP2" ]]; then
 	BENCHMARK_ARGS=$BZIP2_ARGS
+    SPEC_BENCH=1
 else
 if [[ "$BENCHMARK" == "$GCC" ]]; then
 	BENCHMARK_ARGS=$GCC_ARGS
+    SPEC_BENCH=1
 else
 if [[ "$BENCHMARK" == "$BWAVES" ]]; then
 	BENCHMARK_ARGS=$BWAVES_ARGS
+    SPEC_BENCH=1
 else
 if [[ "$BENCHMARK" == "$GAMESS" ]]; then
 	BENCHMARK_ARGS=$GAMESS_ARGS
+    SPEC_BENCH=1
 else
 if [[ "$BENCHMARK" == "$MCF" ]]; then
 	BENCHMARK_ARGS=$MCF_ARGS
+    SPEC_BENCH=1
 else
 if [[ "$BENCHMARK" == "$MILC" ]]; then
 	BENCHMARK_ARGS=$MILC_ARGS
+    SPEC_BENCH=1
 else
 if [[ "$BENCHMARK" == "$ZEUSMP" ]]; then
 	BENCHMARK_ARGS=$ZEUSMP_ARGS
+    SPEC_BENCH=1
 else
 if [[ "$BENCHMARK" == "$GROMACS" ]]; then
 	BENCHMARK_ARGS=$GROMACS_ARGS
+    SPEC_BENCH=1
 else
 if [[ "$BENCHMARK" == "$CACTUSADM" ]]; then
 	BENCHMARK_ARGS=$CACTUSADM_ARGS
+    SPEC_BENCH=1
 else
 if [[ "$BENCHMARK" == "$LESLIE3D" ]]; then
 	BENCHMARK_ARGS=$LESLIE3D_ARGS
+    SPEC_BENCH=1
 else
 if [[ "$BENCHMARK" == "$NAMD" ]]; then
 	BENCHMARK_ARGS=$NAMD_ARGS
+    SPEC_BENCH=1
 else
 if [[ "$BENCHMARK" == "$GOBMK" ]]; then
 	BENCHMARK_ARGS=$GOBMK_ARGS
+    SPEC_BENCH=1
 else
 if [[ "$BENCHMARK" == "$DEALII" ]]; then
 	BENCHMARK_ARGS=$DEALII_ARGS
+    SPEC_BENCH=1
 else
 if [[ "$BENCHMARK" == "$SOPLEX" ]]; then
 	BENCHMARK_ARGS=$SOPLEX_ARGS
+    SPEC_BENCH=1
 else
 if [[ "$BENCHMARK" == "$POVRAY" ]]; then
 	BENCHMARK_ARGS=$POVRAY_ARGS
+    SPEC_BENCH=1
 else
 if [[ "$BENCHMARK" == "$CALCULIX" ]]; then
 	BENCHMARK_ARGS=$CALCULIX_ARGS
+    SPEC_BENCH=1
 else
 if [[ "$BENCHMARK" == "$HMMER" ]]; then
 	BENCHMARK_ARGS=$HMMER_ARGS
+    SPEC_BENCH=1
 else
 if [[ "$BENCHMARK" == "$SJENG" ]]; then
 	BENCHMARK_ARGS=$SJENG_ARGS
+    SPEC_BENCH=1
 else
 if [[ "$BENCHMARK" == "$GEMSFDTD" ]]; then
 	BENCHMARK_ARGS=$GEMSFDTD_ARGS
+    SPEC_BENCH=1
 else
 if [[ "$BENCHMARK" == "$LIBQUANTUM" ]]; then
 	BENCHMARK_ARGS=$LIBQUANTUM_ARGS
+    SPEC_BENCH=1
 else
 if [[ "$BENCHMARK" == "$H264REF" ]]; then
 	BENCHMARK_ARGS=$H264REF_ARGS
+    SPEC_BENCH=1
 else
 if [[ "$BENCHMARK" == "$TONTO" ]]; then
 	BENCHMARK_ARGS=$TONTO_ARGS
+    SPEC_BENCH=1
 else
 if [[ "$BENCHMARK" == "$LBM" ]]; then
 	BENCHMARK_ARGS=$LBM_ARGS
+    SPEC_BENCH=1
 else
 if [[ "$BENCHMARK" == "$OMNETPP" ]]; then
 	BENCHMARK_ARGS=$OMNETPP_ARGS
+    SPEC_BENCH=1
 else
 if [[ "$BENCHMARK" == "$ASTAR" ]]; then
 	BENCHMARK_ARGS=$ASTAR_ARGS
+    SPEC_BENCH=1
 else
 if [[ "$BENCHMARK" == "$WRF" ]]; then
 	BENCHMARK_ARGS=$WRF_ARGS
+    SPEC_BENCH=1
 else
 if [[ "$BENCHMARK" == "$SPHINX3" ]]; then
 	BENCHMARK_ARGS=$SPHINX3_ARGS
+    SPEC_BENCH=1
 else
 if [[ "$BENCHMARK" == "$XALANCBMK" ]]; then 
 	BENCHMARK_ARGS=$XALANCBMK_ARGS
+    SPEC_BENCH=1
 else
 if [[ "$BENCHMARK" == "$SPECRAND_INT" ]]; then
 	BENCHMARK_ARGS=$SPECRAND_INT_ARGS
+    SPEC_BENCH=1
 else
 if [[ "$BENCHMARK" == "$SPECRAND_FLOAT" ]]; then
 	BENCHMARK_ARGS=$SPECRAND_FLOAT_ARGS
-else # Not a SPEC CPU2006 benchmark
+    SPEC_BENCH=1
+if [[ "$BENCHMARK" == "$BLACKSCHOLES" ]]; then
+	BENCHMARK_ARGS=$BLACKSCHOLES_ARGS
+    AX_BENCH=1
+else
+if [[ "$BENCHMARK" == "$FFT" ]]; then
+	BENCHMARK_ARGS=$FFT_ARGS
+    AX_BENCH=1
+else
+if [[ "$BENCHMARK" == "$INVERSEK2J" ]]; then
+	BENCHMARK_ARGS=$INVERSEK2J_ARGS
+    AX_BENCH=1
+else
+if [[ "$BENCHMARK" == "$JMEINT" ]]; then
+	BENCHMARK_ARGS=$JMEINT_ARGS
+    AX_BENCH=1
+else
+if [[ "$BENCHMARK" == "$JPEG" ]]; then
+	BENCHMARK_ARGS=$JPEG_ARGS
+    AX_BENCH=1
+else
+if [[ "$BENCHMARK" == "$KMEANS" ]]; then
+	BENCHMARK_ARGS=$KMEANS_ARGS
+    AX_BENCH=1
+else
+if [[ "$BENCHMARK" == "$SOBEL" ]]; then
+	BENCHMARK_ARGS=$SOBEL_ARGS
+    AX_BENCH=1
+else
+else # Not a SPEC CPU2006 or axbench benchmark
     BENCHMARK_ARGS=$OPTIONAL_BENCHMARK_ARGS
-    SPEC_BENCH=0
+fi
+fi
+fi
+fi
+fi
+fi
+fi
 fi
 fi
 fi
@@ -236,8 +321,9 @@ fi
 fi
 fi
 
-# Extract just the part after the numeric code in the beginning of the benchmark name, e.g. 401.bzip2 --> bzip2
-BENCHMARK_NAME=$BENCHMARK
+BENCHMARK_NAME=$BENCHMARK # Default
+
+# SPEC CPU2006: Extract just the part after the numeric code in the beginning of the benchmark name, e.g. 401.bzip2 --> bzip2
 if [[ "$SPEC_BENCH" == 1 ]]; then
     BENCHMARK_NAME=`echo $BENCHMARK | sed 's/[0-9]*\.\([a-z0-9]*\)/\1/'`
     # Special case for 482.sphinx3
@@ -252,6 +338,12 @@ if [[ "$SPEC_BENCH" == 1 ]]; then
     SPEC_CONFIG_SUFFIX=$MWG_MACHINE_NAME-rv64g-priv-1.7-stable
     RUN_DIR=$SPEC_DIR/benchspec/CPU2006/$BENCHMARK/run/run_base_ref_${SPEC_CONFIG_SUFFIX}.0000		# Run directory for the selected SPEC benchmark
     BENCHMARK_NAME=${BENCHMARK_NAME}_base.${SPEC_CONFIG_SUFFIX}
+fi
+
+# AX BENCH
+if [[ "$AX_BENCH" == 1 ]]; then
+    RUN_DIR=$AXBENCH_DIR/applications/$BENCHMARK/bin
+    BENCHMARK_NAME=${BENCHMARK}-rv64g # TODO: sdecc suffix
 fi
 
 #################### LAUNCH SIMULATION ######################
