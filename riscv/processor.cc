@@ -404,6 +404,8 @@ reg_t processor_t::get_csr(int which)
         break;
     case CSR_PENALTY_BOX_MEM_TYPE:
         return pb.mem_type;
+    case CSR_SIM_TICK_COUNTER:
+        return total_steps;
     //End MWG
     case CSR_FRM:
       require_fp;
