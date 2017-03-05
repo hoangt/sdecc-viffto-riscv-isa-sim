@@ -4,19 +4,22 @@
 # mgottscho@ucla.edu
 
 ARGC=$# # Get number of arguments excluding arg0 (the script itself). Check for help message condition.
-if [[ "$ARGC" != 1 ]]; then # Bad number of arguments. 
+if [[ "$ARGC" != 2 ]]; then # Bad number of arguments. 
 	echo "Author: Mark Gottscho"
 	echo "mgottscho@ucla.edu"
 	echo ""
-	echo "USAGE: ./submit_jobs.sh <MODE>"
+	echo "USAGE: ./submit_jobs.sh <MODE> <BENCHMARK_SUITE>"
 	exit
 fi
 
 MODE=$1
-
+BENCHMARK_SUITE=$2
 ########################## FEEL FREE TO CHANGE THESE OPTIONS ##################################
 SPEC_BENCHMARKS="400.perlbench 401.bzip2 403.gcc 410.bwaves 416.gamess 429.mcf 433.milc 434.zeusmp 435.gromacs 436.cactusADM 437.leslie3d 444.namd 445.gobmk 447.dealII 450.soplex 453.povray 454.calculix 456.hmmer 458.sjeng 459.GemsFDTD 462.libquantum 464.h264ref 465.tonto 470.lbm 471.omnetpp 473.astar 481.wrf 482.sphinx3 483.xalancbmk 998.specrand 999.specrand" # All benchmarks
 #SPEC_BENCHMARKS="416.gamess 429.mcf 433.milc 434.zeusmp 437.leslie3d 445.gobmk 481.wrf 483.xalancbmk" # Benchmarks with runtime problems compiled for linux-gnu and running on top of pk as of 8/25/2016
+AXBENCH_BENCHMARKS="fft"
+#AXBENCH_BENCHMARKS="blackscholes fft inversek2j jmeint jpeg kmeans sobel" # Complete suite
+#AXBENCH_BENCHMARKS="inversek2j jmeint jpeg kmeans sobel" # Benchmarks with compile-time or run-time issues compiled for unknown-elf (newlib) and running on top of pk as of 3/5/2017
 
 
 if [[ "$MWG_MACHINE_NAME" == "hoffman" ]]; then
@@ -30,25 +33,58 @@ if [[ "$MWG_MACHINE_NAME" == "hoffman" ]]; then
     MAX_MEM_PER_RUN=1536M 		# Maximum memory needed per script that will be invoked. If this is exceeded, job will be killed.
     MAILING_LIST=mgottsch 		# List of users to email with status updates, separated by commas
 fi
-OUTPUT_DIR=$MWG_DATA_PATH/swd_ecc_data/rv64g/spike_separated_float_int
+
+if [[ "$MODE" == "memdatatrace" ]]; then
+    OUTPUT_DIR=$MWG_DATA_PATH/swd_ecc_data/rv64g/spike_separated_float_int
+else
+if [[ "$MODE" == "faultinj_user" ]]; then
+    OUTPUT_DIR=$MWG_DATA_PATH/swd_ecc_data/rv64g/app_driven_recovery/user_injection/`date -I`
+else
+if [[ "$MODE" == "faultinj_sim" ]]; then
+    OUTPUT_DIR=$MWG_DATA_PATH/swd_ecc_data/rv64g/app_driven_recovery/sim_injection/`date -I`
+else
+if [[ "$MODE" == "default" ]]; then
+    OUTPUT_DIR=$MWG_DATA_PATH/swd_ecc_data/rv64g/app_driven_recovery/golden/`date -I`
+fi
+fi
+fi
+fi
+
+N=72
+K=64
+CODE_TYPE=hsiao1970
+CACHELINE_SIZE=64
+NUM_RUNS=10
+
 ###############################################################################################
+
+if [[ "$BENCHMARK_SUITE" == "SPEC_CPU2006" ]]; then
+    BENCHMARKS=$SPEC_BENCHMARKS
+else
+if [[ "$BENCHMARK_SUITE" == "AXBENCH" ]]; then
+    BENCHMARKS=$AXBENCH_BENCHMARKS
+fi
+fi
 
 mkdir -p $OUTPUT_DIR
 
-# Submit all the SPEC CPU2006 benchmarks
+# Submit all the benchmarks in the specified suite
 echo "Submitting jobs..."
 echo ""
-for SPEC_BENCHMARK in $SPEC_BENCHMARKS; do
-	echo "$SPEC_BENCHMARK..."
-    JOB_STDOUT=$OUTPUT_DIR/${SPEC_BENCHMARK}.stdout
-    JOB_STDERR=$OUTPUT_DIR/${SPEC_BENCHMARK}.stderr
+for BENCHMARK in $BENCHMARKS; do
+	echo "$BENCHMARK..."
+    for(( SEQNUM=1; SEQNUM<=$NUM_RUNS; SEQNUM++ )); do
+        echo "Run #$SEQNUM..."
+        JOB_STDOUT=$OUTPUT_DIR/${BENCHMARK}.$SEQNUM.stdout
+        JOB_STDERR=$OUTPUT_DIR/${BENCHMARK}.$SEQNUM.stderr
 
-    if [[ "$MWG_MACHINE_NAME" == "hoffman" ]]; then
-        JOB_NAME="spike_${SPEC_BENCHMARK}"
-        qsub -V -N $JOB_NAME -l h_data=$MAX_MEM_PER_RUN,time=$MAX_TIME_PER_RUN,highp -M $MAILING_LIST -o $JOB_STDOUT -e $JOB_STDERR -m as run_spike_benchmark.sh $MODE $SPEC_BENCHMARK
-    else
-        ./run_spike_benchmark.sh $MODE $SPEC_BENCHMARK > $JOB_STDOUT 2> $JOB_STDERR &
-    fi
+        if [[ "$MWG_MACHINE_NAME" == "hoffman" ]]; then
+            JOB_NAME="spike_${BENCHMARK}_${MODE}"
+            qsub -V -N $JOB_NAME -l h_data=$MAX_MEM_PER_RUN,time=$MAX_TIME_PER_RUN,highp -M $MAILING_LIST -o $JOB_STDOUT -e $JOB_STDERR -m as run_spike_benchmark.sh $MODE $N $K $CODE_TYPE $CACHELINE_SIZE $SEQNUM $OUTPUT_DIR $BENCHMARK
+        else
+            ./run_spike_benchmark.sh $MODE $N $K $CODE_TYPE $CACHELINE_SIZE $SEQNUM $OUTPUT_DIR $BENCHMARK > $JOB_STDOUT 2> $JOB_STDERR &
+        fi
+    done
 done
 
 if [[ "$MWG_MACHINE_NAME" == "hoffman" ]]; then

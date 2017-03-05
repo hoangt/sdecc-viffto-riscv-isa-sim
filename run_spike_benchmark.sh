@@ -4,13 +4,13 @@
 # mgottscho@ucla.edu
 
 ARGC=$# # Get number of arguments excluding arg0 (the script itself). Check for help message condition.
-if [[ "$ARGC" < 6 ]]; then # Bad number of arguments. 
+if [[ "$ARGC" < 8 ]]; then # Bad number of arguments. 
 	echo "Author: Mark Gottscho"
 	echo "mgottscho@ucla.edu"
 	echo ""
 	echo "This script runs a single RISC-V Spike simulation of a single program (compiled for embedded Newlib, not Linux)."
 	echo ""
-	echo "USAGE: run_spike_benchmark.sh <MODE> <N> <K> <CODE_TYPE> <CACHELINE_SIZE> <BENCHMARK> <OPTIONAL_BENCHMARK_ARGS>"
+	echo "USAGE: run_spike_benchmark.sh <MODE> <N> <K> <CODE_TYPE> <CACHELINE_SIZE> <SEQNUM> <OUTPUT_DIR> <BENCHMARK> <OPTIONAL_BENCHMARK_ARGS>"
 	echo "EXAMPLE: ./run_spike_benchmark.sh faultinj_sim 72 64 hsiao1970 64 401.bzip2"
 	echo ""
 	echo "A single --help help or -h argument will bring this message back."
@@ -23,38 +23,27 @@ N=$2
 K=$3
 CODE_TYPE=$4
 CACHELINE_SIZE=$5
-BENCHMARK=$6					# Benchmark name, e.g. bzip2
-OPTIONAL_BENCHMARK_ARGS="${@:7}" # Remaining args, if any
+SEQNUM=$6
+OUTPUT_DIR=$7
+BENCHMARK=$8					# Benchmark name, e.g. bzip2
+OPTIONAL_BENCHMARK_ARGS="${@:9}" # Remaining args, if any
 
 ################## SYSTEM-SPECIFIC VARIABLES: MODIFY ACCORDINGLY #######
 SPEC_DIR=$MWG_GIT_PATH/spec_cpu2006_install
 AXBENCH_DIR=$MWG_GIT_PATH/eccgrp-axbench
 SPIKE_DIR=$MWG_GIT_PATH/eccgrp-riscv-isa-sim/build
-if [[ "$MODE" == "memdatatrace" ]]; then
-    OUTPUT_DIR=$MWG_DATA_PATH/swd_ecc_data/rv64g/spike_separated_float_int
-else
-if [[ "$MODE" == "faultinj_user" ]]; then
-    OUTPUT_DIR=$MWG_DATA_PATH/swd_ecc_data/rv64g/app_driven_recovery/user_injection/`date -I`
-else
-if [[ "$MODE" == "faultinj_sim" ]]; then
-    OUTPUT_DIR=$MWG_DATA_PATH/swd_ecc_data/rv64g/app_driven_recovery/sim_injection/`date -I`
-    FAULT_INJECTION_STEP_START=1000000
-    FAULT_INJECTION_STEP_STOP=99999999999
-else
-if [[ "$MODE" == "default" ]]; then
-    OUTPUT_DIR=$MWG_DATA_PATH/swd_ecc_data/rv64g/app_driven_recovery/golden/`date -I`
-fi
-fi
-fi
-fi
 ##################################################################
 
 mkdir -p $OUTPUT_DIR
 
+# Defaults
 SPEC_BENCH=0
 AX_BENCH=0
 RUN_DIR=$PWD
-
+if [[ "$MODE" == "faultinj_sim" ]]; then
+    FAULT_INJECTION_STEP_START=1000000
+    FAULT_INJECTION_STEP_STOP=99999999999
+fi
 
 ################### SPEC CPU2006 BENCHMARK CODENAMES ####################
 PERLBENCH=400.perlbench
@@ -136,13 +125,13 @@ SOBEL=sobel
 
 
 ################# AXBENCH BENCHMARK INPUTS #######################
-BLACKSCHOLES_ARGS="$AXBENCH_DIR/applications/blackscholes/test.data/input/blackscholesTest_200K.data $OUTPUT_DIR/blackscholes.data"
-FFT_ARGS="2048 $OUTPUT_DIR/fft.data"
-INVERSEK2J_ARGS="$AXBENCH_DIR/applications/inversek2j/test.data/input/theta_1000K.data ../test.data/output/theta_1000K_inversek2j_orig_ucla.data"
+BLACKSCHOLES_ARGS="$AXBENCH_DIR/applications/blackscholes/test.data/input/blackscholesTest_200K.data $OUTPUT_DIR/blackscholes.$SEQNUM.data"
+FFT_ARGS="2048 $OUTPUT_DIR/fft.$SEQNUM.data"
+INVERSEK2J_ARGS="$AXBENCH_DIR/applications/inversek2j/test.data/input/theta_1000K.data $OUTPUT_DIR/inversek2j.$SEQNUM.data"
 JMEINT_ARGS="$AXBENCH_DIR/applications/jmeint/test.data/input/jmeint_1000K.data $OUTPUT_DIR/jmeint.data"
-JPEG_ARGS="$AXBENCH_DIR/applications/jpeg/test.data/input/10.rgb $OUTPUT_DIR/jmeint.jpg" # FIXME: need to run all inputs, not just first. See run_observation.sh for jpeg
-KMEANS_ARGS="$AXBENCH_DIR/applications/kmeans/test.data/input/10.rgb $OUTPUT_DIR/kmeans.rgb" # FIXME: need to run all inputs, not just first. Also need to run a conversion script to png. see run_observation.sh for kmeans
-SOBEL_ARGS="$AXBENCH_DIR/applications/sobel/test.data/input/10.rgb $OUTPUT_DIR/sobel.rgb" # FIXME: need to run all inputs, not just first. Also need to run a conversion script to png. see run_observation.sh for sobel
+JPEG_ARGS="$AXBENCH_DIR/applications/jpeg/test.data/input/10.rgb $OUTPUT_DIR/jmeint.$SEQNUM.jpg" # FIXME: need to run all inputs, not just first. See run_observation.sh for jpeg
+KMEANS_ARGS="$AXBENCH_DIR/applications/kmeans/test.data/input/10.rgb $OUTPUT_DIR/kmeans.$SEQNUM.rgb" # FIXME: need to run all inputs, not just first. Also need to run a conversion script to png. see run_observation.sh for kmeans
+SOBEL_ARGS="$AXBENCH_DIR/applications/sobel/test.data/input/10.rgb $OUTPUT_DIR/sobel.$SEQNUM.rgb" # FIXME: need to run all inputs, not just first. Also need to run a conversion script to png. see run_observation.sh for sobel
 ##################################################################
 
 # Check BENCHMARK input
