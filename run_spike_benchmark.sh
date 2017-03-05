@@ -136,13 +136,13 @@ SOBEL=sobel
 
 
 ################# AXBENCH BENCHMARK INPUTS #######################
-BLACKSCHOLES_ARGS="$AXBENCH_DIR/applications/blackscholes/test.data/input/blackscholesTest_200K.data $OUTPUT_DIR/blackscholes_golden.data"
-FFT_ARGS="2048 $OUTPUT_DIR/fft_golden.data"
+BLACKSCHOLES_ARGS="$AXBENCH_DIR/applications/blackscholes/test.data/input/blackscholesTest_200K.data $OUTPUT_DIR/blackscholes.data"
+FFT_ARGS="2048 $OUTPUT_DIR/fft.data"
 INVERSEK2J_ARGS="$AXBENCH_DIR/applications/inversek2j/test.data/input/theta_1000K.data ../test.data/output/theta_1000K_inversek2j_orig_ucla.data"
-JMEINT_ARGS="$AXBENCH_DIR/applications/jmeint/test.data/input/jmeint_1000K.data $OUTPUT_DIR/jmeint_golden.data"
-JPEG_ARGS="$AXBENCH_DIR/applications/jpeg/test.data/input/10.rgb $OUTPUT_DIR/jmeint_golden.jpg" # FIXME: need to run all inputs, not just first. See run_observation.sh for jpeg
-KMEANS_ARGS="$AXBENCH_DIR/applications/kmeans/test.data/input/10.rgb $OUTPUT_DIR/kmeans_golden.rgb" # FIXME: need to run all inputs, not just first. Also need to run a conversion script to png. see run_observation.sh for kmeans
-SOBEL_ARGS="$AXBENCH_DIR/applications/sobel/test.data/input/10.rgb $OUTPUT_DIR/sobel_golden.rgb" # FIXME: need to run all inputs, not just first. Also need to run a conversion script to png. see run_observation.sh for sobel
+JMEINT_ARGS="$AXBENCH_DIR/applications/jmeint/test.data/input/jmeint_1000K.data $OUTPUT_DIR/jmeint.data"
+JPEG_ARGS="$AXBENCH_DIR/applications/jpeg/test.data/input/10.rgb $OUTPUT_DIR/jmeint.jpg" # FIXME: need to run all inputs, not just first. See run_observation.sh for jpeg
+KMEANS_ARGS="$AXBENCH_DIR/applications/kmeans/test.data/input/10.rgb $OUTPUT_DIR/kmeans.rgb" # FIXME: need to run all inputs, not just first. Also need to run a conversion script to png. see run_observation.sh for kmeans
+SOBEL_ARGS="$AXBENCH_DIR/applications/sobel/test.data/input/10.rgb $OUTPUT_DIR/sobel.rgb" # FIXME: need to run all inputs, not just first. Also need to run a conversion script to png. see run_observation.sh for sobel
 ##################################################################
 
 # Check BENCHMARK input
