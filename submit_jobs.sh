@@ -44,7 +44,7 @@ if [[ "$MODE" == "faultinj_sim" ]]; then
     OUTPUT_DIR=$MWG_DATA_PATH/swd_ecc_data/rv64g/app_driven_recovery/sim_injection/`date -I`
 else
 if [[ "$MODE" == "default" ]]; then
-    OUTPUT_DIR=$MWG_DATA_PATH/swd_ecc_data/rv64g/app_driven_recovery/golden/`date -I`
+    OUTPUT_DIR=$MWG_DATA_PATH/swd_ecc_data/rv64g/app_driven_recovery/golden
 fi
 fi
 fi
@@ -66,23 +66,24 @@ if [[ "$BENCHMARK_SUITE" == "AXBENCH" ]]; then
 fi
 fi
 
-mkdir -p $OUTPUT_DIR
-
 # Submit all the benchmarks in the specified suite
 echo "Submitting jobs..."
 echo ""
 for BENCHMARK in $BENCHMARKS; do
 	echo "$BENCHMARK..."
+    OUTPUT_DIR_BENCHMARK=$OUTPUT_DIR/$BENCHMARK
+    mkdir -p $OUTPUT_DIR_BENCHMARK
+
     for(( SEQNUM=1; SEQNUM<=$NUM_RUNS; SEQNUM++ )); do
         echo "Run #$SEQNUM..."
-        JOB_STDOUT=$OUTPUT_DIR/${BENCHMARK}.$SEQNUM.stdout
-        JOB_STDERR=$OUTPUT_DIR/${BENCHMARK}.$SEQNUM.stderr
+        JOB_STDOUT=$OUTPUT_DIR_BENCHMARK/${BENCHMARK}.$SEQNUM.stdout
+        JOB_STDERR=$OUTPUT_DIR_BENCHMARK/${BENCHMARK}.$SEQNUM.stderr
 
         if [[ "$MWG_MACHINE_NAME" == "hoffman" ]]; then
             JOB_NAME="spike_${BENCHMARK}_${MODE}"
-            qsub -V -N $JOB_NAME -l h_data=$MAX_MEM_PER_RUN,time=$MAX_TIME_PER_RUN,highp -M $MAILING_LIST -o $JOB_STDOUT -e $JOB_STDERR -m as run_spike_benchmark.sh $MODE $N $K $CODE_TYPE $CACHELINE_SIZE $SEQNUM $OUTPUT_DIR $BENCHMARK
+            qsub -V -N $JOB_NAME -l h_data=$MAX_MEM_PER_RUN,time=$MAX_TIME_PER_RUN,highp -M $MAILING_LIST -o $JOB_STDOUT -e $JOB_STDERR -m as run_spike_benchmark.sh $MODE $N $K $CODE_TYPE $CACHELINE_SIZE $SEQNUM $OUTPUT_DIR_BENCHMARK $BENCHMARK
         else
-            ./run_spike_benchmark.sh $MODE $N $K $CODE_TYPE $CACHELINE_SIZE $SEQNUM $OUTPUT_DIR $BENCHMARK > $JOB_STDOUT 2> $JOB_STDERR &
+            ./run_spike_benchmark.sh $MODE $N $K $CODE_TYPE $CACHELINE_SIZE $SEQNUM $OUTPUT_DIR_BENCHMARK $BENCHMARK > $JOB_STDOUT 2> $JOB_STDERR &
         fi
     done
 done
