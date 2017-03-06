@@ -400,7 +400,7 @@ if [[ "$MODE" == "faultinj_sim" ]]; then
     DATA_FAULT_RECOVERY_SCRIPT=$MWG_GIT_PATH/eccgrp-ecc-ctrl/data_recovery_spike_wrapper.sh
     INST_FAULT_RECOVERY_SCRIPT=$MWG_GIT_PATH/eccgrp-ecc-ctrl/inst_recovery_spike_wrapper.sh
     PK=$MWG_GIT_PATH/eccgrp-riscv-pk/build/riscv64-unknown-elf/bin/pk
-    CMD="$SPIKE_DIR/spike -d --faultinj_sim=${FAULT_INJECTION_STEP_START}:${FAULT_INJECTION_STEP_STOP}:${FAULT_INJECTION_TARGET}:${CANDIDATES_SCRIPT}:${DATA_FAULT_RECOVERY_SCRIPT}:${INST_FAULT_RECOVERY_SCRIPT} --memwordsizebits=$K --ncodewordbits=$N --code_type=$CODE_TYPE --ic=1:1:$CACHELINE_SIZE --dc=1:1:$CACHELINE_SIZE --isa=RV64G -m2048 -p1 $PK $BENCHMARK_NAME $BENCHMARK_ARGS"
+    CMD="$SPIKE_DIR/spike --faultinj_sim=${FAULT_INJECTION_STEP_START}:${FAULT_INJECTION_STEP_STOP}:${FAULT_INJECTION_TARGET}:${CANDIDATES_SCRIPT}:${DATA_FAULT_RECOVERY_SCRIPT}:${INST_FAULT_RECOVERY_SCRIPT} --memwordsizebits=$K --ncodewordbits=$N --code_type=$CODE_TYPE --ic=1:1:$CACHELINE_SIZE --dc=1:1:$CACHELINE_SIZE --isa=RV64G -m2048 -p1 $PK $BENCHMARK_NAME $BENCHMARK_ARGS"
 fi
 
 if [[ "$MODE" == "faultinj_user" ]]; then
@@ -408,7 +408,7 @@ if [[ "$MODE" == "faultinj_user" ]]; then
     DATA_FAULT_RECOVERY_SCRIPT=$MWG_GIT_PATH/eccgrp-ecc-ctrl/data_recovery_spike_wrapper.sh
     INST_FAULT_RECOVERY_SCRIPT=$MWG_GIT_PATH/eccgrp-ecc-ctrl/inst_recovery_spike_wrapper.sh
     PK=$MWG_GIT_PATH/eccgrp-riscv-pk/build/riscv64-unknown-elf/bin/pk
-    CMD="$SPIKE_DIR/spike -d --faultinj_user=${CANDIDATES_SCRIPT}:${DATA_FAULT_RECOVERY_SCRIPT}:${INST_FAULT_RECOVERY_SCRIPT} --memwordsizebits=$K --ncodewordbits=$N --code_type=$CODE_TYPE --ic=1:1:$CACHELINE_SIZE --dc=1:1:$CACHELINE_SIZE --isa=RV64G -m2048 -p1 $PK $BENCHMARK_NAME $BENCHMARK_ARGS"
+    CMD="$SPIKE_DIR/spike --faultinj_user=${CANDIDATES_SCRIPT}:${DATA_FAULT_RECOVERY_SCRIPT}:${INST_FAULT_RECOVERY_SCRIPT} --memwordsizebits=$K --ncodewordbits=$N --code_type=$CODE_TYPE --ic=1:1:$CACHELINE_SIZE --dc=1:1:$CACHELINE_SIZE --isa=RV64G -m2048 -p1 $PK $BENCHMARK_NAME $BENCHMARK_ARGS"
 fi
 
 if [[ "$MODE" == "default" ]]; then
@@ -416,7 +416,7 @@ if [[ "$MODE" == "default" ]]; then
     DATA_FAULT_RECOVERY_SCRIPT=$MWG_GIT_PATH/eccgrp-ecc-ctrl/data_recovery_spike_wrapper.sh
     INST_FAULT_RECOVERY_SCRIPT=$MWG_GIT_PATH/eccgrp-ecc-ctrl/inst_recovery_spike_wrapper.sh
     PK=$MWG_GIT_PATH/eccgrp-riscv-pk/build/riscv64-unknown-elf/bin/pk
-    CMD="$SPIKE_DIR/spike -d --faultinj_user=${CANDIDATES_SCRIPT}:${DATA_FAULT_RECOVERY_SCRIPT}:${INST_FAULT_RECOVERY_SCRIPT} --memwordsizebits=$K --ncodewordbits=$N --code_type=$CODE_TYPE --ic=1:1:$CACHELINE_SIZE --dc=1:1:$CACHELINE_SIZE --isa=RV64G -m2048 -p1 $PK $BENCHMARK_NAME $BENCHMARK_ARGS"
+    CMD="$SPIKE_DIR/spike --faultinj_user=${CANDIDATES_SCRIPT}:${DATA_FAULT_RECOVERY_SCRIPT}:${INST_FAULT_RECOVERY_SCRIPT} --memwordsizebits=$K --ncodewordbits=$N --code_type=$CODE_TYPE --ic=1:1:$CACHELINE_SIZE --dc=1:1:$CACHELINE_SIZE --isa=RV64G -m2048 -p1 $PK $BENCHMARK_NAME $BENCHMARK_ARGS"
 fi
 
 echo $CMD
