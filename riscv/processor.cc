@@ -406,6 +406,10 @@ reg_t processor_t::get_csr(int which)
         return pb.mem_type;
     case CSR_SIM_TICK_COUNTER:
         return total_steps;
+    case CSR_PENALTY_BOX_CHEAT_MSG:
+        if (pb.msg_ptr < pb.msg_size/sizeof(reg_t))
+            return pb.victim_msg[pb.msg_ptr++];
+        break;
     //End MWG
     case CSR_FRM:
       require_fp;

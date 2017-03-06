@@ -108,6 +108,7 @@ void setPenaltyBox(processor_t* p, uint8_t* victim_message, uint8_t* cacheline, 
     p->pb.cacheline_blockpos = bp;
 
     p->pb.word_ptr = 0; //Extremely important for software csr reads to function correctly
+    p->pb.msg_ptr = 0; //Extremely important for software csr reads to function correctly
 
     //Cacheline
     memcpy(p->pb.cacheline_words, cacheline, words_per_block*memwordsize); //Copy cacheline into penalty box
