@@ -22,7 +22,7 @@ AXBENCH_DIR=$MWG_GIT_PATH/eccgrp-axbench
 
 QOS_SCRIPT=$AXBENCH_DIR/applications/$AXBENCH_BENCHMARK/scripts/qos.py
 SAMPLES_DATA=`ls $TEST_DIR | grep -E "${AXBENCH_BENCHMARK}\.[0-9]*\.data"`
-SEQNUMS=`echo "$TEST_DIR/$SAMPLES_DATA" | sed -r 's/[a-z0-9]*\.([0-9]*)\.data/\1/'`
+SEQNUMS=`echo "$SAMPLES_DATA" | sed -r 's/[a-z0-9]*\.([0-9]*)\.data/\1/'`
 
 for SEQNUM in $SEQNUMS
 do
@@ -30,12 +30,18 @@ do
     SAMPLE_DATA=${AXBENCH_BENCHMARK}.$SEQNUM.data
     SAMPLE_STDOUT=${AXBENCH_BENCHMARK}.$SEQNUM.stdout
     SAMPLE_QOS=${AXBENCH_BENCHMARK}.$SEQNUM.qos
-    #grep -q "------ Success ------" $TEST_DIR/$SAMPLE_STDOUT > /dev/null
-    grep -q "Done" $TEST_DIR/$SAMPLE_STDOUT > /dev/null
-    if [[ $? -eq 0 ]]; then
-        python $QOS_SCRIPT $GOLDEN $TEST_DIR/$SAMPLE_DATA > $TEST_DIR/$SAMPLE_QOS
+    PANICKED=`grep -l "PANIC" $TEST_DIR/$SAMPLE_STDOUT`
+    SUCCESS=`grep -l "SUCCESS" $TEST_DIR/$SAMPLE_STDOUT`
+    if [[ "$SUCCESS" == "$TEST_DIR/$SAMPLE_STDOUT" ]]; then
+        ERROR_RAW=`python $QOS_SCRIPT $GOLDEN ${TEST_DIR}/${SAMPLE_DATA}`
+        ERROR=`echo "$ERROR_RAW" | sed -r 's/\*\*\* Error: (-?[0-9]\.[0-9]*)/\1/'`
+        echo $ERROR > $TEST_DIR/$SAMPLE_QOS
+    else 
+    if [[ "$PANICKED" == "$TEST_DIR/$SAMPLE_STDOUT" ]]; then
+        echo "CRASHED" > $TEST_DIR/$SAMPLE_QOS
     else
-        echo "RUN FAILED" > $TEST_DIR/$SAMPLE_QOS
+        echo "QOSFAIL" > $TEST_DIR/$SAMPLE_QOS
+    fi
     fi
 done
 
