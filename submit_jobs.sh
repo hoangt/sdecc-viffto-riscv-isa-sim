@@ -34,14 +34,20 @@ if [[ "$MWG_MACHINE_NAME" == "hoffman" ]]; then
     MAILING_LIST=mgottsch 		# List of users to email with status updates, separated by commas
 fi
 
+N=72
+K=64
+CODE_TYPE=hsiao1970
+CACHELINE_SIZE=64
+NUM_RUNS=1000
+
 if [[ "$MODE" == "memdatatrace" ]]; then
     OUTPUT_DIR=$MWG_DATA_PATH/swd_ecc_data/rv64g/spike_separated_float_int
 else
 if [[ "$MODE" == "faultinj_user" ]]; then
-    OUTPUT_DIR=$MWG_DATA_PATH/swd_ecc_data/rv64g/app_driven_recovery/user_injection/`date -I`
+    OUTPUT_DIR=$MWG_DATA_PATH/swd_ecc_data/rv64g/app_driven_recovery/data-recovery/user_injection/$CODE_TYPE/$N,$K/`date -I`
 else
 if [[ "$MODE" == "faultinj_sim" ]]; then
-    OUTPUT_DIR=$MWG_DATA_PATH/swd_ecc_data/rv64g/app_driven_recovery/sim_injection/`date -I`
+    OUTPUT_DIR=$MWG_DATA_PATH/swd_ecc_data/rv64g/app_driven_recovery/data-recovery/sim_injection/$CODE_TYPE/$N,$K/`date -I`
 else
 if [[ "$MODE" == "default" ]]; then
     OUTPUT_DIR=$MWG_DATA_PATH/swd_ecc_data/rv64g/app_driven_recovery/golden
@@ -49,12 +55,6 @@ fi
 fi
 fi
 fi
-
-N=72
-K=64
-CODE_TYPE=hsiao1970
-CACHELINE_SIZE=64
-NUM_RUNS=10
 
 ###############################################################################################
 
