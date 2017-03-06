@@ -97,6 +97,7 @@ void processor_t::step(size_t n)
           if (!state.serialized)
             disasm(fetch.insn);
           pc = execute_insn(this, pc, fetch);
+          total_steps++; //MWG
           advance_pc();
         }
       }
@@ -123,6 +124,7 @@ void processor_t::step(size_t n)
           insn_fetch_t fetch = ic_entry->data; \
           ic_entry++; \
           pc = execute_insn(this, pc, fetch); \
+          total_steps++;/*MWG*/ \
           if (i == mmu_t::ICACHE_ENTRIES-1) break; \
           if (unlikely(ic_entry->tag != pc)) goto miss; \
           if (unlikely(instret+1 == n)) break; \

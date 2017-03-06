@@ -85,7 +85,6 @@ int sim_t::run()
 
 void sim_t::step(size_t n)
 {
-  total_steps += n; //MWG
   for (size_t i = 0, steps = 0; i < n; i += steps)
   {
     steps = std::min(n - i, INTERLEAVE - current_step); 
