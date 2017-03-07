@@ -111,6 +111,10 @@ void setPenaltyBox(processor_t* p, uint8_t* victim_message, uint8_t* cacheline, 
     p->pb.msg_ptr = 0; //Extremely important for software csr reads to function correctly
 
     //Cacheline
+    uint8_t corrupted_msg[memwordsize];
+    for (unsigned i = 0; i < memwordsize; i++)
+        corrupted_msg[i] = 0;
+    memcpy(cacheline+position_in_cacheline*memwordsize, corrupted_msg, memwordsize); //Zero out the bad message
     memcpy(p->pb.cacheline_words, cacheline, words_per_block*memwordsize); //Copy cacheline into penalty box
 
     //Mem type

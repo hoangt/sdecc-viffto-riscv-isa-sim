@@ -107,5 +107,5 @@ echo "-------> Recover (SDC):        `cat $TEST_DIR/recovered_sdc.txt | wc -l`"
 echo "Recovery bug A (FIXME):        `cat $TEST_DIR/recovered_bug_A.txt | wc -l`"
 echo "Recovery bug B (FIXME):        `cat $TEST_DIR/recovered_bug_B.txt | wc -l`"
 echo "Recovery bug C (FIXME):        `cat $TEST_DIR/recovered_bug_C.txt | wc -l`"
-echo "QOS fail (FIXME):         `cat $TEST_DIR/qos_fail.txt | wc -l`"
+echo "QOS fail (FIXME):              `cat $TEST_DIR/qos_fail.txt | wc -l`"
 
