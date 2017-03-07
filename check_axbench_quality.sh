@@ -32,33 +32,80 @@ do
     SAMPLE_QOS=${AXBENCH_BENCHMARK}.$SEQNUM.qos
     PANICKED=`grep -l "FAILED DUE RECOVERY" $TEST_DIR/$SAMPLE_STDOUT`
     if [[ "$PANICKED" == "$TEST_DIR/$SAMPLE_STDOUT" ]]; then
-        echo "PANICKED" > $TEST_DIR/$SAMPLE_QOS
+        echo "$SEQNUM PANICKED" > $TEST_DIR/$SAMPLE_QOS
     else
-        CRASHED=`grep -l "PANIC" $TEST_DIR/$SAMPLE_STDOUT`
-        if [[ "$CRASHED" == "$TEST_DIR/$SAMPLE_STDOUT" ]]; then
-            echo "CRASHED" > $TEST_DIR/$SAMPLE_QOS
-        else 
-            SUCCESS=`grep -l "SUCCESS" $TEST_DIR/$SAMPLE_STDOUT`
-            if [[ "$SUCCESS" == "$TEST_DIR/$SAMPLE_STDOUT" ]]; then
-                ERROR_RAW=`python $QOS_SCRIPT $GOLDEN ${TEST_DIR}/${SAMPLE_DATA}`
-                ERROR=`echo "$ERROR_RAW" | sed -r 's/\*\*\* Error: (-?[0-9]\\.[0-9]*)/\1/'`
-                echo $ERROR > $TEST_DIR/$SAMPLE_QOS
-            else
-                echo "QOSFAIL" > $TEST_DIR/$SAMPLE_QOS
-                echo "$SEQNUM had QoS fail"
+        MCE=`grep -l "MCE" $TEST_DIR/$SAMPLE_STDOUT`
+        if [[ "$MCE" == "$TEST_DIR/$SAMPLE_STDOUT" ]]; then
+            CRASHED=`grep -l "PANIC" $TEST_DIR/$SAMPLE_STDOUT`
+            if [[ "$CRASHED" == "$TEST_DIR/$SAMPLE_STDOUT" ]]; then
+                echo "$SEQNUM CRASHED (MCE)" > $TEST_DIR/$SAMPLE_QOS
+            else 
+                RECOVERED=`grep -l "SUCCESS" $TEST_DIR/$SAMPLE_STDOUT`
+                if [[ "$RECOVERED" == "$TEST_DIR/$SAMPLE_STDOUT" ]]; then
+                    ERROR_RAW=`python $QOS_SCRIPT $GOLDEN ${TEST_DIR}/${SAMPLE_DATA}`
+                    ERROR=`echo "$ERROR_RAW" | sed -r 's/\*\*\* Error: (-?[0-9]\\.[0-9]*)/\1/'`
+                    ERROR="$SEQNUM $ERROR (MCE)"
+                    echo $ERROR > $TEST_DIR/$SAMPLE_QOS
+                else
+                    echo "$SEQNUM HANG (MCE)" > $TEST_DIR/$SAMPLE_QOS
+                    echo "$SEQNUM seems to have hung"
+                fi
+            fi
+        else
+            CRASHED=`grep -l "PANIC" $TEST_DIR/$SAMPLE_STDOUT`
+            if [[ "$CRASHED" == "$TEST_DIR/$SAMPLE_STDOUT" ]]; then
+                echo "$SEQNUM RECOVERY BUG A" > $TEST_DIR/$SAMPLE_QOS
+                echo "$SEQNUM had recovery bug A: crash without MCE"
+            else 
+                CORRECT=`grep -l "CORRECT" $TEST_DIR/$SAMPLE_STDOUT`
+                if [[ "$CORRECT" == "$TEST_DIR/$SAMPLE_STDOUT" ]]; then
+                    RECOVERED=`grep -l "SUCCESS" $TEST_DIR/$SAMPLE_STDOUT`
+                    if [[ "$RECOVERED" == "$TEST_DIR/$SAMPLE_STDOUT" ]]; then
+                        ERROR_RAW=`python $QOS_SCRIPT $GOLDEN ${TEST_DIR}/${SAMPLE_DATA}`
+                        ERROR=`echo "$ERROR_RAW" | sed -r 's/\*\*\* Error: (-?[0-9]\\.[0-9]*)/\1/'`
+                        ERROR="$SEQNUM $ERROR (CORRECT)"
+                        echo $ERROR > $TEST_DIR/$SAMPLE_QOS
+                    else
+                        echo "$SEQNUM RECOVERY BUG B" > $TEST_DIR/$SAMPLE_QOS
+                        echo "$SEQNUM had recovery bug B: seems to have hung even though no MCE, no crash, and CORRECT"
+                    fi
+                else
+                    echo "$SEQNUM RECOVERY BUG C" > $TEST_DIR/$SAMPLE_QOS
+                    echo "$SEQNUM had recovery bug C: no controlled panic, no crash, probably no hang, but also no MCE or CORRECT"
+                fi
             fi
         fi
     fi
 done
 
-cat $TEST_DIR/*qos | grep "PANICKED" | wc -l > $TEST_DIR/panics.txt
-cat $TEST_DIR/*qos | grep "CRASHED" | wc -l > $TEST_DIR/crashes.txt
-cat $TEST_DIR/*qos | grep -e "[0-9]\\.[0-9]*" > $TEST_DIR/success.txt
-cat $TEST_DIR/*qos | grep -e "0\\.00000000" | wc -l > $TEST_DIR/success_no_error.txt
+cat $TEST_DIR/*qos | grep "PANICKED" > $TEST_DIR/panics.txt
+cat $TEST_DIR/*qos | grep -e "([A-Z]*)" > $TEST_DIR/recovered.txt
+
+cat $TEST_DIR/*qos | grep -e "[0-9]\\.[0-9]* (CORRECT)" > $TEST_DIR/correct.txt
+cat $TEST_DIR/correct.txt | grep -e "0\\.00000000 (CORRECT)" > $TEST_DIR/recovered_correct.txt
+cat $TEST_DIR/correct.txt | grep -v -e "0\\.00000000 (CORRECT)" > $TEST_DIR/recovered_correct_but_error.txt
+
+cat $TEST_DIR/*qos | grep -e "(MCE)" > $TEST_DIR/mce.txt
+cat $TEST_DIR/*qos | grep -e "0\\.00000000 (MCE)" > $TEST_DIR/recovered_benign.txt
+cat $TEST_DIR/mce.txt | grep "CRASHED" > $TEST_DIR/recovered_crashes.txt
+cat $TEST_DIR/mce.txt | grep -v -e "CRASHED" | grep -v -e "0\\.00000000 (MCE)" > $TEST_DIR/recovered_sdc.txt
+
+cat $TEST_DIR/*qos | grep "RECOVERY BUG A" > $TEST_DIR/recovered_bug_A.txt
+cat $TEST_DIR/*qos | grep "RECOVERY BUG B" > $TEST_DIR/recovered_bug_B.txt
+cat $TEST_DIR/*qos | grep "RECOVERY CUG C" > $TEST_DIR/recovered_bug_C.txt
 cat $TEST_DIR/*qos | grep "QOSFAIL" > $TEST_DIR/qos_fail.txt
-echo "Panics:   `cat $TEST_DIR/panics.txt`"
-echo "Crashes:  `cat $TEST_DIR/crashes.txt`"
-echo "Success:  `cat $TEST_DIR/success.txt | wc -l`"
-echo "No error: `cat $TEST_DIR/success_no_error.txt`"
-echo "QOS fail: `cat $TEST_DIR/qos_fail.txt | wc -l`"
+
+echo "Panics (opt-out crash):        `cat $TEST_DIR/panics.txt | wc -l `"
+echo "Recover (total):               `cat $TEST_DIR/recovered.txt | wc -l`"
+echo "---> Recover (correct):        `cat $TEST_DIR/correct.txt | wc -l`"
+echo "-------> Recover:              `cat $TEST_DIR/recovered_correct.txt | wc -l`"
+echo "-------> Recover (FIXME error):`cat $TEST_DIR/recovered_correct_but_error.txt | wc -l`"
+echo "---> Recover (MCE):            `cat $TEST_DIR/mce.txt | wc -l`"
+echo "-------> Recover (benign):     `cat $TEST_DIR/recovered_benign.txt | wc -l`"
+echo "-------> Recover (crashed):    `cat $TEST_DIR/recovered_crashes.txt | wc -l `"
+echo "-------> Recover (SDC):        `cat $TEST_DIR/recovered_sdc.txt | wc -l`"
+echo "Recovery bug A (FIXME):        `cat $TEST_DIR/recovered_bug_A.txt | wc -l`"
+echo "Recovery bug B (FIXME):        `cat $TEST_DIR/recovered_bug_B.txt | wc -l`"
+echo "Recovery bug C (FIXME):        `cat $TEST_DIR/recovered_bug_C.txt | wc -l`"
+echo "QOS fail (FIXME):         `cat $TEST_DIR/qos_fail.txt | wc -l`"
 
