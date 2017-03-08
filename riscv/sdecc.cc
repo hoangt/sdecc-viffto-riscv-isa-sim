@@ -22,8 +22,8 @@ std::string myexec(std::string cmd) {
     return result;
 }
 
-std::string construct_sdecc_data_recovery_cmd(std::string script_filename, uint8_t* correct_word, char* candidates, uint8_t* cacheline, uint32_t memwordsize, uint32_t words_per_block, unsigned position_in_cacheline) {
-    uint32_t k = memwordsize*8;
+std::string construct_sdecc_data_recovery_cmd(std::string script_filename, uint8_t* correct_word, char* candidates, uint8_t* cacheline, size_t memwordsize, size_t words_per_block, size_t position_in_cacheline) {
+    size_t k = memwordsize*8;
     std::string cmd = script_filename + " ";
     cmd += std::to_string(k);
     cmd += " ";
@@ -48,8 +48,8 @@ std::string construct_sdecc_data_recovery_cmd(std::string script_filename, uint8
     return cmd;
 }
 
-std::string construct_sdecc_inst_recovery_cmd(std::string script_filename, uint8_t* correct_word, char* candidates, uint32_t memwordsize) {
-    uint32_t k = memwordsize*8;
+std::string construct_sdecc_inst_recovery_cmd(std::string script_filename, uint8_t* correct_word, char* candidates, size_t memwordsize) {
+    size_t k = memwordsize*8;
     std::string cmd = script_filename + " ";
     cmd += std::to_string(k);
     cmd += " ";
@@ -67,8 +67,8 @@ std::string construct_sdecc_inst_recovery_cmd(std::string script_filename, uint8
     return cmd;
 }
 
-std::string construct_sdecc_candidate_messages_cmd(std::string script_filename, uint8_t* correct_word, uint32_t memwordsize, uint32_t n, std::string code_type) {
-    uint32_t k = memwordsize*8;
+std::string construct_sdecc_candidate_messages_cmd(std::string script_filename, uint8_t* correct_word, size_t memwordsize, size_t n, std::string code_type) {
+    size_t k = memwordsize*8;
 
     std::string cmd = script_filename + " ";
     for (size_t i = 0; i < memwordsize; i++) {
@@ -83,7 +83,7 @@ std::string construct_sdecc_candidate_messages_cmd(std::string script_filename, 
     return cmd;
 }
 
-void parse_sdecc_recovery_output(std::string script_stdout, uint8_t* recovered_word, const uint8_t* correct_word, uint32_t memwordsize) {
+void parse_sdecc_recovery_output(std::string script_stdout, uint8_t* recovered_word, const uint8_t* correct_word, size_t memwordsize) {
       // Output is expected to be simply a k-bit message in binary characters, e.g. '001010100101001...001010'
       for (size_t i = 0; i < memwordsize; i++) {
           recovered_word[i] = 0;
@@ -93,7 +93,7 @@ void parse_sdecc_recovery_output(std::string script_stdout, uint8_t* recovered_w
       }
 }
 
-void setPenaltyBox(processor_t* p, uint8_t* victim_message, uint8_t* cacheline, uint32_t memwordsize, uint32_t words_per_block, unsigned position_in_cacheline, bool inst_mem) {
+void setPenaltyBox(processor_t* p, uint8_t* victim_message, uint8_t* cacheline, size_t memwordsize, size_t words_per_block, size_t position_in_cacheline, bool inst_mem) {
     //Message
     memcpy(p->pb.victim_msg, victim_message, memwordsize);
 
@@ -112,7 +112,7 @@ void setPenaltyBox(processor_t* p, uint8_t* victim_message, uint8_t* cacheline, 
 
     //Cacheline
     uint8_t corrupted_msg[memwordsize];
-    for (unsigned i = 0; i < memwordsize; i++)
+    for (size_t i = 0; i < memwordsize; i++)
         corrupted_msg[i] = 0;
     memcpy(cacheline+position_in_cacheline*memwordsize, corrupted_msg, memwordsize); //Zero out the bad message
     memcpy(p->pb.cacheline_words, cacheline, words_per_block*memwordsize); //Copy cacheline into penalty box

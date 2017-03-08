@@ -72,14 +72,14 @@ public:
           memcpy(demand_load_value, reinterpret_cast<char*>(reinterpret_cast<reg_t>(mem+demand_paddr)), sizeof(type##_t)); \
           \
           uint8_t cacheline[words_per_block*memwordsize]; \
-          unsigned position_in_cacheline = (demand_paddr & (memwordsize*words_per_block-1)) / memwordsize; \
+          size_t position_in_cacheline = (demand_paddr & (memwordsize*words_per_block-1)) / memwordsize; \
           reg_t cacheline_base_vaddr = demand_vaddr & (~(words_per_block*memwordsize-1)); \
           reg_t cacheline_base_paddr = translate(cacheline_base_vaddr, LOAD); \
           \
           memcpy(cacheline, reinterpret_cast<char*>(reinterpret_cast<reg_t>(mem+cacheline_base_paddr)), words_per_block*memwordsize); \
           \
           uint8_t victim_word[memwordsize]; \
-          unsigned victim_blockpos = rand() % words_per_block; \
+          size_t victim_blockpos = rand() % words_per_block; \
           reg_t victim_vaddr = cacheline_base_vaddr + victim_blockpos*memwordsize; \
           reg_t victim_paddr = translate(victim_vaddr, LOAD); \
           memcpy(victim_word, reinterpret_cast<char*>(reinterpret_cast<reg_t>(mem+victim_paddr)), memwordsize); \
@@ -93,14 +93,14 @@ public:
                     << retval \
                     << std::dec \
                     << ", correct demand load value is 0x"; \
-          for (unsigned i = 0; i < sizeof(type##_t); i++) { \
+          for (size_t i = 0; i < sizeof(type##_t); i++) { \
               std::cout << std::hex \
                         << std::setw(2) \
                         << static_cast<uint64_t>(demand_load_value[i]) \
                         << std::dec; \
           } \
           std::cout << ", correct victim message is (vaddr 0x" << std::hex << victim_vaddr << std::dec << ", blockpos " << victim_blockpos << ") 0x"; \
-          for (unsigned i = 0; i < memwordsize; i++) { \
+          for (size_t i = 0; i < memwordsize; i++) { \
               std::cout << std::hex \
                         << std::setw(2) \
                         << static_cast<uint64_t>(victim_word[i]) \
@@ -185,14 +185,14 @@ public:
         memcpy(demand_load_value, reinterpret_cast<char*>(reinterpret_cast<reg_t>(mem+demand_paddr)), length);
        
         uint8_t cacheline[words_per_block*memwordsize];
-        unsigned position_in_cacheline = (demand_paddr & (memwordsize*words_per_block-1)) / memwordsize;
+        size_t position_in_cacheline = (demand_paddr & (memwordsize*words_per_block-1)) / memwordsize;
         reg_t cacheline_base_vaddr = demand_vaddr & (~(words_per_block*memwordsize-1));
         reg_t cacheline_base_paddr = translate(cacheline_base_vaddr, FETCH);
        
         memcpy(cacheline, reinterpret_cast<char*>(reinterpret_cast<reg_t>(mem+cacheline_base_paddr)), words_per_block*memwordsize);
        
         uint8_t victim_word[memwordsize];
-        unsigned victim_blockpos = rand() % words_per_block;
+        size_t victim_blockpos = rand() % words_per_block;
         reg_t victim_vaddr = cacheline_base_vaddr + victim_blockpos*memwordsize;
         reg_t victim_paddr = translate(victim_vaddr, FETCH);
         memcpy(victim_word, reinterpret_cast<char*>(reinterpret_cast<reg_t>(mem+victim_paddr)), memwordsize);
@@ -206,14 +206,14 @@ public:
                   << retval
                   << std::dec
                   << ", correct demand load value is 0x";
-        for (unsigned i = 0; i < (unsigned)length; i++) {
+        for (size_t i = 0; i < (size_t)length; i++) {
             std::cout << std::hex
                       << std::setw(2)
                       << static_cast<uint64_t>(demand_load_value[i])
                       << std::dec;
         }
         std::cout << ", correct victim message is (vaddr 0x" << std::hex << victim_vaddr << std::dec << ", blockpos " << victim_blockpos << ") 0x";
-        for (unsigned i = 0; i < memwordsize; i++) {
+        for (size_t i = 0; i < memwordsize; i++) {
             std::cout << std::hex
                       << std::setw(2)
                       << static_cast<uint64_t>(victim_word[i])

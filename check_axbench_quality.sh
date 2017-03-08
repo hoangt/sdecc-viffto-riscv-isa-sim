@@ -92,7 +92,7 @@ cat $TEST_DIR/mce.txt | grep -v -e "CRASHED" | grep -v -e "0\\.00000000 (MCE)" >
 
 cat $TEST_DIR/*qos | grep "RECOVERY BUG A" > $TEST_DIR/recovered_bug_A.txt
 cat $TEST_DIR/*qos | grep "RECOVERY BUG B" > $TEST_DIR/recovered_bug_B.txt
-cat $TEST_DIR/*qos | grep "RECOVERY CUG C" > $TEST_DIR/recovered_bug_C.txt
+cat $TEST_DIR/*qos | grep "RECOVERY BUG C" > $TEST_DIR/recovered_bug_C.txt
 cat $TEST_DIR/*qos | grep "QOSFAIL" > $TEST_DIR/qos_fail.txt
 
 echo "Panics (opt-out crash):        `cat $TEST_DIR/panics.txt | wc -l `"

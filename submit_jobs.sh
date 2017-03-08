@@ -38,7 +38,7 @@ N=72
 K=64
 CODE_TYPE=hsiao1970
 CACHELINE_SIZE=64
-NUM_RUNS=100
+NUM_RUNS=1000
 
 if [[ "$MODE" == "memdatatrace" ]]; then
     OUTPUT_DIR=$MWG_DATA_PATH/swd_ecc_data/rv64g/spike_separated_float_int
