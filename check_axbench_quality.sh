@@ -110,18 +110,18 @@ cat $TEST_DIR/*qos | grep "RECOVERY BUG B" > $TEST_DIR/recovered_bug_B.txt
 cat $TEST_DIR/*qos | grep "HANG (mystery)" > $TEST_DIR/mystery_hangs.txt
 cat $TEST_DIR/*qos | grep "QOSFAIL" > $TEST_DIR/qos_fail.txt
 
-echo "Panics (opt-out crash):        `cat $TEST_DIR/panics.txt | wc -l `"
-echo "Recover (total):               `cat $TEST_DIR/recovered.txt | wc -l`"
-echo "---> Recover (correct):        `cat $TEST_DIR/correct.txt | wc -l`"
-echo "-------> Recover:              `cat $TEST_DIR/recovered_correct.txt | wc -l`"
-echo "-------> Recover (FIXME error):`cat $TEST_DIR/recovered_correct_but_error.txt | wc -l`"
-echo "---> Recover (MCE):            `cat $TEST_DIR/mce.txt | wc -l`"
-echo "-------> Recover (benign):     `cat $TEST_DIR/recovered_benign.txt | wc -l`"
-echo "-------> Recover (crashed):    `cat $TEST_DIR/recovered_crashes.txt | wc -l `"
-echo "-------> Recover (SDC):        `cat $TEST_DIR/recovered_sdc.txt | wc -l`"
-echo "-------> Recover (hang):       `cat $TEST_DIR/recovered_hangs.txt | wc -l`"
-echo "Recovery bug A (FIXME):        `cat $TEST_DIR/recovered_bug_A.txt | wc -l`"
-echo "Recovery bug B (FIXME):        `cat $TEST_DIR/recovered_bug_B.txt | wc -l`"
-echo "Mystery hang:                  `cat $TEST_DIR/mystery_hangs.txt | wc -l`"
-echo "QOS fail (FIXME):              `cat $TEST_DIR/qos_fail.txt | wc -l`"
+echo "Panics (opt-out crash):        `cat $TEST_DIR/panics.txt | wc -l `" | tee -a $TEST_DIR/summary.txt
+echo "Recover (total):               `cat $TEST_DIR/recovered.txt | wc -l`" | tee -a $TEST_DIR/summary.txt
+echo "---> Recover (correct):        `cat $TEST_DIR/correct.txt | wc -l`" | tee -a $TEST_DIR/summary.txt
+echo "-------> Recover:              `cat $TEST_DIR/recovered_correct.txt | wc -l`" | tee -a $TEST_DIR/summary.txt
+echo "-------> Recover (FIXME error):`cat $TEST_DIR/recovered_correct_but_error.txt | wc -l`" | tee -a $TEST_DIR/summary.txt
+echo "---> Recover (MCE):            `cat $TEST_DIR/mce.txt | wc -l`" | tee -a $TEST_DIR/summary.txt
+echo "-------> Recover (benign):     `cat $TEST_DIR/recovered_benign.txt | wc -l`" | tee -a $TEST_DIR/summary.txt
+echo "-------> Recover (crashed):    `cat $TEST_DIR/recovered_crashes.txt | wc -l `" | tee -a $TEST_DIR/summary.txt
+echo "-------> Recover (SDC):        `cat $TEST_DIR/recovered_sdc.txt | wc -l`" | tee -a $TEST_DIR/summary.txt
+echo "-------> Recover (hang):       `cat $TEST_DIR/recovered_hangs.txt | wc -l`" | tee -a $TEST_DIR/summary.txt
+echo "Recovery bug A (FIXME):        `cat $TEST_DIR/recovered_bug_A.txt | wc -l`" | tee -a $TEST_DIR/summary.txt
+echo "Recovery bug B (FIXME):        `cat $TEST_DIR/recovered_bug_B.txt | wc -l`" | tee -a $TEST_DIR/summary.txt
+echo "Mystery hang:                  `cat $TEST_DIR/mystery_hangs.txt | wc -l`" | tee -a $TEST_DIR/summary.txt
+echo "QOS fail (FIXME):              `cat $TEST_DIR/qos_fail.txt | wc -l`" | tee -a $TEST_DIR/summary.txt
 
