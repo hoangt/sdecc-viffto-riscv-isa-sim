@@ -79,7 +79,7 @@ public:
           memcpy(cacheline, reinterpret_cast<char*>(reinterpret_cast<reg_t>(mem+cacheline_base_paddr)), words_per_block*memwordsize); \
           \
           uint8_t victim_word[memwordsize]; \
-          size_t victim_blockpos = rand() % words_per_block; \
+          size_t victim_blockpos = rand() % words_per_block; /* TODO: allow spike to be configured to only hit the demand load */\
           reg_t victim_vaddr = cacheline_base_vaddr + victim_blockpos*memwordsize; \
           reg_t victim_paddr = translate(victim_vaddr, LOAD); \
           memcpy(victim_word, reinterpret_cast<char*>(reinterpret_cast<reg_t>(mem+victim_paddr)), memwordsize); \
