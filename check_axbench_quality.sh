@@ -4,32 +4,38 @@
 # mgottscho@ucla.edu
 
 ARGC=$# # Get number of arguments excluding arg0 (the script itself). Check for help message condition.
-if [[ "$ARGC" != 3 ]]; then # Bad number of arguments. 
+if [[ "$ARGC" != 4 ]]; then # Bad number of arguments. 
 	echo "Author: Mark Gottscho"
 	echo "mgottscho@ucla.edu"
 	echo ""
-	echo "USAGE: ./check_axbench_quality.sh <AXBENCH_BENCHMARK> <GOLDEN> <TEST_DIR>"
+	echo "USAGE: ./check_axbench_quality.sh <AXBENCH_EN> <BENCHMARK> <GOLDEN> <TEST_DIR>"
 	exit
 fi
 
-AXBENCH_BENCHMARK=$1
-GOLDEN=$2
-TEST_DIR=$3
+AXBENCH_EN=$1
+BENCHMARK=$2
+GOLDEN=$3
+TEST_DIR=$4
 
 ################## SYSTEM-SPECIFIC VARIABLES: MODIFY ACCORDINGLY #######
 AXBENCH_DIR=$MWG_GIT_PATH/eccgrp-axbench
 ########################################################################
 
-QOS_SCRIPT=$AXBENCH_DIR/applications/$AXBENCH_BENCHMARK/scripts/qos.py
-SAMPLES_DATA=`ls $TEST_DIR | grep -e "${AXBENCH_BENCHMARK}\\.[0-9]*\\.data"`
-SEQNUMS=`echo "$SAMPLES_DATA" | sed -r 's/[a-z0-9]*\\.([0-9]*)\\.data/\1/'`
+if [[ "$AXBENCH_EN" == "yes" ]]; then
+    QOS_SCRIPT=$AXBENCH_DIR/applications/$BENCHMARK/scripts/qos.py
+    SAMPLES_DATA=`ls $TEST_DIR | grep -e "${BENCHMARK}\\.[0-9]*\\.data"`
+fi
+ORIG_DIR=$PWD
+cd $TEST_DIR
+SEQNUMS=`ls *stdout | sed -r 's/[a-z0-9]*\\.([0-9]*)\\.stdout/\1/'`
+cd $ORIG_DIR
 
 for SEQNUM in $SEQNUMS
 do
     echo "Sample $SEQNUM..."
-    SAMPLE_DATA=${AXBENCH_BENCHMARK}.$SEQNUM.data
-    SAMPLE_STDOUT=${AXBENCH_BENCHMARK}.$SEQNUM.stdout
-    SAMPLE_QOS=${AXBENCH_BENCHMARK}.$SEQNUM.qos
+    SAMPLE_DATA=${BENCHMARK}.$SEQNUM.data
+    SAMPLE_STDOUT=${BENCHMARK}.$SEQNUM.stdout
+    SAMPLE_QOS=${BENCHMARK}.$SEQNUM.qos
     PANICKED=`grep -l "FAILED DUE RECOVERY" $TEST_DIR/$SAMPLE_STDOUT`
     if [[ "$PANICKED" == "$TEST_DIR/$SAMPLE_STDOUT" ]]; then
         echo "$SEQNUM PANICKED" > $TEST_DIR/$SAMPLE_QOS
@@ -42,7 +48,11 @@ do
             else 
                 RECOVERED=`grep -l "SUCCESS" $TEST_DIR/$SAMPLE_STDOUT`
                 if [[ "$RECOVERED" == "$TEST_DIR/$SAMPLE_STDOUT" ]]; then
-                    ERROR_RAW=`python $QOS_SCRIPT $GOLDEN ${TEST_DIR}/${SAMPLE_DATA}`
+                    if [[ "$AXBENCH_EN" == "yes" ]]; then
+                        ERROR_RAW=`python $QOS_SCRIPT $GOLDEN ${TEST_DIR}/${SAMPLE_DATA}`
+                    else
+                        ERROR_RAW="N/A"
+                    fi
                     ERROR=`echo "$ERROR_RAW" | sed -r 's/\*\*\* Error: (-?[0-9]\\.[0-9]*)/\1/'`
                     ERROR="$SEQNUM $ERROR (MCE)"
                     echo $ERROR > $TEST_DIR/$SAMPLE_QOS
@@ -61,7 +71,11 @@ do
                 if [[ "$CORRECT" == "$TEST_DIR/$SAMPLE_STDOUT" ]]; then
                     RECOVERED=`grep -l "SUCCESS" $TEST_DIR/$SAMPLE_STDOUT`
                     if [[ "$RECOVERED" == "$TEST_DIR/$SAMPLE_STDOUT" ]]; then
-                        ERROR_RAW=`python $QOS_SCRIPT $GOLDEN ${TEST_DIR}/${SAMPLE_DATA}`
+                        if [[ "$AXBENCH_EN" == "yes" ]]; then
+                            ERROR_RAW=`python $QOS_SCRIPT $GOLDEN ${TEST_DIR}/${SAMPLE_DATA}`
+                        else
+                            ERROR_RAW="N/A"
+                        fi
                         ERROR=`echo "$ERROR_RAW" | sed -r 's/\*\*\* Error: (-?[0-9]\\.[0-9]*)/\1/'`
                         ERROR="$SEQNUM $ERROR (CORRECT)"
                         echo $ERROR > $TEST_DIR/$SAMPLE_QOS

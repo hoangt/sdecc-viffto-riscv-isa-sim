@@ -38,7 +38,7 @@ N=72
 K=64
 CODE_TYPE=hsiao1970
 CACHELINE_SIZE=64
-NUM_RUNS=1000
+NUM_RUNS=100
 
 if [[ "$MODE" == "memdatatrace" ]]; then
     OUTPUT_DIR=$MWG_DATA_PATH/swd_ecc_data/rv64g/spike_separated_float_int
@@ -61,9 +61,11 @@ fi
 if [[ "$BENCHMARK_SUITE" == "SPEC_CPU2006" ]]; then
     BENCHMARKS=$SPEC_BENCHMARKS
 else
-if [[ "$BENCHMARK_SUITE" == "AXBENCH" ]]; then
-    BENCHMARKS=$AXBENCH_BENCHMARKS
-fi
+    if [[ "$BENCHMARK_SUITE" == "AXBENCH" ]]; then
+        BENCHMARKS=$AXBENCH_BENCHMARKS
+    else
+        BENCHMARKS=$BENCHMARK_SUITE # Command line list
+    fi
 fi
 
 # Submit all the benchmarks in the specified suite
