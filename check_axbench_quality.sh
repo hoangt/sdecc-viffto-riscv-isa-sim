@@ -48,7 +48,7 @@ do
                     echo $ERROR > $TEST_DIR/$SAMPLE_QOS
                 else
                     echo "$SEQNUM HANG (MCE)" > $TEST_DIR/$SAMPLE_QOS
-                    echo "$SEQNUM seems to have hung"
+                    echo "$SEQNUM seems to have hung after MCE"
                 fi
             fi
         else
@@ -70,8 +70,8 @@ do
                         echo "$SEQNUM had recovery bug B: seems to have hung even though no MCE, no crash, and CORRECT"
                     fi
                 else
-                    echo "$SEQNUM RECOVERY BUG C" > $TEST_DIR/$SAMPLE_QOS
-                    echo "$SEQNUM had recovery bug C: no controlled panic, no crash, probably no hang, but also no MCE or CORRECT"
+                    echo "$SEQNUM HANG (mystery)" > $TEST_DIR/$SAMPLE_QOS
+                    echo "$SEQNUM seems to have hung but no MCE observed"
                 fi
             fi
         fi
@@ -86,13 +86,14 @@ cat $TEST_DIR/correct.txt | grep -e "0\\.00000000 (CORRECT)" > $TEST_DIR/recover
 cat $TEST_DIR/correct.txt | grep -v -e "0\\.00000000 (CORRECT)" > $TEST_DIR/recovered_correct_but_error.txt
 
 cat $TEST_DIR/*qos | grep -e "(MCE)" > $TEST_DIR/mce.txt
-cat $TEST_DIR/*qos | grep -e "0\\.00000000 (MCE)" > $TEST_DIR/recovered_benign.txt
+cat $TEST_DIR/mce.txt | grep -e "0\\.00000000 (MCE)" > $TEST_DIR/recovered_benign.txt
 cat $TEST_DIR/mce.txt | grep "CRASHED" > $TEST_DIR/recovered_crashes.txt
 cat $TEST_DIR/mce.txt | grep -v -e "CRASHED" | grep -v -e "0\\.00000000 (MCE)" > $TEST_DIR/recovered_sdc.txt
+cat $TEST_DIR/mce.txt | grep -e "HANG (MCE)" > $TEST_DIR/recovered_hangs.txt
 
 cat $TEST_DIR/*qos | grep "RECOVERY BUG A" > $TEST_DIR/recovered_bug_A.txt
 cat $TEST_DIR/*qos | grep "RECOVERY BUG B" > $TEST_DIR/recovered_bug_B.txt
-cat $TEST_DIR/*qos | grep "RECOVERY BUG C" > $TEST_DIR/recovered_bug_C.txt
+cat $TEST_DIR/*qos | grep "HANG (mystery)" > $TEST_DIR/mystery_hangs.txt
 cat $TEST_DIR/*qos | grep "QOSFAIL" > $TEST_DIR/qos_fail.txt
 
 echo "Panics (opt-out crash):        `cat $TEST_DIR/panics.txt | wc -l `"
@@ -104,8 +105,9 @@ echo "---> Recover (MCE):            `cat $TEST_DIR/mce.txt | wc -l`"
 echo "-------> Recover (benign):     `cat $TEST_DIR/recovered_benign.txt | wc -l`"
 echo "-------> Recover (crashed):    `cat $TEST_DIR/recovered_crashes.txt | wc -l `"
 echo "-------> Recover (SDC):        `cat $TEST_DIR/recovered_sdc.txt | wc -l`"
+echo "-------> Recover (hang):       `cat $TEST_DIR/recovered_hangs.txt | wc -l`"
 echo "Recovery bug A (FIXME):        `cat $TEST_DIR/recovered_bug_A.txt | wc -l`"
 echo "Recovery bug B (FIXME):        `cat $TEST_DIR/recovered_bug_B.txt | wc -l`"
-echo "Recovery bug C (FIXME):        `cat $TEST_DIR/recovered_bug_C.txt | wc -l`"
+echo "Mystery hang:                  `cat $TEST_DIR/mystery_hangs.txt | wc -l`"
 echo "QOS fail (FIXME):              `cat $TEST_DIR/qos_fail.txt | wc -l`"
 
