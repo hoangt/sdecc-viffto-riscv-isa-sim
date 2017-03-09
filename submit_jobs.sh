@@ -38,7 +38,9 @@ N=72
 K=64
 CODE_TYPE=hsiao1970
 CACHELINE_SIZE=64
-NUM_RUNS=100
+NUM_RUNS=10000
+BATCH_SIZE=72
+TIMEOUT=120
 
 if [[ "$MODE" == "memdatatrace" ]]; then
     OUTPUT_DIR=$MWG_DATA_PATH/swd_ecc_data/rv64g/spike_separated_float_int
@@ -77,6 +79,27 @@ for BENCHMARK in $BENCHMARKS; do
     mkdir -p $OUTPUT_DIR_BENCHMARK
 
     for(( SEQNUM=1; SEQNUM<=$NUM_RUNS; SEQNUM++ )); do
+        let CURRENTLY_RUNNING=`ps aux | grep "run_spike_benchmark.sh" | wc -l`-1
+        LEFT=$TIMEOUT
+        while [[ "$CURRENTLY_RUNNING" -gt "$(expr $BATCH_SIZE-1)" ]]; do
+            let CURRENTLY_RUNNING=`ps aux | grep "run_spike_benchmark.sh" | wc -l`-1
+            echo "Sleeping... Have $CURRENTLY_RUNNING jobs, waiting until below $BATCH_SIZE jobs. $LEFT sec until timeout."
+            sleep 1;
+            let LEFT=$LEFT-1
+
+            if [[ "$LEFT" -lt "1" ]]; then
+                echo "killall -9 run_spike_benchmark.sh"
+                killall -9 run_spike_benchmark.sh
+                echo "killall -9 spike"
+                killall -9 spike
+                echo "killall -9 candidate_messages_standalone"
+                killall -9 candidate_messages_standalone
+                echo "killall -9 data_recovery_standalone"
+                killall -9 data_recovery_standalone
+                echo "killall -9 inst_recovery_standalone"
+                killall -9 inst_recovery_standalone
+            fi
+        done
         echo "Run #$SEQNUM..."
         JOB_STDOUT=$OUTPUT_DIR_BENCHMARK/${BENCHMARK}.$SEQNUM.stdout
         JOB_STDERR=$OUTPUT_DIR_BENCHMARK/${BENCHMARK}.$SEQNUM.stderr
