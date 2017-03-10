@@ -40,7 +40,7 @@ CODE_TYPE=hsiao1970
 CACHELINE_SIZE=64
 NUM_RUNS=10000
 BATCH_SIZE=72
-TIMEOUT=120
+TIMEOUT=2 # in minutes
 
 if [[ "$MODE" == "memdatatrace" ]]; then
     OUTPUT_DIR=$MWG_DATA_PATH/swd_ecc_data/rv64g/spike_separated_float_int
@@ -80,7 +80,7 @@ for BENCHMARK in $BENCHMARKS; do
 
     for(( SEQNUM=1; SEQNUM<=$NUM_RUNS; SEQNUM++ )); do
         let CURRENTLY_RUNNING=`ps aux | grep "run_spike_benchmark.sh" | wc -l`-1
-        LEFT=$TIMEOUT
+        let LEFT=$TIMEOUT*60
         while [[ "$CURRENTLY_RUNNING" -gt "$(expr $BATCH_SIZE-1)" ]]; do
             let CURRENTLY_RUNNING=`ps aux | grep "run_spike_benchmark.sh" | wc -l`-1
             echo "Sleeping... Have $CURRENTLY_RUNNING jobs, waiting until below $BATCH_SIZE jobs. $LEFT sec until timeout."
@@ -88,16 +88,16 @@ for BENCHMARK in $BENCHMARKS; do
             let LEFT=$LEFT-1
 
             if [[ "$LEFT" -lt "1" ]]; then
-                echo "killall -9 run_spike_benchmark.sh"
-                killall -9 run_spike_benchmark.sh
-                echo "killall -9 spike"
-                killall -9 spike
-                echo "killall -9 candidate_messages_standalone"
-                killall -9 candidate_messages_standalone
-                echo "killall -9 data_recovery_standalone"
-                killall -9 data_recovery_standalone
-                echo "killall -9 inst_recovery_standalone"
-                killall -9 inst_recovery_standalone
+                echo "killall -9 --older-than ${TIMEOUT}m run_spike_benchmark.sh"
+                killall -9 --older-than ${TIMEOUT}m run_spike_benchmark.sh
+                echo "killall -9 --older-than ${TIMEOUT}m spike"
+                killall -9 --older-than ${TIMEOUT}m spike
+                echo "killall -9 --older-than ${TIMEOUT}m candidate_messages_standalone"
+                killall -9 --older-than ${TIMEOUT}m candidate_messages_standalone
+                echo "killall -9 --older-than ${TIMEOUT}m data_recovery_standalone"
+                killall -9 --older-than ${TIMEOUT}m data_recovery_standalone
+                echo "killall -9 --older-than ${TIMEOUT}m inst_recovery_standalone"
+                killall -9 --older-than ${TIMEOUT}m inst_recovery_standalone
             fi
         done
         echo "Run #$SEQNUM..."
