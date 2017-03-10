@@ -39,7 +39,7 @@ K=64
 CODE_TYPE=hsiao1970
 CACHELINE_SIZE=64
 NUM_RUNS=10000
-BATCH_SIZE=72
+BATCH_SIZE=100
 TIMEOUT=2 # in minutes
 
 if [[ "$MODE" == "memdatatrace" ]]; then
