@@ -97,10 +97,12 @@ cat $TEST_DIR/*qos | grep -e "([A-Z]*)" > $TEST_DIR/recovered.txt
 
 cat $TEST_DIR/*qos | grep -e "[0-9]\\.[0-9]* (CORRECT)" > $TEST_DIR/correct.txt
 cat $TEST_DIR/correct.txt | grep -e "0\\.00000000 (CORRECT)" > $TEST_DIR/recovered_correct.txt
+cat $TEST_DIR/correct.txt | sed -r 's/ \(CORRECT\)//g' > $TEST_DIR/recovered_correct.csv
 cat $TEST_DIR/correct.txt | grep -v -e "0\\.00000000 (CORRECT)" > $TEST_DIR/recovered_correct_but_error.txt
 
 cat $TEST_DIR/*qos | grep -e "(MCE)" > $TEST_DIR/mce.txt
 cat $TEST_DIR/mce.txt | grep -e "0\\.00000000 (MCE)" > $TEST_DIR/recovered_benign.txt
+cat $TEST_DIR/recovered_benign.txt | sed -r 's/ \(MCE\)//g' > $TEST_DIR/recovered_benign.csv
 cat $TEST_DIR/mce.txt | grep "CRASHED" > $TEST_DIR/recovered_crashes.txt
 cat $TEST_DIR/mce.txt | grep -v -e "CRASHED" | grep -v -e "HANG (MCE)" | grep -v -e "0\\.00000000 (MCE)" > $TEST_DIR/recovered_sdc.txt
 cat $TEST_DIR/recovered_sdc.txt | sed -r 's/ \(MCE\)//g' > $TEST_DIR/recovered_sdc.csv
