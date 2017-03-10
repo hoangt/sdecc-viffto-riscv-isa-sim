@@ -64,8 +64,8 @@ do
         else
             CRASHED=`grep -l "PANIC" $TEST_DIR/$SAMPLE_STDOUT`
             if [[ "$CRASHED" == "$TEST_DIR/$SAMPLE_STDOUT" ]]; then
-                echo "$SEQNUM RECOVERY BUG A" > $TEST_DIR/$SAMPLE_QOS
-                echo "$SEQNUM had recovery bug A: crash without MCE"
+                echo "$SEQNUM CRASH (mystery)" > $TEST_DIR/$SAMPLE_QOS
+                echo "$SEQNUM seems to have crashed but no MCE observed"
             else 
                 CORRECT=`grep -l "CORRECT" $TEST_DIR/$SAMPLE_STDOUT`
                 if [[ "$CORRECT" == "$TEST_DIR/$SAMPLE_STDOUT" ]]; then
@@ -80,8 +80,8 @@ do
                         ERROR="$SEQNUM $ERROR (CORRECT)"
                         echo $ERROR > $TEST_DIR/$SAMPLE_QOS
                     else
-                        echo "$SEQNUM RECOVERY BUG B" > $TEST_DIR/$SAMPLE_QOS
-                        echo "$SEQNUM had recovery bug B: seems to have hung even though no MCE, no crash, and CORRECT"
+                        echo "$SEQNUM HANG (mystery)" > $TEST_DIR/$SAMPLE_QOS
+                        echo "$SEQNUM seems to have hung but no MCE observed"
                     fi
                 else
                     echo "$SEQNUM HANG (mystery)" > $TEST_DIR/$SAMPLE_QOS
@@ -92,27 +92,30 @@ do
     fi
 done
 
+GOLDEN_ERROR_RAW=`python $QOS_SCRIPT $GOLDEN $GOLDEN`
+GOLDEN_ERROR=`echo "$GOLDEN_ERROR_RAW" | sed -r 's/\*\*\* Error: (-?[0-9]\\.[0-9]*)/\1/'`
+echo "0 $GOLDEN_ERROR (GOLDEN)" > $TEST_DIR/golden.qos
 cat $TEST_DIR/*qos | grep "PANICKED" > $TEST_DIR/panics.txt
 cat $TEST_DIR/*qos | grep -e "([A-Z]*)" > $TEST_DIR/recovered.txt
 
 cat $TEST_DIR/*qos | grep -e "[0-9]\\.[0-9]* (CORRECT)" > $TEST_DIR/correct.txt
-cat $TEST_DIR/correct.txt | grep -e "0\\.00000000 (CORRECT)" > $TEST_DIR/recovered_correct.txt
-cat $TEST_DIR/correct.txt | sed -r 's/ \(CORRECT\)//g' > $TEST_DIR/recovered_correct.csv
-cat $TEST_DIR/correct.txt | grep -v -e "0\\.00000000 (CORRECT)" > $TEST_DIR/recovered_correct_but_error.txt
+cat $TEST_DIR/correct.txt | grep -e "$GOLDEN_ERROR (CORRECT)" | sed -r "s/$GOLDEN_ERROR/0\.00000000/g" > $TEST_DIR/recovered_correct.txt
+cat $TEST_DIR/recovered_correct.txt | sed -r 's/ \(CORRECT\)//g' > $TEST_DIR/recovered_correct.csv
+cat $TEST_DIR/correct.txt | grep -v -e "$GOLDEN_ERROR (CORRECT)" > $TEST_DIR/recovered_correct_but_error.txt
 
 cat $TEST_DIR/*qos | grep -e "(MCE)" > $TEST_DIR/mce.txt
-cat $TEST_DIR/mce.txt | grep -e "0\\.00000000 (MCE)" > $TEST_DIR/recovered_benign.txt
+cat $TEST_DIR/mce.txt | grep -e "$GOLDEN_ERROR (MCE)" | sed -r "s/$GOLDEN_ERROR/0\.00000000/g" > $TEST_DIR/recovered_benign.txt
 cat $TEST_DIR/recovered_benign.txt | sed -r 's/ \(MCE\)//g' > $TEST_DIR/recovered_benign.csv
 cat $TEST_DIR/mce.txt | grep "CRASHED" > $TEST_DIR/recovered_crashes.txt
-cat $TEST_DIR/mce.txt | grep -v -e "CRASHED" | grep -v -e "HANG (MCE)" | grep -v -e "0\\.00000000 (MCE)" > $TEST_DIR/recovered_sdc.txt
+cat $TEST_DIR/mce.txt | grep -v -e "CRASHED" | grep -v -e "HANG (MCE)" | grep -v -e "$GOLDEN_ERROR (MCE)" > $TEST_DIR/recovered_sdc.txt
 cat $TEST_DIR/recovered_sdc.txt | sed -r 's/ \(MCE\)//g' > $TEST_DIR/recovered_sdc.csv
 cat $TEST_DIR/mce.txt | grep -e "HANG (MCE)" > $TEST_DIR/recovered_hangs.txt
 
-cat $TEST_DIR/*qos | grep "RECOVERY BUG A" > $TEST_DIR/recovered_bug_A.txt
-cat $TEST_DIR/*qos | grep "RECOVERY BUG B" > $TEST_DIR/recovered_bug_B.txt
+cat $TEST_DIR/*qos | grep "CRASH (mystery)" > $TEST_DIR/mystery_crashes.txt
 cat $TEST_DIR/*qos | grep "HANG (mystery)" > $TEST_DIR/mystery_hangs.txt
 cat $TEST_DIR/*qos | grep "QOSFAIL" > $TEST_DIR/qos_fail.txt
 
+echo "Golden error:                  $GOLDEN_ERROR" | tee $TEST_DIR/summary.txt
 echo "Panics (opt-out crash):        `cat $TEST_DIR/panics.txt | wc -l `" | tee -a $TEST_DIR/summary.txt
 echo "Recover (total):               `cat $TEST_DIR/recovered.txt | wc -l`" | tee -a $TEST_DIR/summary.txt
 echo "---> Recover (correct):        `cat $TEST_DIR/correct.txt | wc -l`" | tee -a $TEST_DIR/summary.txt
@@ -123,8 +126,7 @@ echo "-------> Recover (benign):     `cat $TEST_DIR/recovered_benign.txt | wc -l
 echo "-------> Recover (crashed):    `cat $TEST_DIR/recovered_crashes.txt | wc -l `" | tee -a $TEST_DIR/summary.txt
 echo "-------> Recover (SDC):        `cat $TEST_DIR/recovered_sdc.txt | wc -l`" | tee -a $TEST_DIR/summary.txt
 echo "-------> Recover (hang):       `cat $TEST_DIR/recovered_hangs.txt | wc -l`" | tee -a $TEST_DIR/summary.txt
-echo "Recovery bug A (FIXME):        `cat $TEST_DIR/recovered_bug_A.txt | wc -l`" | tee -a $TEST_DIR/summary.txt
-echo "Recovery bug B (FIXME):        `cat $TEST_DIR/recovered_bug_B.txt | wc -l`" | tee -a $TEST_DIR/summary.txt
-echo "Mystery hang:                  `cat $TEST_DIR/mystery_hangs.txt | wc -l`" | tee -a $TEST_DIR/summary.txt
+echo "Mystery hangs:                 `cat $TEST_DIR/mystery_hangs.txt | wc -l`" | tee -a $TEST_DIR/summary.txt
+echo "Mystery crashes:               `cat $TEST_DIR/mystery_crashes.txt | wc -l`" | tee -a $TEST_DIR/summary.txt
 echo "QOS fail (FIXME):              `cat $TEST_DIR/qos_fail.txt | wc -l`" | tee -a $TEST_DIR/summary.txt
 

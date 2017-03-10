@@ -17,7 +17,7 @@ BENCHMARK_SUITE=$2
 ########################## FEEL FREE TO CHANGE THESE OPTIONS ##################################
 SPEC_BENCHMARKS="400.perlbench 401.bzip2 403.gcc 410.bwaves 416.gamess 429.mcf 433.milc 434.zeusmp 435.gromacs 436.cactusADM 437.leslie3d 444.namd 445.gobmk 447.dealII 450.soplex 453.povray 454.calculix 456.hmmer 458.sjeng 459.GemsFDTD 462.libquantum 464.h264ref 465.tonto 470.lbm 471.omnetpp 473.astar 481.wrf 482.sphinx3 483.xalancbmk 998.specrand 999.specrand" # All benchmarks
 #SPEC_BENCHMARKS="416.gamess 429.mcf 433.milc 434.zeusmp 437.leslie3d 445.gobmk 481.wrf 483.xalancbmk" # Benchmarks with runtime problems compiled for linux-gnu and running on top of pk as of 8/25/2016
-AXBENCH_BENCHMARKS="fft"
+AXBENCH_BENCHMARKS="blackscholes"
 #AXBENCH_BENCHMARKS="blackscholes fft inversek2j jmeint jpeg kmeans sobel" # Complete suite
 #AXBENCH_BENCHMARKS="inversek2j jmeint jpeg kmeans sobel" # Benchmarks with compile-time or run-time issues compiled for unknown-elf (newlib) and running on top of pk as of 3/5/2017
 
@@ -38,21 +38,21 @@ N=72
 K=64
 CODE_TYPE=hsiao1970
 CACHELINE_SIZE=64
-NUM_RUNS=10000
-BATCH_SIZE=100
-TIMEOUT=2 # in minutes
+NUM_RUNS=1000
+BATCH_SIZE=36
+TIMEOUT=5 # in minutes
 
 if [[ "$MODE" == "memdatatrace" ]]; then
-    OUTPUT_DIR=$MWG_DATA_PATH/swd_ecc_data/rv64g/spike_separated_float_int
+    OUTPUT_DIR=$MWG_DATA_PATH/swd_ecc_data/rv64g/spike_output
 else
 if [[ "$MODE" == "faultinj_user" ]]; then
-    OUTPUT_DIR=$MWG_DATA_PATH/swd_ecc_data/rv64g/app_driven_recovery/data-recovery/user_injection/$CODE_TYPE/$N,$K/`date -I`
+    OUTPUT_DIR=$MWG_DATA_PATH/swd_ecc_data/rv64g/data-recovery/online-dynamic-user/$CODE_TYPE/$N,$K/`date -I`
 else
 if [[ "$MODE" == "faultinj_sim" ]]; then
-    OUTPUT_DIR=$MWG_DATA_PATH/swd_ecc_data/rv64g/app_driven_recovery/data-recovery/sim_injection/$CODE_TYPE/$N,$K/`date -I`
+    OUTPUT_DIR=$MWG_DATA_PATH/swd_ecc_data/rv64g/data-recovery/online-dynamic-sim/$CODE_TYPE/$N,$K/`date -I`
 else
 if [[ "$MODE" == "default" ]]; then
-    OUTPUT_DIR=$MWG_DATA_PATH/swd_ecc_data/rv64g/app_driven_recovery/golden
+    OUTPUT_DIR=$MWG_DATA_PATH/swd_ecc_data/rv64g/golden
 fi
 fi
 fi
