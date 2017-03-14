@@ -382,6 +382,7 @@ void processor_t::set_csr(int which, reg_t val)
 
 reg_t processor_t::get_csr(int which)
 {
+  size_t pb_num_reads = 0; //MWG
   switch (which)
   {
     case CSR_FFLAGS:
@@ -399,7 +400,8 @@ reg_t processor_t::get_csr(int which)
     case CSR_PENALTY_BOX_CACHELINE_BLKPOS:
         return pb.cacheline_blockpos;
     case CSR_PENALTY_BOX_CACHELINE_WORD:
-        if (pb.word_ptr < pb.cacheline_size/sizeof(reg_t))
+        pb_num_reads = (pb.cacheline_size % sizeof(reg_t) == 0 ? pb.cacheline_size/sizeof(reg_t) : pb.cacheline_size/sizeof(reg_t)+1);
+        if (pb.word_ptr < pb_num_reads)
             return pb.cacheline_words[pb.word_ptr++];
         break;
     case CSR_PENALTY_BOX_MEM_TYPE:
@@ -407,7 +409,8 @@ reg_t processor_t::get_csr(int which)
     case CSR_SIM_TICK_COUNTER:
         return total_steps;
     case CSR_PENALTY_BOX_CHEAT_MSG:
-        if (pb.msg_ptr < pb.msg_size/sizeof(reg_t))
+        pb_num_reads = (pb.msg_size % sizeof(reg_t) == 0 ? pb.msg_size/sizeof(reg_t) : pb.msg_size/sizeof(reg_t)+1);
+        if (pb.msg_ptr < pb_num_reads)
             return pb.victim_msg[pb.msg_ptr++];
         break;
     //End MWG
