@@ -17,7 +17,7 @@ BENCHMARK_SUITE=$2
 ########################## FEEL FREE TO CHANGE THESE OPTIONS ##################################
 SPEC_BENCHMARKS="400.perlbench 401.bzip2 403.gcc 410.bwaves 416.gamess 429.mcf 433.milc 434.zeusmp 435.gromacs 436.cactusADM 437.leslie3d 444.namd 445.gobmk 447.dealII 450.soplex 453.povray 454.calculix 456.hmmer 458.sjeng 459.GemsFDTD 462.libquantum 464.h264ref 465.tonto 470.lbm 471.omnetpp 473.astar 481.wrf 482.sphinx3 483.xalancbmk 998.specrand 999.specrand" # All benchmarks
 #SPEC_BENCHMARKS="416.gamess 429.mcf 433.milc 434.zeusmp 437.leslie3d 445.gobmk 481.wrf 483.xalancbmk" # Benchmarks with runtime problems compiled for linux-gnu and running on top of pk as of 8/25/2016
-AXBENCH_BENCHMARKS="blackscholes"
+AXBENCH_BENCHMARKS="fft"
 #AXBENCH_BENCHMARKS="blackscholes fft inversek2j jmeint jpeg kmeans sobel" # Complete suite
 #AXBENCH_BENCHMARKS="inversek2j jmeint jpeg kmeans sobel" # Benchmarks with compile-time or run-time issues compiled for unknown-elf (newlib) and running on top of pk as of 3/5/2017
 
@@ -34,13 +34,13 @@ if [[ "$MWG_MACHINE_NAME" == "hoffman" ]]; then
     MAILING_LIST=mgottsch 		# List of users to email with status updates, separated by commas
 fi
 
-N=72
-K=64
+N=39
+K=32
 CODE_TYPE=hsiao1970
 CACHELINE_SIZE=64
-NUM_RUNS=1000
-BATCH_SIZE=36
-TIMEOUT=5 # in minutes
+NUM_RUNS=10000
+BATCH_SIZE=500
+TIMEOUT=3 # in minutes
 
 if [[ "$MODE" == "memdatatrace" ]]; then
     OUTPUT_DIR=$MWG_DATA_PATH/swd_ecc_data/rv64g/spike_output
@@ -80,25 +80,18 @@ for BENCHMARK in $BENCHMARKS; do
 
     for(( SEQNUM=1; SEQNUM<=$NUM_RUNS; SEQNUM++ )); do
         let CURRENTLY_RUNNING=`ps aux | grep "run_spike_benchmark.sh" | wc -l`-1
-        let LEFT=$TIMEOUT*60
+        let SINCE=0
         while [[ "$CURRENTLY_RUNNING" -gt "$(expr $BATCH_SIZE-1)" ]]; do
             let CURRENTLY_RUNNING=`ps aux | grep "run_spike_benchmark.sh" | wc -l`-1
-            echo "Sleeping... Have $CURRENTLY_RUNNING jobs, waiting until below $BATCH_SIZE jobs. $LEFT sec until timeout."
+            echo "Sleeping... Have $CURRENTLY_RUNNING jobs, waiting until below $BATCH_SIZE jobs. $SINCE sec since last job started."
             sleep 1;
-            let LEFT=$LEFT-1
+            let SINCE=$SINCE+1
 
-            if [[ "$LEFT" -lt "1" ]]; then
-                echo "killall -9 --older-than ${TIMEOUT}m run_spike_benchmark.sh"
-                killall -9 --older-than ${TIMEOUT}m run_spike_benchmark.sh
-                echo "killall -9 --older-than ${TIMEOUT}m spike"
-                killall -9 --older-than ${TIMEOUT}m spike
-                echo "killall -9 --older-than ${TIMEOUT}m candidate_messages_standalone"
-                killall -9 --older-than ${TIMEOUT}m candidate_messages_standalone
-                echo "killall -9 --older-than ${TIMEOUT}m data_recovery_standalone"
-                killall -9 --older-than ${TIMEOUT}m data_recovery_standalone
-                echo "killall -9 --older-than ${TIMEOUT}m inst_recovery_standalone"
-                killall -9 --older-than ${TIMEOUT}m inst_recovery_standalone
-            fi
+            killall -9 --older-than ${TIMEOUT}m run_spike_benchmark.sh
+            killall -9 --older-than ${TIMEOUT}m spike
+            killall -9 --older-than ${TIMEOUT}m candidate_messages_standalone
+            killall -9 --older-than ${TIMEOUT}m data_recovery_standalone
+            killall -9 --older-than ${TIMEOUT}m inst_recovery_standalone
         done
         echo "Run #$SEQNUM..."
         JOB_STDOUT=$OUTPUT_DIR_BENCHMARK/${BENCHMARK}.$SEQNUM.stdout
