@@ -79,6 +79,14 @@ for BENCHMARK in $BENCHMARKS; do
     mkdir -p $OUTPUT_DIR_BENCHMARK
 
     for(( SEQNUM=1; SEQNUM<=$NUM_RUNS; SEQNUM++ )); do
+        if [[ "$(($SEQNUM % 10))" -eq "0" ]]; then
+            killall -9 --older-than ${TIMEOUT}m run_spike_benchmark.sh > /dev/null 2&>1
+            killall -9 --older-than ${TIMEOUT}m spike > /dev/null 2&>1
+            killall -9 --older-than ${TIMEOUT}m candidate_messages_standalone > /dev/null 2&>1
+            killall -9 --older-than ${TIMEOUT}m data_recovery_standalone > /dev/null 2&>1
+            killall -9 --older-than ${TIMEOUT}m inst_recovery_standalone > /dev/null 2&>1
+        fi
+
         let CURRENTLY_RUNNING=`ps aux | grep "run_spike_benchmark.sh" | wc -l`-1
         let SINCE=0
         while [[ "$CURRENTLY_RUNNING" -gt "$(expr $BATCH_SIZE-1)" ]]; do
@@ -88,11 +96,11 @@ for BENCHMARK in $BENCHMARKS; do
             let SINCE=$SINCE+2
 
             if [[ "$SINCE" -gt "$(expr 30)" ]]; then
-                killall -9 --older-than ${TIMEOUT}m run_spike_benchmark.sh > /dev/null
-                killall -9 --older-than ${TIMEOUT}m spike > /dev/null
-                killall -9 --older-than ${TIMEOUT}m candidate_messages_standalone > /dev/null
-                killall -9 --older-than ${TIMEOUT}m data_recovery_standalone > /dev/null
-                killall -9 --older-than ${TIMEOUT}m inst_recovery_standalone > /dev/null
+                killall -9 --older-than ${TIMEOUT}m run_spike_benchmark.sh > /dev/null 2&>1
+                killall -9 --older-than ${TIMEOUT}m spike > /dev/null 2&>1
+                killall -9 --older-than ${TIMEOUT}m candidate_messages_standalone > /dev/null 2&>1
+                killall -9 --older-than ${TIMEOUT}m data_recovery_standalone > /dev/null 2&>1
+                killall -9 --older-than ${TIMEOUT}m inst_recovery_standalone > /dev/null 2&>1
             fi
         done
         echo "Run #$SEQNUM..."
