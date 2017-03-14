@@ -40,7 +40,7 @@ CODE_TYPE=hsiao1970
 CACHELINE_SIZE=64
 NUM_RUNS=10000
 BATCH_SIZE=200
-TIMEOUT=10 # in minutes
+TIMEOUT=20 # in minutes
 
 if [[ "$MODE" == "memdatatrace" ]]; then
     OUTPUT_DIR=$MWG_DATA_PATH/swd_ecc_data/rv64g/spike_output
@@ -80,11 +80,11 @@ for BENCHMARK in $BENCHMARKS; do
 
     for(( SEQNUM=1; SEQNUM<=$NUM_RUNS; SEQNUM++ )); do
         if [[ "$(($SEQNUM % 10))" -eq "0" ]]; then
-            killall -9 --older-than ${TIMEOUT}m run_spike_benchmark.sh > /dev/null 2&>1
-            killall -9 --older-than ${TIMEOUT}m spike > /dev/null 2&>1
-            killall -9 --older-than ${TIMEOUT}m candidate_messages_standalone > /dev/null 2&>1
-            killall -9 --older-than ${TIMEOUT}m data_recovery_standalone > /dev/null 2&>1
-            killall -9 --older-than ${TIMEOUT}m inst_recovery_standalone > /dev/null 2&>1
+            killall -9 --older-than ${TIMEOUT}m run_spike_benchmark.sh > /dev/null 2>&1
+            killall -9 --older-than ${TIMEOUT}m spike > /dev/null 2>&1
+            killall -9 --older-than ${TIMEOUT}m candidate_messages_standalone > /dev/null 2>&1
+            killall -9 --older-than ${TIMEOUT}m data_recovery_standalone > /dev/null 2>&1
+            killall -9 --older-than ${TIMEOUT}m inst_recovery_standalone > /dev/null 2>&1
         fi
 
         let CURRENTLY_RUNNING=`ps aux | grep "run_spike_benchmark.sh" | wc -l`-1
@@ -96,11 +96,11 @@ for BENCHMARK in $BENCHMARKS; do
             let SINCE=$SINCE+2
 
             if [[ "$SINCE" -gt "$(expr 30)" ]]; then
-                killall -9 --older-than ${TIMEOUT}m run_spike_benchmark.sh > /dev/null 2&>1
-                killall -9 --older-than ${TIMEOUT}m spike > /dev/null 2&>1
-                killall -9 --older-than ${TIMEOUT}m candidate_messages_standalone > /dev/null 2&>1
-                killall -9 --older-than ${TIMEOUT}m data_recovery_standalone > /dev/null 2&>1
-                killall -9 --older-than ${TIMEOUT}m inst_recovery_standalone > /dev/null 2&>1
+                killall -9 --older-than ${TIMEOUT}m run_spike_benchmark.sh > /dev/null 2>&1
+                killall -9 --older-than ${TIMEOUT}m spike > /dev/null 2>&1
+                killall -9 --older-than ${TIMEOUT}m candidate_messages_standalone > /dev/null 2>&1
+                killall -9 --older-than ${TIMEOUT}m data_recovery_standalone > /dev/null 2>&1
+                killall -9 --older-than ${TIMEOUT}m inst_recovery_standalone > /dev/null 2>&1
             fi
         done
         echo "Run #$SEQNUM..."
