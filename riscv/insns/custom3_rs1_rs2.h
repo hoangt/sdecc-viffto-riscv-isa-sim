@@ -22,8 +22,10 @@ if (mem_type == 0) //data
 else //instruction
     cmd = construct_sdecc_inst_recovery_cmd(MMU.inst_sdecc_script_filename, victim_message, candidates, msg_size);
 
+std::cout << cmd << std::endl; //TEMP
+
 std::string output = myexec(cmd);
-//std::cout << output << std::endl; //TEMP
+std::cout << output << std::endl; //TEMP
 const char* output_cstr = output.c_str();
 
 MMU.store_slow_path(RS1, output.length()+1, (const uint8_t*)output_cstr, 0);
