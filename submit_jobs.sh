@@ -84,8 +84,8 @@ for BENCHMARK in $BENCHMARKS; do
         while [[ "$CURRENTLY_RUNNING" -gt "$(expr $BATCH_SIZE-1)" ]]; do
             let CURRENTLY_RUNNING=`ps aux | grep "run_spike_benchmark.sh" | wc -l`-1
             echo "Sleeping... Have $CURRENTLY_RUNNING jobs, waiting until below $BATCH_SIZE jobs. $SINCE sec since last job started."
-            sleep 1;
-            let SINCE=$SINCE+1
+            sleep 2;
+            let SINCE=$SINCE+2
 
             if [[ "$SINCE" -gt "$(expr 30)" ]]; then
                 killall -9 --older-than ${TIMEOUT}m run_spike_benchmark.sh > /dev/null
