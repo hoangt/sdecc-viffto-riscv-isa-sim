@@ -69,29 +69,32 @@ public:
           reg_t demand_vaddr = addr; \
           reg_t demand_paddr = translate(addr, LOAD); \
           proc->pb.demand_load_size = sizeof(type##_t); \
-          memcpy(demand_load_value, reinterpret_cast<char*>(reinterpret_cast<reg_t>(mem+demand_paddr)), sizeof(type##_t)); \
+          memcpy(demand_load_value, reinterpret_cast<unsigned char*>(reinterpret_cast<reg_t>(mem+demand_paddr)), sizeof(type##_t)); \
           \
           uint8_t cacheline[words_per_block*memwordsize]; \
           size_t position_in_cacheline = (demand_paddr & (memwordsize*words_per_block-1)) / memwordsize; \
           reg_t cacheline_base_vaddr = demand_vaddr & (~(words_per_block*memwordsize-1)); \
           reg_t cacheline_base_paddr = translate(cacheline_base_vaddr, LOAD); \
           \
-          memcpy(cacheline, reinterpret_cast<char*>(reinterpret_cast<reg_t>(mem+cacheline_base_paddr)), words_per_block*memwordsize); \
+          memcpy(cacheline, reinterpret_cast<unsigned char*>(reinterpret_cast<reg_t>(mem+cacheline_base_paddr)), words_per_block*memwordsize); \
           \
           uint8_t victim_word[memwordsize]; \
           size_t victim_blockpos = rand() % words_per_block; /* TODO: allow spike to be configured to only hit the demand load */\
           reg_t victim_vaddr = cacheline_base_vaddr + victim_blockpos*memwordsize; \
           reg_t victim_paddr = translate(victim_vaddr, LOAD); \
-          memcpy(victim_word, reinterpret_cast<char*>(reinterpret_cast<reg_t>(mem+victim_paddr)), memwordsize); \
+          memcpy(victim_word, reinterpret_cast<unsigned char*>(reinterpret_cast<reg_t>(mem+victim_paddr)), memwordsize); \
           \
           \
           std::cout.fill('0'); \
           setPenaltyBox(proc, victim_word, cacheline, memwordsize, words_per_block, victim_blockpos, false); \
           std::cout << "---S-P-I-K-E---> DUE injection on data (step " << total_steps << ")! Correct demand return value (vaddr 0x" << std::hex << demand_vaddr << std::dec << ", blockpos " << position_in_cacheline << ") is 0x" \
                     << std::hex \
-                    << std::setw(sizeof(type##_t)*2) \
-                    << retval \
-                    << std::dec \
+                    << std::setw(sizeof(type##_t)*2); \
+          if (sizeof(type##_t) == 1) \
+              std::cout << static_cast<uint64_t>(retval); \
+          else \
+              std::cout << retval; \
+          std::cout << std::dec \
                     << ", correct demand load value is 0x"; \
           for (size_t i = 0; i < sizeof(type##_t); i++) { \
               std::cout << std::hex \
@@ -182,20 +185,20 @@ public:
         reg_t demand_vaddr = addr;
         reg_t demand_paddr = translate(addr, FETCH);
         proc->pb.demand_load_size = length;
-        memcpy(demand_load_value, reinterpret_cast<char*>(reinterpret_cast<reg_t>(mem+demand_paddr)), length);
+        memcpy(demand_load_value, reinterpret_cast<unsigned char*>(reinterpret_cast<reg_t>(mem+demand_paddr)), length);
        
         uint8_t cacheline[words_per_block*memwordsize];
         size_t position_in_cacheline = (demand_paddr & (memwordsize*words_per_block-1)) / memwordsize;
         reg_t cacheline_base_vaddr = demand_vaddr & (~(words_per_block*memwordsize-1));
         reg_t cacheline_base_paddr = translate(cacheline_base_vaddr, FETCH);
        
-        memcpy(cacheline, reinterpret_cast<char*>(reinterpret_cast<reg_t>(mem+cacheline_base_paddr)), words_per_block*memwordsize);
+        memcpy(cacheline, reinterpret_cast<unsigned char*>(reinterpret_cast<reg_t>(mem+cacheline_base_paddr)), words_per_block*memwordsize);
        
         uint8_t victim_word[memwordsize];
         size_t victim_blockpos = rand() % words_per_block;
         reg_t victim_vaddr = cacheline_base_vaddr + victim_blockpos*memwordsize;
         reg_t victim_paddr = translate(victim_vaddr, FETCH);
-        memcpy(victim_word, reinterpret_cast<char*>(reinterpret_cast<reg_t>(mem+victim_paddr)), memwordsize);
+        memcpy(victim_word, reinterpret_cast<unsigned char*>(reinterpret_cast<reg_t>(mem+victim_paddr)), memwordsize);
        
        
         std::cout.fill('0');
