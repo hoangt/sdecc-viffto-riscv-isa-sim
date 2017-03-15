@@ -129,9 +129,9 @@ BLACKSCHOLES_ARGS="$AXBENCH_DIR/applications/blackscholes/test.data/input/blacks
 FFT_ARGS="2048 $OUTPUT_DIR/fft.$SEQNUM.data"
 INVERSEK2J_ARGS="$AXBENCH_DIR/applications/inversek2j/test.data/input/theta_1000K.data $OUTPUT_DIR/inversek2j.$SEQNUM.data"
 JMEINT_ARGS="$AXBENCH_DIR/applications/jmeint/test.data/input/jmeint_1000K.data $OUTPUT_DIR/jmeint.data"
-JPEG_ARGS="$AXBENCH_DIR/applications/jpeg/test.data/input/10.rgb $OUTPUT_DIR/jmeint.$SEQNUM.jpg" # FIXME: need to run all inputs, not just first. See run_observation.sh for jpeg
-KMEANS_ARGS="$AXBENCH_DIR/applications/kmeans/test.data/input/10.rgb $OUTPUT_DIR/kmeans.$SEQNUM.rgb" # FIXME: need to run all inputs, not just first. Also need to run a conversion script to png. see run_observation.sh for kmeans
-SOBEL_ARGS="$AXBENCH_DIR/applications/sobel/test.data/input/10.rgb $OUTPUT_DIR/sobel.$SEQNUM.rgb" # FIXME: need to run all inputs, not just first. Also need to run a conversion script to png. see run_observation.sh for sobel
+JPEG_ARGS="$AXBENCH_DIR/applications/jpeg/test.data/input/10.rgb $OUTPUT_DIR/jpeg.$SEQNUM.10.jpg" # FIXME: need to run all inputs, not just first. See run_observation.sh for jpeg
+KMEANS_ARGS="$AXBENCH_DIR/applications/kmeans/test.data/input/10.rgb $OUTPUT_DIR/kmeans.$SEQNUM.10.rgb" # FIXME: need to run all inputs, not just first. Also need to run a conversion script to png. see run_observation.sh for kmeans
+SOBEL_ARGS="$AXBENCH_DIR/applications/sobel/test.data/input/10.rgb $OUTPUT_DIR/sobel.$SEQNUM.10.rgb" # FIXME: need to run all inputs, not just first. Also need to run a conversion script to png. see run_observation.sh for sobel
 ##################################################################
 
 # Check BENCHMARK input

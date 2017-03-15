@@ -22,20 +22,31 @@ AXBENCH_DIR=$MWG_GIT_PATH/eccgrp-axbench
 ########################################################################
 
 if [[ "$AXBENCH_EN" == "yes" ]]; then
-    QOS_SCRIPT=$AXBENCH_DIR/applications/$BENCHMARK/scripts/qos.py
-    SAMPLES_DATA=`ls $TEST_DIR | grep -e "${BENCHMARK}\\.[0-9]*\\.data"`
+    if [[ "$BENCHMARK" == "fft" || "$BENCHMARK" == "blackscholes" || "$BENCHMARK" == "fmeint" ]]; then
+        QOS_EXE=python
+        QOS_SCRIPT_SUFFIX=py
+        SAMPLES_SUFFIX=data
+    else if [[ "$BENCHMARK" == "jpeg" || "$BENCHMARK" == "kmeans" || "$BENCHMARK" == "sobel" ]]; then # FIXME
+        QOS_EXE=bash
+        QOS_SCRIPT_SUFFIX=sh
+        SAMPLES_SUFFIX=jpg
+    fi
+    fi
 fi
 ORIG_DIR=$PWD
 cd $TEST_DIR
-SEQNUMS=`ls *stdout | sed -r 's/[a-z0-9]*\\.([0-9]*)\\.stdout/\1/'`
+SEQNUMS=`ls *stdout | sed -r 's/[a-z0-9]*\.([0-9]*)\.?[0-9]*?\.stdout/\1/'`
+INPUTID=`ls *stdout | sed -r 's/[a-z0-9]*\.[0-9]*\.?([0-9]*)?\.stdout/\1/' | head -n1`
 cd $ORIG_DIR
+QOS_SCRIPT="$QOS_EXE $AXBENCH_DIR/applications/$BENCHMARK/scripts/qos.${QOS_SCRIPT_SUFFIX}"
+SAMPLES_DATA=`ls $TEST_DIR | grep -E "${BENCHMARK}\.[0-9]*\.?[0-9]*?\.${SAMPLES_SUFFIX}"`
 
 for SEQNUM in $SEQNUMS
 do
     echo "Sample $SEQNUM..."
-    SAMPLE_DATA=${BENCHMARK}.$SEQNUM.data
-    SAMPLE_STDOUT=${BENCHMARK}.$SEQNUM.stdout
-    SAMPLE_QOS=${BENCHMARK}.$SEQNUM.qos
+    SAMPLE_DATA=${BENCHMARK}.$SEQNUM.$INPUTID.${SAMPLES_SUFFIX}
+    SAMPLE_STDOUT=${BENCHMARK}.$SEQNUM.$INPUTID.stdout
+    SAMPLE_QOS=${BENCHMARK}.$SEQNUM.$INPUTID.qos
     PANICKED=`grep -l "FAILED DUE RECOVERY" $TEST_DIR/$SAMPLE_STDOUT`
     if [[ "$PANICKED" == "$TEST_DIR/$SAMPLE_STDOUT" ]]; then
         echo "$SEQNUM PANICKED" > $TEST_DIR/$SAMPLE_QOS
@@ -49,11 +60,11 @@ do
                 RECOVERED=`grep -l "SUCCESS" $TEST_DIR/$SAMPLE_STDOUT`
                 if [[ "$RECOVERED" == "$TEST_DIR/$SAMPLE_STDOUT" ]]; then
                     if [[ "$AXBENCH_EN" == "yes" ]]; then
-                        ERROR_RAW=`python $QOS_SCRIPT $GOLDEN ${TEST_DIR}/${SAMPLE_DATA}`
+                        ERROR_RAW=`$QOS_SCRIPT $GOLDEN ${TEST_DIR}/${SAMPLE_DATA}`
                     else
                         ERROR_RAW="N/A"
                     fi
-                    ERROR=`echo "$ERROR_RAW" | sed -r 's/\*\*\* Error: (-?[0-9]\\.[0-9]*)/\1/'`
+                    ERROR=`echo "$ERROR_RAW" | sed -r 's/\*\*\* Error: (-?[0-9]*\\.[0-9]*)/\1/'`
                     ERROR="$SEQNUM $ERROR (MCE)"
                     echo $ERROR > $TEST_DIR/$SAMPLE_QOS
                 else
@@ -72,11 +83,11 @@ do
                     RECOVERED=`grep -l "SUCCESS" $TEST_DIR/$SAMPLE_STDOUT`
                     if [[ "$RECOVERED" == "$TEST_DIR/$SAMPLE_STDOUT" ]]; then
                         if [[ "$AXBENCH_EN" == "yes" ]]; then
-                            ERROR_RAW=`python $QOS_SCRIPT $GOLDEN ${TEST_DIR}/${SAMPLE_DATA}`
+                            ERROR_RAW=`$QOS_SCRIPT $GOLDEN ${TEST_DIR}/${SAMPLE_DATA}`
                         else
                             ERROR_RAW="N/A"
                         fi
-                        ERROR=`echo "$ERROR_RAW" | sed -r 's/\*\*\* Error: (-?[0-9]\\.[0-9]*)/\1/'`
+                        ERROR=`echo "$ERROR_RAW" | sed -r 's/\*\*\* Error: (-?[0-9]*\\.[0-9]*)/\1/'`
                         ERROR="$SEQNUM $ERROR (CORRECT)"
                         echo $ERROR > $TEST_DIR/$SAMPLE_QOS
                     else
@@ -92,19 +103,19 @@ do
     fi
 done
 
-GOLDEN_ERROR_RAW=`python $QOS_SCRIPT $GOLDEN $GOLDEN`
-GOLDEN_ERROR=`echo "$GOLDEN_ERROR_RAW" | sed -r 's/\*\*\* Error: (-?[0-9]\\.[0-9]*)/\1/'`
-echo "0 $GOLDEN_ERROR (GOLDEN)" > $TEST_DIR/golden.qos
+GOLDEN_ERROR_RAW=`$QOS_SCRIPT $GOLDEN $GOLDEN`
+GOLDEN_ERROR=`echo "$GOLDEN_ERROR_RAW" | sed -r 's/\*\*\* Error: (-?[0-9]*\\.?[0-9]*)/\1/'`
+
 cat $TEST_DIR/*qos | grep "PANICKED" > $TEST_DIR/panics.txt
 cat $TEST_DIR/*qos | grep -e "([A-Z]*)" > $TEST_DIR/recovered.txt
 
-cat $TEST_DIR/*qos | grep -e "[0-9]\\.[0-9]* (CORRECT)" > $TEST_DIR/correct.txt
-cat $TEST_DIR/correct.txt | grep -e "$GOLDEN_ERROR (CORRECT)" | sed -r "s/$GOLDEN_ERROR/0\.00000000/g" > $TEST_DIR/recovered_correct.txt
+cat $TEST_DIR/*qos | grep -e "[0-9]*\.[0-9]* (CORRECT)" > $TEST_DIR/correct.txt
+cat $TEST_DIR/correct.txt | grep -e "$GOLDEN_ERROR (CORRECT)" | sed -r "s/$GOLDEN_ERROR/0*\.0*/g" > $TEST_DIR/recovered_correct.txt
 cat $TEST_DIR/recovered_correct.txt | sed -r 's/ \(CORRECT\)//g' > $TEST_DIR/recovered_correct.csv
 cat $TEST_DIR/correct.txt | grep -v -e "$GOLDEN_ERROR (CORRECT)" > $TEST_DIR/recovered_correct_but_error.txt
 
 cat $TEST_DIR/*qos | grep -e "(MCE)" > $TEST_DIR/mce.txt
-cat $TEST_DIR/mce.txt | grep -e "$GOLDEN_ERROR (MCE)" | sed -r "s/$GOLDEN_ERROR/0\.00000000/g" > $TEST_DIR/recovered_benign.txt
+cat $TEST_DIR/mce.txt | grep -e "$GOLDEN_ERROR (MCE)" | sed -r "s/$GOLDEN_ERROR/0*\.0*/g" > $TEST_DIR/recovered_benign.txt
 cat $TEST_DIR/recovered_benign.txt | sed -r 's/ \(MCE\)//g' > $TEST_DIR/recovered_benign.csv
 cat $TEST_DIR/mce.txt | grep "CRASHED" > $TEST_DIR/recovered_crashes.txt
 cat $TEST_DIR/mce.txt | grep -v -e "CRASHED" | grep -v -e "HANG (MCE)" | grep -v -e "$GOLDEN_ERROR (MCE)" > $TEST_DIR/recovered_sdc.txt
@@ -129,4 +140,3 @@ echo "-------> Recover (hang):       `cat $TEST_DIR/recovered_hangs.txt | wc -l`
 echo "Mystery hangs:                 `cat $TEST_DIR/mystery_hangs.txt | wc -l`" | tee -a $TEST_DIR/summary.txt
 echo "Mystery crashes:               `cat $TEST_DIR/mystery_crashes.txt | wc -l`" | tee -a $TEST_DIR/summary.txt
 echo "QOS fail (FIXME):              `cat $TEST_DIR/qos_fail.txt | wc -l`" | tee -a $TEST_DIR/summary.txt
-
