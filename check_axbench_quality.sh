@@ -22,14 +22,19 @@ AXBENCH_DIR=$MWG_GIT_PATH/eccgrp-axbench
 ########################################################################
 
 if [[ "$AXBENCH_EN" == "yes" ]]; then
-    if [[ "$BENCHMARK" == "fft" || "$BENCHMARK" == "blackscholes" || "$BENCHMARK" == "fmeint" ]]; then
+    if [[ "$BENCHMARK" == "fft" || "$BENCHMARK" == "blackscholes" || "$BENCHMARK" == "fmeint" || "$BENCHMARK" == "inversek2j" ]]; then
         QOS_EXE=python
         QOS_SCRIPT_SUFFIX=py
         SAMPLES_SUFFIX=data
-    else if [[ "$BENCHMARK" == "jpeg" || "$BENCHMARK" == "kmeans" || "$BENCHMARK" == "sobel" ]]; then # FIXME
+    else if [[ "$BENCHMARK" == "jpeg" ]]; then 
         QOS_EXE=bash
         QOS_SCRIPT_SUFFIX=sh
         SAMPLES_SUFFIX=jpg
+    else if [[ "$BENCHMARK" == "kmeans" || "$BENCHMARK" == "sobel" ]]; then 
+        QOS_EXE=bash
+        QOS_SCRIPT_SUFFIX=sh
+        SAMPLES_SUFFIX=rgb
+    fi
     fi
     fi
 fi
@@ -37,6 +42,11 @@ ORIG_DIR=$PWD
 cd $TEST_DIR
 SEQNUMS=`ls *stdout | sed -r 's/[a-z0-9]*\.([0-9]*)\.?[0-9]*?\.stdout/\1/'`
 INPUTID=`ls *stdout | sed -r 's/[a-z0-9]*\.[0-9]*\.?([0-9]*)?\.stdout/\1/' | head -n1`
+if [[ "$INPUTID" == "" ]]; then
+    INPUTID_STR=""
+else
+    INPUTID_STR=".$INPUTID"
+fi
 cd $ORIG_DIR
 QOS_SCRIPT="$QOS_EXE $AXBENCH_DIR/applications/$BENCHMARK/scripts/qos.${QOS_SCRIPT_SUFFIX}"
 SAMPLES_DATA=`ls $TEST_DIR | grep -E "${BENCHMARK}\.[0-9]*\.?[0-9]*?\.${SAMPLES_SUFFIX}"`
@@ -44,9 +54,9 @@ SAMPLES_DATA=`ls $TEST_DIR | grep -E "${BENCHMARK}\.[0-9]*\.?[0-9]*?\.${SAMPLES_
 for SEQNUM in $SEQNUMS
 do
     echo "Sample $SEQNUM..."
-    SAMPLE_DATA=${BENCHMARK}.$SEQNUM.$INPUTID.${SAMPLES_SUFFIX}
-    SAMPLE_STDOUT=${BENCHMARK}.$SEQNUM.$INPUTID.stdout
-    SAMPLE_QOS=${BENCHMARK}.$SEQNUM.$INPUTID.qos
+    SAMPLE_DATA=${BENCHMARK}.${SEQNUM}${INPUTID_STR}.${SAMPLES_SUFFIX}
+    SAMPLE_STDOUT=${BENCHMARK}.${SEQNUM}${INPUTID_STR}.stdout
+    SAMPLE_QOS=${BENCHMARK}.${SEQNUM}${INPUTID_STR}.qos
     PANICKED=`grep -l "FAILED DUE RECOVERY" $TEST_DIR/$SAMPLE_STDOUT`
     if [[ "$PANICKED" == "$TEST_DIR/$SAMPLE_STDOUT" ]]; then
         echo "$SEQNUM PANICKED" > $TEST_DIR/$SAMPLE_QOS
