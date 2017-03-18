@@ -22,7 +22,7 @@ AXBENCH_DIR=$MWG_GIT_PATH/eccgrp-axbench
 ########################################################################
 
 if [[ "$AXBENCH_EN" == "yes" ]]; then
-    if [[ "$BENCHMARK" == "fft" || "$BENCHMARK" == "blackscholes" || "$BENCHMARK" == "fmeint" || "$BENCHMARK" == "inversek2j" ]]; then
+    if [[ "$BENCHMARK" == "fft" || "$BENCHMARK" == "blackscholes" || "$BENCHMARK" == "jmeint" || "$BENCHMARK" == "inversek2j" ]]; then
         QOS_EXE=python
         QOS_SCRIPT_SUFFIX=py
         SAMPLES_SUFFIX=data
