@@ -116,15 +116,15 @@ done
 GOLDEN_ERROR_RAW=`$QOS_SCRIPT $GOLDEN $GOLDEN`
 GOLDEN_ERROR=`echo "$GOLDEN_ERROR_RAW" | sed -r 's/\*\*\* Error: (-?[0-9]*\\.?[0-9]*)/\1/'`
 
-cat $TEST_DIR/*qos | grep "PANICKED" > $TEST_DIR/panics.txt
-cat $TEST_DIR/*qos | grep -e "([A-Z]*)" > $TEST_DIR/recovered.txt
+find $TEST_DIR -name "*qos" -type f | xargs grep -h "PANICKED" > $TEST_DIR/panics.txt
+find $TEST_DIR -name "*qos" -type f | xargs grep -h -e "([A-Z]*)" > $TEST_DIR/recovered.txt
 
-cat $TEST_DIR/*qos | grep -e "[0-9]*\.[0-9]* (CORRECT)" > $TEST_DIR/correct.txt
+find $TEST_DIR -name "*qos" -type f | xargs grep -h -e "[0-9]*\.[0-9]* (CORRECT)" > $TEST_DIR/correct.txt
 cat $TEST_DIR/correct.txt | grep -e "$GOLDEN_ERROR (CORRECT)" | sed -r "s/$GOLDEN_ERROR/0\.00000000/g" > $TEST_DIR/recovered_correct.txt
 cat $TEST_DIR/recovered_correct.txt | sed -r 's/ \(CORRECT\)//g' > $TEST_DIR/recovered_correct.csv
 cat $TEST_DIR/correct.txt | grep -v -e "$GOLDEN_ERROR (CORRECT)" > $TEST_DIR/recovered_correct_but_error.txt
 
-cat $TEST_DIR/*qos | grep -e "(MCE)" > $TEST_DIR/mce.txt
+find $TEST_DIR -name "*qos" -type f | xargs grep -h -e "(MCE)" > $TEST_DIR/mce.txt
 cat $TEST_DIR/mce.txt | grep -e "$GOLDEN_ERROR (MCE)" | sed -r "s/$GOLDEN_ERROR/0\.00000000/g" > $TEST_DIR/recovered_benign.txt
 cat $TEST_DIR/recovered_benign.txt | sed -r 's/ \(MCE\)//g' > $TEST_DIR/recovered_benign.csv
 cat $TEST_DIR/mce.txt | grep "CRASHED" > $TEST_DIR/recovered_crashes.txt
@@ -132,9 +132,9 @@ cat $TEST_DIR/mce.txt | grep -v -e "CRASHED" | grep -v -e "HANG (MCE)" | grep -v
 cat $TEST_DIR/recovered_sdc.txt | sed -r 's/ \(MCE\)//g' > $TEST_DIR/recovered_sdc.csv
 cat $TEST_DIR/mce.txt | grep -e "HANG (MCE)" > $TEST_DIR/recovered_hangs.txt
 
-cat $TEST_DIR/*qos | grep "CRASH (mystery)" > $TEST_DIR/mystery_crashes.txt
-cat $TEST_DIR/*qos | grep "HANG (mystery)" > $TEST_DIR/mystery_hangs.txt
-cat $TEST_DIR/*qos | grep "QOSFAIL" > $TEST_DIR/qos_fail.txt
+find $TEST_DIR -name "*qos" -type f | xargs grep -h "CRASH (mystery)" > $TEST_DIR/mystery_crashes.txt
+find $TEST_DIR -name "*qos" -type f | xargs grep -h "HANG (mystery)" > $TEST_DIR/mystery_hangs.txt
+find $TEST_DIR -name "*qos" -type f | xargs grep -h "QOSFAIL" > $TEST_DIR/qos_fail.txt
 
 echo "Golden error:                  $GOLDEN_ERROR" | tee $TEST_DIR/summary.txt
 echo "Panics (opt-out crash):        `cat $TEST_DIR/panics.txt | wc -l `" | tee -a $TEST_DIR/summary.txt
