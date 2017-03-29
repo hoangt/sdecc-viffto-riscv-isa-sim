@@ -9,7 +9,7 @@ To build custom memdatatrace/fault injection version of Spike for the Software-D
 
 $ mkdir build
 $ cd build
-$ ../configure --with-prefix=$PWD --with-fesvr=$RISCV
+$ ../configure --prefix=$PWD --with-fesvr=$RISCV
 $ make -j16 && make install
 
 It's important to do the "make install". Even though the make process puts an executable in build/ , it will not resolve all the symbols in the shared libraries that are built until you make install to place libs in the right place.
