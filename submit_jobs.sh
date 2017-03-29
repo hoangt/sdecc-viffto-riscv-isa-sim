@@ -17,7 +17,7 @@ BENCHMARK_SUITE=$2
 ########################## FEEL FREE TO CHANGE THESE OPTIONS ##################################
 SPEC_BENCHMARKS="400.perlbench 401.bzip2 403.gcc 410.bwaves 416.gamess 429.mcf 433.milc 434.zeusmp 435.gromacs 436.cactusADM 437.leslie3d 444.namd 445.gobmk 447.dealII 450.soplex 453.povray 454.calculix 456.hmmer 458.sjeng 459.GemsFDTD 462.libquantum 464.h264ref 465.tonto 470.lbm 471.omnetpp 473.astar 481.wrf 482.sphinx3 483.xalancbmk 998.specrand 999.specrand" # All benchmarks
 #SPEC_BENCHMARKS="416.gamess 429.mcf 433.milc 434.zeusmp 437.leslie3d 445.gobmk 481.wrf 483.xalancbmk" # Benchmarks with runtime problems compiled for linux-gnu and running on top of pk as of 8/25/2016
-AXBENCH_BENCHMARKS="blackscholes"
+AXBENCH_BENCHMARKS="fft"
 #AXBENCH_BENCHMARKS="blackscholes fft inversek2j jmeint jpeg kmeans sobel" # Complete suite
 #AXBENCH_BENCHMARKS="inversek2j jmeint jpeg kmeans sobel" # Benchmarks with compile-time or run-time issues compiled for unknown-elf (newlib) and running on top of pk as of 3/5/2017
 
@@ -34,13 +34,13 @@ if [[ "$MWG_MACHINE_NAME" == "hoffman" ]]; then
     MAILING_LIST=mgottsch 		# List of users to email with status updates, separated by commas
 fi
 
-N=39
+N=34
 K=32
-CODE_TYPE=hsiao1970
+CODE_TYPE=ULEL_float
 CACHELINE_SIZE=64
-NUM_RUNS=10000
-BATCH_SIZE=200
-TIMEOUT=20 # in minutes
+NUM_RUNS=1000
+BATCH_SIZE=72
+TIMEOUT=5 # in minutes
 
 if [[ "$MODE" == "memdatatrace" ]]; then
     OUTPUT_DIR=$MWG_DATA_PATH/swd_ecc_data/rv64g/spike_output
