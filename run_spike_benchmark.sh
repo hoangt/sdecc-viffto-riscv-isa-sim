@@ -4,13 +4,13 @@
 # mgottscho@ucla.edu
 
 ARGC=$# # Get number of arguments excluding arg0 (the script itself). Check for help message condition.
-if [[ "$ARGC" < 8 ]]; then # Bad number of arguments. 
+if [[ "$ARGC" < 9 ]]; then # Bad number of arguments. 
 	echo "Author: Mark Gottscho"
 	echo "mgottscho@ucla.edu"
 	echo ""
 	echo "This script runs a single RISC-V Spike simulation of a single program (compiled for embedded Newlib, not Linux)."
 	echo ""
-	echo "USAGE: run_spike_benchmark.sh <MODE> <N> <K> <CODE_TYPE> <CACHELINE_SIZE> <SEQNUM> <OUTPUT_DIR> <BENCHMARK> <OPTIONAL_BENCHMARK_ARGS>"
+	echo "USAGE: run_spike_benchmark.sh <MODE> <FAULT_INJECTION_TARGET> <N> <K> <CODE_TYPE> <CACHELINE_SIZE> <SEQNUM> <OUTPUT_DIR> <BENCHMARK> <OPTIONAL_BENCHMARK_ARGS>"
 	echo "EXAMPLE: ./run_spike_benchmark.sh faultinj_sim 72 64 hsiao1970 64 401.bzip2"
 	echo ""
 	echo "A single --help help or -h argument will bring this message back."
@@ -19,14 +19,15 @@ fi
 
 # Get command line input. We will need to check these.
 MODE=$1                         # Spike mode, i.e. memdatatrace or faultinj_[user|sim] or default
-N=$2
-K=$3
-CODE_TYPE=$4
-CACHELINE_SIZE=$5
-SEQNUM=$6
-OUTPUT_DIR=$7
-BENCHMARK=$8					# Benchmark name, e.g. bzip2
-OPTIONAL_BENCHMARK_ARGS="${@:9}" # Remaining args, if any
+FAULT_INJECTION_TARGET=$2
+N=$3
+K=$4
+CODE_TYPE=$5
+CACHELINE_SIZE=$6
+SEQNUM=$7
+OUTPUT_DIR=$8
+BENCHMARK=$9					# Benchmark name, e.g. bzip2
+OPTIONAL_BENCHMARK_ARGS="${@:10}" # Remaining args, if any
 
 ################## SYSTEM-SPECIFIC VARIABLES: MODIFY ACCORDINGLY #######
 SPEC_DIR=$MWG_GIT_PATH/spec_cpu2006_install
@@ -401,7 +402,6 @@ if [[ "$MODE" == "memdatatrace" ]]; then
 fi
 
 if [[ "$MODE" == "faultinj_sim" ]]; then
-    FAULT_INJECTION_TARGET=data
     CANDIDATES_SCRIPT=$MWG_GIT_PATH/eccgrp-ecc-ctrl/candidate_messages_spike_wrapper.sh
     DATA_FAULT_RECOVERY_SCRIPT=$MWG_GIT_PATH/eccgrp-ecc-ctrl/data_recovery_spike_wrapper.sh
     INST_FAULT_RECOVERY_SCRIPT=$MWG_GIT_PATH/eccgrp-ecc-ctrl/inst_recovery_spike_wrapper.sh

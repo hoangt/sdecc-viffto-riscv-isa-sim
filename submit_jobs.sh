@@ -4,16 +4,17 @@
 # mgottscho@ucla.edu
 
 ARGC=$# # Get number of arguments excluding arg0 (the script itself). Check for help message condition.
-if [[ "$ARGC" != 2 ]]; then # Bad number of arguments. 
+if [[ "$ARGC" != 3 ]]; then # Bad number of arguments. 
 	echo "Author: Mark Gottscho"
 	echo "mgottscho@ucla.edu"
 	echo ""
-	echo "USAGE: ./submit_jobs.sh <MODE> <BENCHMARK_SUITE>"
+	echo "USAGE: ./submit_jobs.sh <MODE> <FAULT_INJECTION_TARGET> <BENCHMARK_SUITE>"
 	exit
 fi
 
 MODE=$1
-BENCHMARK_SUITE=$2
+FAULT_INJECTION_TARGET=$2
+BENCHMARK_SUITE=$3
 ########################## FEEL FREE TO CHANGE THESE OPTIONS ##################################
 SPEC_BENCHMARKS="400.perlbench 401.bzip2 403.gcc 410.bwaves 416.gamess 429.mcf 433.milc 434.zeusmp 435.gromacs 436.cactusADM 437.leslie3d 444.namd 445.gobmk 447.dealII 450.soplex 453.povray 454.calculix 456.hmmer 458.sjeng 459.GemsFDTD 462.libquantum 464.h264ref 465.tonto 470.lbm 471.omnetpp 473.astar 481.wrf 482.sphinx3 483.xalancbmk 998.specrand 999.specrand" # All benchmarks
 #SPEC_BENCHMARKS="416.gamess 429.mcf 433.milc 434.zeusmp 437.leslie3d 445.gobmk 481.wrf 483.xalancbmk" # Benchmarks with runtime problems compiled for linux-gnu and running on top of pk as of 8/25/2016
@@ -34,9 +35,9 @@ if [[ "$MWG_MACHINE_NAME" == "hoffman" ]]; then
     MAILING_LIST=mgottsch 		# List of users to email with status updates, separated by commas
 fi
 
-N=34
+N=35
 K=32
-CODE_TYPE=ULEL_float
+CODE_TYPE=ULEL_riscv
 CACHELINE_SIZE=64
 NUM_RUNS=1000
 BATCH_SIZE=72
@@ -108,8 +109,8 @@ for BENCHMARK in $BENCHMARKS; do
         JOB_STDERR=$OUTPUT_DIR_BENCHMARK/${BENCHMARK}.$SEQNUM.stderr
 
         if [[ "$MWG_MACHINE_NAME" == "hoffman" ]]; then
-            JOB_NAME="spike_${BENCHMARK}_${MODE}"
-            qsub -V -N $JOB_NAME -l h_data=$MAX_MEM_PER_RUN,time=$MAX_TIME_PER_RUN,highp -M $MAILING_LIST -o $JOB_STDOUT -e $JOB_STDERR -m as run_spike_benchmark.sh $MODE $N $K $CODE_TYPE $CACHELINE_SIZE $SEQNUM $OUTPUT_DIR_BENCHMARK $BENCHMARK
+            JOB_NAME="spike_${BENCHMARK}_${MODE}_${FAULT_INJECTION_TARGET}"
+            qsub -V -N $JOB_NAME -l h_data=$MAX_MEM_PER_RUN,time=$MAX_TIME_PER_RUN,highp -M $MAILING_LIST -o $JOB_STDOUT -e $JOB_STDERR -m as run_spike_benchmark.sh $MODE $FAULT_INJECTION_TARGET $N $K $CODE_TYPE $CACHELINE_SIZE $SEQNUM $OUTPUT_DIR_BENCHMARK $BENCHMARK
         else
             ./run_spike_benchmark.sh $MODE $N $K $CODE_TYPE $CACHELINE_SIZE $SEQNUM $OUTPUT_DIR_BENCHMARK $BENCHMARK > $JOB_STDOUT 2> $JOB_STDERR &
         fi
