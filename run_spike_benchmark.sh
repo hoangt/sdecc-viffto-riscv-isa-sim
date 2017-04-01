@@ -11,7 +11,7 @@ if [[ "$ARGC" < 9 ]]; then # Bad number of arguments.
 	echo "This script runs a single RISC-V Spike simulation of a single program (compiled for embedded Newlib, not Linux)."
 	echo ""
 	echo "USAGE: run_spike_benchmark.sh <MODE> <FAULT_INJECTION_TARGET> <N> <K> <CODE_TYPE> <CACHELINE_SIZE> <SEQNUM> <OUTPUT_DIR> <BENCHMARK> <OPTIONAL_BENCHMARK_ARGS>"
-	echo "EXAMPLE: ./run_spike_benchmark.sh faultinj_sim 72 64 hsiao1970 64 401.bzip2"
+	echo "EXAMPLE: ./run_spike_benchmark.sh faultinj_sim inst 72 64 hsiao1970 64 401.bzip2"
 	echo ""
 	echo "A single --help help or -h argument will bring this message back."
 	exit
