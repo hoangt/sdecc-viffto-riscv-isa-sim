@@ -18,9 +18,8 @@ BENCHMARK_SUITE=$3
 ########################## FEEL FREE TO CHANGE THESE OPTIONS ##################################
 SPEC_BENCHMARKS="400.perlbench 401.bzip2 403.gcc 410.bwaves 416.gamess 429.mcf 433.milc 434.zeusmp 435.gromacs 436.cactusADM 437.leslie3d 444.namd 445.gobmk 447.dealII 450.soplex 453.povray 454.calculix 456.hmmer 458.sjeng 459.GemsFDTD 462.libquantum 464.h264ref 465.tonto 470.lbm 471.omnetpp 473.astar 481.wrf 482.sphinx3 483.xalancbmk 998.specrand 999.specrand" # All benchmarks
 #SPEC_BENCHMARKS="416.gamess 429.mcf 433.milc 434.zeusmp 437.leslie3d 445.gobmk 481.wrf 483.xalancbmk" # Benchmarks with runtime problems compiled for linux-gnu and running on top of pk as of 8/25/2016
-AXBENCH_BENCHMARKS="fft"
-#AXBENCH_BENCHMARKS="blackscholes fft inversek2j jmeint jpeg kmeans sobel" # Complete suite
-#AXBENCH_BENCHMARKS="inversek2j jmeint jpeg kmeans sobel" # Benchmarks with compile-time or run-time issues compiled for unknown-elf (newlib) and running on top of pk as of 3/5/2017
+AXBENCH_BENCHMARKS="blackscholes fft inversek2j jmeint jpeg kmeans sobel" # Complete suite
+#AXBENCH_BENCHMARKS="blackscholes fft inversek2j jmeint jpeg sobel" # Complete suite
 
 
 if [[ "$MWG_MACHINE_NAME" == "hoffman" ]]; then
@@ -41,16 +40,16 @@ CODE_TYPE=ULEL_riscv
 CACHELINE_SIZE=64
 NUM_RUNS=1000
 BATCH_SIZE=72
-TIMEOUT=5 # in minutes
+TIMEOUT=30 # in minutes
 
 if [[ "$MODE" == "memdatatrace" ]]; then
     OUTPUT_DIR=$MWG_DATA_PATH/swd_ecc_data/rv64g/spike_output
 else
 if [[ "$MODE" == "faultinj_user" ]]; then
-    OUTPUT_DIR=$MWG_DATA_PATH/swd_ecc_data/rv64g/data-recovery/online-dynamic-user/$CODE_TYPE/$N,$K/`date -I`
+    OUTPUT_DIR=$MWG_DATA_PATH/swd_ecc_data/rv64g/${FAULT_INJECTION_TARGET}-recovery/online-dynamic-user/$CODE_TYPE/$N,$K/`date -I`
 else
 if [[ "$MODE" == "faultinj_sim" ]]; then
-    OUTPUT_DIR=$MWG_DATA_PATH/swd_ecc_data/rv64g/data-recovery/online-dynamic-sim/$CODE_TYPE/$N,$K/`date -I`
+    OUTPUT_DIR=$MWG_DATA_PATH/swd_ecc_data/rv64g/${FAULT_INJECTION_TARGET}-recovery/online-dynamic-sim/$CODE_TYPE/$N,$K/`date -I`
 else
 if [[ "$MODE" == "default" ]]; then
     OUTPUT_DIR=$MWG_DATA_PATH/swd_ecc_data/rv64g/golden
@@ -81,11 +80,11 @@ for BENCHMARK in $BENCHMARKS; do
 
     for(( SEQNUM=1; SEQNUM<=$NUM_RUNS; SEQNUM++ )); do
         if [[ "$(($SEQNUM % 10))" -eq "0" ]]; then
-            killall -9 --older-than ${TIMEOUT}m run_spike_benchmark.sh > /dev/null 2>&1
-            killall -9 --older-than ${TIMEOUT}m spike > /dev/null 2>&1
-            killall -9 --older-than ${TIMEOUT}m candidate_messages_standalone > /dev/null 2>&1
-            killall -9 --older-than ${TIMEOUT}m data_recovery_standalone > /dev/null 2>&1
-            killall -9 --older-than ${TIMEOUT}m inst_recovery_standalone > /dev/null 2>&1
+            killall -9 --older-than ${TIMEOUT}m --user `whoami` run_spike_benchmark.sh > /dev/null 2>&1
+            killall -9 --older-than ${TIMEOUT}m --user `whoami` spike > /dev/null 2>&1
+            killall -9 --older-than ${TIMEOUT}m --user `whoami` candidate_messages_standalone > /dev/null 2>&1
+            killall -9 --older-than ${TIMEOUT}m --user `whoami` data_recovery_standalone > /dev/null 2>&1
+            killall -9 --older-than ${TIMEOUT}m --user `whoami` inst_recovery_standalone > /dev/null 2>&1
         fi
 
         let CURRENTLY_RUNNING=`ps aux | grep "run_spike_benchmark.sh" | wc -l`-1
@@ -97,11 +96,11 @@ for BENCHMARK in $BENCHMARKS; do
             let SINCE=$SINCE+2
 
             if [[ "$SINCE" -gt "$(expr 30)" ]]; then
-                killall -9 --older-than ${TIMEOUT}m run_spike_benchmark.sh > /dev/null 2>&1
-                killall -9 --older-than ${TIMEOUT}m spike > /dev/null 2>&1
-                killall -9 --older-than ${TIMEOUT}m candidate_messages_standalone > /dev/null 2>&1
-                killall -9 --older-than ${TIMEOUT}m data_recovery_standalone > /dev/null 2>&1
-                killall -9 --older-than ${TIMEOUT}m inst_recovery_standalone > /dev/null 2>&1
+                killall -9 --older-than ${TIMEOUT}m --user `whoami` run_spike_benchmark.sh > /dev/null 2>&1
+                killall -9 --older-than ${TIMEOUT}m --user `whoami` spike > /dev/null 2>&1
+                killall -9 --older-than ${TIMEOUT}m --user `whoami` candidate_messages_standalone > /dev/null 2>&1
+                killall -9 --older-than ${TIMEOUT}m --user `whoami` data_recovery_standalone > /dev/null 2>&1
+                killall -9 --older-than ${TIMEOUT}m --user `whoami` inst_recovery_standalone > /dev/null 2>&1
             fi
         done
         echo "Run #$SEQNUM..."
