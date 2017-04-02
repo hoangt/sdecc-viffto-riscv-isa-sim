@@ -32,6 +32,7 @@ OPTIONAL_BENCHMARK_ARGS="${@:10}" # Remaining args, if any
 ################## SYSTEM-SPECIFIC VARIABLES: MODIFY ACCORDINGLY #######
 SPEC_DIR=$MWG_GIT_PATH/spec_cpu2006_install
 AXBENCH_DIR=$MWG_GIT_PATH/eccgrp-axbench
+FAULTLINK_DIR=$MWG_GIT_PATH/eccgrp-faultlink-benchmarks
 SPIKE_DIR=$MWG_GIT_PATH/eccgrp-riscv-isa-sim/build
 ##################################################################
 
@@ -40,6 +41,7 @@ mkdir -p $OUTPUT_DIR
 # Defaults
 SPEC_BENCH=0
 AX_BENCH=0
+FAULTLINK_BENCH=0
 RUN_DIR=$PWD
 if [[ "$MODE" == "faultinj_sim" ]]; then
     FAULT_INJECTION_STEP_START=1000000
@@ -122,6 +124,14 @@ JMEINT=jmeint
 JPEG=jpeg
 KMEANS=kmeans
 SOBEL=sobel
+##################################################################
+
+################# FAULTLINK BENCHMARK CODENAMES ##################
+BLOWFISH=blowfish
+DHRYSTONE=dhrystone
+MATMULT_INT=matmult_int
+SHA=sha
+WHETSTONE=whetstone
 ##################################################################
 
 
@@ -306,8 +316,33 @@ if [[ "$BENCHMARK" == "$SOBEL" ]]; then
     FAULT_INJECTION_STEP_START=466950
     FAULT_INJECTION_STEP_STOP=2927653750
     AX_BENCH=1
+else
+if [[ "$BENCHMARK" == "$BLOWFISH" ]]; then
+	BENCHMARK_ARGS=""
+    FAULTLINK_BENCH=1
+else
+if [[ "$BENCHMARK" == "$DHRYSTONE" ]]; then
+	BENCHMARK_ARGS=""
+    FAULTLINK_BENCH=1
+else
+if [[ "$BENCHMARK" == "$MATMULT_INT" ]]; then
+	BENCHMARK_ARGS=""
+    FAULTLINK_BENCH=1
+else
+if [[ "$BENCHMARK" == "$SHA" ]]; then
+	BENCHMARK_ARGS=""
+    FAULTLINK_BENCH=1
+else
+if [[ "$BENCHMARK" == "$WHETSTONE" ]]; then
+	BENCHMARK_ARGS="-c 10000"
+    FAULTLINK_BENCH=1
 else # Not a SPEC CPU2006 or axbench benchmark
     BENCHMARK_ARGS=$OPTIONAL_BENCHMARK_ARGS
+fi
+fi
+fi
+fi
+fi
 fi
 fi
 fi
@@ -376,6 +411,20 @@ if [[ "$AX_BENCH" == 1 ]]; then
         BENCHMARK_NAME=${BENCHMARK}-rv64g-sdecc
     else
         BENCHMARK_NAME=${BENCHMARK}-rv64g
+    fi
+    fi
+fi
+
+# FAULTLINK BENCH
+if [[ "$FAULTLINK_BENCH" == 1 ]]; then
+    RUN_DIR=$FAULTLINK_DIR/$BENCHMARK
+    if [[ "$MODE" == "faultinj_sim" ]]; then
+        BENCHMARK_NAME=${BENCHMARK}-rv64g-sdecc
+    else
+    if [[ "$MODE" == "faultinj_user" ]]; then
+        BENCHMARK_NAME=${BENCHMARK}-rv64g-sdecc
+    else
+        BENCHMARK_NAME=${BENCHMARK}
     fi
     fi
 fi

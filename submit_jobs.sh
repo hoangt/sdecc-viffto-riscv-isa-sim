@@ -20,6 +20,7 @@ SPEC_BENCHMARKS="400.perlbench 401.bzip2 403.gcc 410.bwaves 416.gamess 429.mcf 4
 #SPEC_BENCHMARKS="416.gamess 429.mcf 433.milc 434.zeusmp 437.leslie3d 445.gobmk 481.wrf 483.xalancbmk" # Benchmarks with runtime problems compiled for linux-gnu and running on top of pk as of 8/25/2016
 AXBENCH_BENCHMARKS="blackscholes fft inversek2j jmeint jpeg kmeans sobel" # Complete suite
 #AXBENCH_BENCHMARKS="blackscholes fft inversek2j jmeint jpeg sobel" # Complete suite
+FAULTLINK_BENCHMARKS="blowfish dhrystone matmult_int sha whetstone" # Assorted mibench and other benchmarks
 
 
 if [[ "$MWG_MACHINE_NAME" == "hoffman" ]]; then
@@ -65,8 +66,12 @@ if [[ "$BENCHMARK_SUITE" == "SPEC_CPU2006" ]]; then
 else
     if [[ "$BENCHMARK_SUITE" == "AXBENCH" ]]; then
         BENCHMARKS=$AXBENCH_BENCHMARKS
-    else
-        BENCHMARKS=$BENCHMARK_SUITE # Command line list
+    else 
+        if [[ "$BENCHMARK_SUITE" == "FAULTLINK" ]]; then
+            BENCHMARKS=$FAULTLINK_BENCHMARKS
+        else
+            BENCHMARKS=$BENCHMARK_SUITE # Command line list
+        fi
     fi
 fi
 
