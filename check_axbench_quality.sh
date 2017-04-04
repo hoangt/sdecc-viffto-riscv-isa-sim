@@ -33,7 +33,7 @@ if [[ "$AXBENCH_EN" == "yes" ]]; then
     else if [[ "$BENCHMARK" == "kmeans" || "$BENCHMARK" == "sobel" ]]; then 
         QOS_EXE=bash
         QOS_SCRIPT_SUFFIX=sh
-        SAMPLES_SUFFIX=rgb
+        SAMPLES_SUFFIX=10.rgb
     fi
     fi
     fi
