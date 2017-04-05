@@ -29,7 +29,7 @@ if [[ "$AXBENCH_EN" == "yes" ]]; then
     else if [[ "$BENCHMARK" == "jpeg" ]]; then 
         QOS_EXE=bash
         QOS_SCRIPT_SUFFIX=sh
-        SAMPLES_SUFFIX=jpg
+        SAMPLES_SUFFIX=10.jpg
     else if [[ "$BENCHMARK" == "kmeans" || "$BENCHMARK" == "sobel" ]]; then 
         QOS_EXE=bash
         QOS_SCRIPT_SUFFIX=sh
